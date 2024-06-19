@@ -1,0 +1,56 @@
+name: lush
+description: A new Flutter project.
+publish_to: 'none'
+version: 1.0.0+1
+
+environment:
+  sdk: '>=2.19.0 <3.0.0'
+
+dependencies:
+  flutter:
+    sdk: flutter
+  http: ^1.2.1
+  bloc: ^8.1.0
+  equatable: ^2.0.5
+  flutter_bloc: ^8.1.1
+  cupertino_icons: ^1.0.5
+  shared_preferences: ^2.0.17
+  hexcolor: ^3.0.1
+  rive: ^0.13.8
+#  flutter_zoom_drawer: ^3.0.3
+  pin_input_text_field: ^4.2.0
+  appwrite: ^12.0.4
+  google_sign_in: ^6.2.1
+  font_awesome_flutter: ^10.3.0
+  flutter_facebook_auth: ^7.0.1
+  google_fonts: ^6.2.1
+  provider: ^6.0.5
+  no_context_navigation: ^3.0.0
+  flutter_pw_validator: ^1.5.0
+  razorpay_flutter: ^1.3.0
+  fluttertoast: ^8.1.3
+  duration_button: ^1.0.0
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+
+  flutter_lints: ^4.0.0
+
+flutter:
+
+  uses-material-design: true
+  assets:
+    - assets/
+
+
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  

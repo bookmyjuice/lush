@@ -1,0 +1,5 @@
+{
+  "java.configuration.updateBuildConfiguration": "interactive",
+  "cmake.configureOnOpen": true,
+  "emulator.emulatorPathWindows": "C:\\Users\\BHARA\\AppData\\Local\\Android\\Sdk\\emulator"
+}
