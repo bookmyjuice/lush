@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:hexcolor/hexcolor.dart';
 import 'package:lush/main.dart';
-import 'package:lush/screens/detail.dart';
+import 'package:lush/views/screens/detail.dart';
 import 'package:lush/theme.dart';
-import 'package:lush/models/model.dart';
-import 'package:lush/models/Juice.dart';
+import 'package:lush/views/models/model.dart';
+import 'package:lush/views/models/Juice.dart';
 
 class Menu extends StatefulWidget {
   const Menu({super.key});

@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:lush/bloc/AuthBloc.dart';
-import 'package:lush/events/AuthEvents.dart';
+import 'package:lush/bloc/AuthBloc/AuthBloc.dart';
+import 'package:lush/bloc/AuthBloc/AuthEvents.dart';
 
 class MobileNumberPage extends StatefulWidget {
 // final UserRepository userRepository;

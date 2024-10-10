@@ -6,12 +6,12 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:google_fonts/google_fonts.dart';
 // import 'package:hexcolor/hexcolor.dart';
-import 'package:lush/bloc/AuthBloc.dart';
-import 'package:lush/events/AuthEvents.dart';
+import 'package:lush/bloc/AuthBloc/AuthBloc.dart';
+import 'package:lush/bloc/AuthBloc/AuthEvents.dart';
 import 'package:lush/main.dart';
-import 'package:lush/models/Facebook.dart';
-import 'package:lush/models/User.dart';
-import 'package:lush/models/googleSignIn.dart';
+import 'package:lush/views/models/Facebook.dart';
+import 'package:lush/views/models/User.dart';
+import 'package:lush/views/models/googleSignIn.dart';
 import 'package:lush/theme.dart';
 import 'package:no_context_navigation/no_context_navigation.dart';
 // import '../main.dart';
@@ -40,13 +40,13 @@ class LoginPageState extends State<LoginPage> {
 
   @override
   void initState() {
-    user = User();
+    // user = User();
     super.initState();
   }
 
   @override
   void dispose() {
-    user = User();
+    // user = User();
     emailController.dispose();
     passwordController.dispose();
     super.dispose();
@@ -115,7 +115,8 @@ class LoginPageState extends State<LoginPage> {
                               SizedBox(
                                   height: 90,
                                   width: 90,
-                                  child: Image.asset('assets/lushlogo.png')),
+                                  child:
+                                      Image.asset('assets/lushlogo_old.png')),
                               const SizedBox(height: 20.0),
                               Column(
                                 crossAxisAlignment: CrossAxisAlignment.center,
@@ -137,9 +138,9 @@ class LoginPageState extends State<LoginPage> {
                       const SizedBox(height: 10),
                       _continueWithMobileButton(),
                       // const SizedBox(height: 15),
-                      ButtonBar(
-                        buttonPadding:
-                            const EdgeInsets.fromLTRB(25, 10, 25, 10),
+                      OverflowBar(
+                        // buttonPadding:
+                        //     const EdgeInsets.fromLTRB(25, 10, 25, 10),
                         alignment: MainAxisAlignment.center,
                         children: [
                           _googleButton(),
@@ -360,10 +361,10 @@ class LoginPageState extends State<LoginPage> {
           googleSignIn.login().then((value) async {
             value?.id != null
                 ? {
-                    user.userid = value!.id,
+                    user.id = value!.id,
                     user.email = value.email,
-                    user.name = value.displayName!,
-                    user.photoUrl = value.photoUrl!,
+                    user.firstName = value.displayName!,
+                    // user.photoUrl = value.photoUrl!,
                     // user.password=value.serverAuthCode,
                     BlocProvider.of<AuthenticationBloc>(context)
                         .add(SignInGoogle(user)),
@@ -401,10 +402,10 @@ class LoginPageState extends State<LoginPage> {
                 if (loginResult.status.toString() == "LoginStatus.success")
                   {
                     Facebook.userdata().then((value) => {
-                          user.name = value["name"],
-                          user.userid = value["id"],
+                          user.firstName = value["name"],
+                          user.id = value["id"],
                           user.email = value["email"],
-                          user.photoUrl = value["picture"]["data"]["url"],
+                          // user.photoUrl = value["picture"]["data"]["url"],
                           // user.password = loginResult.accessToken!.token,
                           BlocProvider.of<AuthenticationBloc>(context)
                               .add(SignInFacebook(user)),

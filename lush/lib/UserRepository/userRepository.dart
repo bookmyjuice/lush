@@ -1,18 +1,19 @@
 import 'dart:io';
-import 'package:appwrite/models.dart';
+// import 'package:appwrite/models.dart';
 import 'package:flutter/foundation.dart';
 import 'package:http/io_client.dart';
+import 'package:lush/views/models/User.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:convert';
 // import '../models/User.dart';
-import 'package:appwrite/appwrite.dart';
+// import 'package:appwrite/appwrite.dart';
 
 class UserRepository {
   late bool userLoggedIn;
-  Client client = Client()
-      .setEndpoint('http://167.71.224.84/v1')
-      .setProject('63d3be0307eb40e0f098')
-      .setSelfSigned(status: true);
+  // Client client = Client()
+  //     .setEndpoint('http://167.71.224.84/v1')
+  //     .setProject('63d3be0307eb40e0f098')
+  //     .setSelfSigned(status: true);
   final Future<SharedPreferences> _prefs = SharedPreferences.getInstance();
   final HttpClient ioc = HttpClient();
 
@@ -21,7 +22,8 @@ class UserRepository {
     // (user.name==)
 
     //if user exists in DB, pass ID & password, get a JWT Token and return it else return null
-    final data = jsonEncode({"username": user.name, "password": user.password});
+    final data =
+        jsonEncode({"username": user.firstName, "password": user.password});
     try {
       final HttpClient ioc = HttpClient();
       ioc.badCertificateCallback =
@@ -57,7 +59,8 @@ class UserRepository {
   Future<String?> signInFacebook({required User user}) async {
     SharedPreferences sharedPreferences = await _prefs;
     // (user.name==)
-    final data = jsonEncode({"username": user.name, "password": user.password});
+    final data =
+        jsonEncode({"username": user.firstName, "password": user.password});
     try {
       final HttpClient ioc = HttpClient();
       ioc.badCertificateCallback =
@@ -130,34 +133,34 @@ class UserRepository {
 
   Future<bool> SignUp({required User user}) async {
     SharedPreferences sharedPreferences = await _prefs;
-    Account account = Account(client);
+    // Account account = Account(client);
     ioc.badCertificateCallback =
         (X509Certificate cert, String host, int port) => true;
-    final res = await account.create(
-        userId: ID.unique(),
-        email: user.email,
-        password: user.password!,
-        name: user.name);
+    // final res = await account.create(
+    //     userId: ID.unique(),
+    //     email: user.email,
+    //     password: user.password!,
+    //     name: user.name);
 
-    print(res.registration);
-    print(res.status);
-    print(res.emailVerification);
-    print(res.prefs);
-    print(res.phone);
+    // print(res.registration);
+    // print(res.status);
+    // print(res.emailVerification);
+    // print(res.prefs);
+    // print(res.phone);
     // sharedPreferences.setString("userid", user.userid);
     // sharedPreferences.setString("username", user.name);
     // sharedPreferences.setString("password", user.password);
     // sharedPreferences.setString("flatORVilla", user.flatOrVillaNumber);
     // sharedPreferences.setString("phoneNo", user.phoneNo);
-    return res.status;
+    return true;
   }
 
-  Future<void> verifyMobile(String mobileNumber) async {
-    Account account = Account(client);
-    // final u = account;
-    // account.updatePhone(phone: mobileNumber, password: u.);
-    account.createPhoneVerification();
-  }
+  // Future<void> verifyMobile(String mobileNumber) async {
+  //   // Account account = Account(client);
+  //   // final u = account;
+  //   // account.updatePhone(phone: mobileNumber, password: u.);
+  //   account.createPhoneVerification();
+  // }
 
   Future<void> deleteToken() async {
     SharedPreferences sharedPreferences = await SharedPreferences.getInstance();

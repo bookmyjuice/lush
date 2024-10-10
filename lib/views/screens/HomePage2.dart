@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:lush/models/JuiceListView.dart';
+import 'package:lush/views/models/JuiceListView.dart';
 import '../models/SubcriptionView.dart';
 import '../models/title_view.dart';
-import '../theme.dart';
+import '../../theme.dart';
 
 class HomePage2 extends StatefulWidget {
   const HomePage2({super.key});

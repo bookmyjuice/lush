@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
-import 'package:lush/bloc/AuthBloc.dart';
-import 'package:lush/states/AuthenticationState.dart';
+import 'package:lush/bloc/AuthBloc/AuthBloc.dart';
+import 'package:lush/bloc/AuthBloc/AuthState.dart';
 import 'package:lush/theme.dart';
 import '../models/User.dart';
 
@@ -30,23 +30,41 @@ class AddressScreenState extends State<AddressScreen> {
   final List<String> towersOrVillas = ["A1", "AB1", "AB2", "AB3", "AB4", "B4"];
   String flatOrVillaNumber = "1903";
   final List<String> flatsorVillas = [
-    "G001",    "G002",    "G003",    "G004",
-    "1001",    "1002",    "1003",    "1004",
-    "0201",    "0202",    "0203",    "0204",
-    "0301",    "0302",    "0303",    "0304",
-    "0401",    "0402",    "0403",    "0404",
+    "G001",
+    "G002",
+    "G003",
+    "G004",
+    "1001",
+    "1002",
+    "1003",
+    "1004",
+    "0201",
+    "0202",
+    "0203",
+    "0204",
+    "0301",
+    "0302",
+    "0303",
+    "0304",
+    "0401",
+    "0402",
+    "0403",
+    "0404",
     "1903"
   ];
   final _formKey = GlobalKey<FormState>();
   final TextEditingController emailController = TextEditingController();
   final TextEditingController passwordController = TextEditingController();
-  final TextEditingController fullnameController = TextEditingController();
+  final TextEditingController firstNameController = TextEditingController();
+  final TextEditingController lastNameController = TextEditingController();
   final TextEditingController phoneNumberController = TextEditingController();
 
   @override
   void initState() {
-    if (widget.user.email != null) emailController.text = widget.user.email!;
-    if (widget.user.name != null) fullnameController.text = widget.user.name!;
+    emailController.text = widget.user.email;
+    firstNameController.text = widget.user.firstName;
+    lastNameController.text = widget.user.lastName;
+    emailController.text = widget.user.email;
     super.initState();
   }
 
@@ -86,14 +104,14 @@ class AddressScreenState extends State<AddressScreen> {
                       mainAxisAlignment: MainAxisAlignment.center,
                       crossAxisAlignment: CrossAxisAlignment.center,
                       children: <Widget>[
-                        Container(
-                            alignment: Alignment.topCenter,
-                            width: 100,
-                            padding: const EdgeInsets.only(top: 69),
-                            child: CircleAvatar(
-                                backgroundImage:
-                                    NetworkImage(widget.user.photoUrl!),
-                                radius: 50)),
+                        // Container(
+                        //     alignment: Alignment.topCenter,
+                        //     width: 100,
+                        //     padding: const EdgeInsets.only(top: 69),
+                        //     child: CircleAvatar(
+                        //         backgroundImage:
+                        //             NetworkImage(widget.user.photoUrl!),
+                        // radius: 50)),
                         const SizedBox(height: 20.0),
                         Form(
                           key: _formKey,

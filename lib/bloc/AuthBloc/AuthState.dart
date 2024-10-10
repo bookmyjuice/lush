@@ -1,6 +1,6 @@
 import 'package:equatable/equatable.dart';
 import 'package:flutter/cupertino.dart';
-import '../models/User.dart';
+import '../../views/models/User.dart';
 
 abstract class AuthenticationState extends Equatable {
   const AuthenticationState({Key? key});
@@ -10,14 +10,21 @@ abstract class AuthenticationState extends Equatable {
 
 class AuthenticationInitiated extends AuthenticationState {
   final Key key;
-const AuthenticationInitiated(this.key);
+  const AuthenticationInitiated(this.key);
   @override
   List<Object?> get props => [];
 }
+
 class AutoLoginFailed extends AuthenticationState {
   @override
   // TODO: implement props
-  List<Object?> get props => throw UnimplementedError();
+  List<Object?> get props => [];
+}
+
+class LogInFailed extends AuthenticationState {
+  @override
+  // TODO: implement props
+  List<Object?> get props => [];
 }
 
 class AuthenticationSuccess extends AuthenticationState {

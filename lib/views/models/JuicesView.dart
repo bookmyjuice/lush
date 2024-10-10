@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:hexcolor/hexcolor.dart';
-import '../main.dart';
+import '../../main.dart';
 import '../screens/detail.dart';
-import '../theme.dart';
+import '../../theme.dart';
 import 'Juice.dart';
 import 'model.dart';
 

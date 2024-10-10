@@ -1,4 +1,4 @@
-import '../models/Juice.dart';
+import '../views/models/Juice.dart';
 
 class CartRepository {
   late List<Juice> juices;

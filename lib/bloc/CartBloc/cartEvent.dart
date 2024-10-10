@@ -1,7 +1,7 @@
 
 import 'package:equatable/equatable.dart';
 import 'package:flutter/cupertino.dart';
-import 'package:lush/models/Juice.dart';
+import 'package:lush/views/models/Juice.dart';
 
 abstract class CartEvent extends Equatable {
   const CartEvent({Key? key});

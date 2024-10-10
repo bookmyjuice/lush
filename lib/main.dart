@@ -1,61 +1,43 @@
-// import 'dart:js';
-
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:lush/models/model.dart';
-import 'package:lush/screens/AddressScreen.dart';
-import 'package:lush/screens/EnterMobileNumber.dart';
-import 'package:lush/screens/HomePage.dart';
-import 'package:lush/screens/HomePage2.dart';
-import 'package:lush/screens/Menu.dart';
-import 'package:lush/screens/OTPloginPage.dart';
-import 'package:lush/screens/SignUpScreen.dart';
-import 'package:lush/screens/SplashPage.dart';
-import 'package:lush/screens/SubscriptionScreen.dart';
-import 'package:lush/screens/detail.dart';
-import 'package:lush/screens/loginPage.dart';
-import 'package:lush/screens/paymentScreen.dart';
+import 'package:lush/bloc/AuthBloc/AuthEvents.dart';
+import 'package:lush/bloc/CartBloc/CartBloc.dart';
+import 'package:lush/getIt.dart';
+import 'package:lush/views/models/model.dart';
 import 'package:no_context_navigation/no_context_navigation.dart';
-import 'UserRepository/userRepository.dart';
-import 'bloc/AuthBloc.dart';
-
-// import 'events/AuthEvents.dart';
+import 'bloc/AuthBloc/AuthBloc.dart';
+import 'views/all_Screens.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-// import 'package:appwrite/appwrite.dart';
-
-import 'models/User.dart';
+import 'views/models/User.dart';
 
 void main() {
   // Bloc.observer = AuthenticationBlocObserver();
+  registerRepositories();
   runApp(
-    RepositoryProvider(
-      create: (context) => UserRepository(),
-      child: MultiBlocProvider(providers: [
-        BlocProvider<AuthenticationBloc>(
-            lazy: false,
-            create: (_) => AuthenticationBloc(
-                userRepository: RepositoryProvider.of<UserRepository>(_)))
-      ], child: const LushApp()),
-    ),
+    MultiBlocProvider(providers: [
+      BlocProvider<AuthenticationBloc>(
+          lazy: false, create: (_) => AuthenticationBloc()..add(AutoLogIn())),
+      // BlocProvider<CartBloc>(lazy: false, create: (_) => CartBloc())
+    ], child: const LushApp()),
   );
 }
 
 class LushApp extends StatelessWidget {
   const LushApp({super.key});
 
-  // int _main_counter=0;
   @override
   Widget build(BuildContext context) {
-    // _main_counter++;
     return MaterialApp(
       debugShowCheckedModeBanner: false,
       navigatorKey: NavigationService.navigationKey,
+      // home: const SplashScreen(),
+      initialRoute: '/',
       routes: {
-        '/': (_) => const LoginPage(),
-        // '/login': (context) => const LoginPage(),
+        '/': (_) => const HomePage(),
+        '/login': (_) => const LoginPage(),
         '/splash': (_) => const SplashScreen(),
         '/home2': (_) => const HomePage2(),
-        '/home': (_) => const HomePage(),
+        // '/home': (_) => const HomePage(),
         '/menu': (_) => const Menu(),
         '/subscriptions': (_) => const Subscription(),
         '/mobileNumberPage': (_) => const MobileNumberPage(),
@@ -103,7 +85,14 @@ class LushApp extends StatelessWidget {
           return null;
         }
       },
-      title: 'Lush',
+      onUnknownRoute: (settings) {
+        return MaterialPageRoute(
+          builder: (context) {
+            return const LoginPage();
+          },
+        );
+      },
+      title: 'bookMyJuice',
     );
   }
 }

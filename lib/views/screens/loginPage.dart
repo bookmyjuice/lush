@@ -1,12 +1,13 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:lush/bloc/AuthBloc.dart';
-import 'package:lush/events/AuthEvents.dart';
+import 'package:lush/bloc/AuthBloc/AuthBloc.dart';
+import 'package:lush/bloc/AuthBloc/AuthEvents.dart';
 import 'package:lush/theme.dart';
 import 'package:no_context_navigation/no_context_navigation.dart';
-import '../main.dart';
+import '../../main.dart';
 import '../models/Facebook.dart';
 import '../models/User.dart';
 import '../models/googleSignIn.dart';
@@ -27,19 +28,19 @@ class LoginPageState extends State<LoginPage> {
   // final GlobalKey<  FlutterPwValidatorState> validatorKey = GlobalKey<FlutterPwValidatorState>();
   late User user;
   final bool _checkboxState = false;
-  TextEditingController emailController = TextEditingController();
+  TextEditingController usernameController = TextEditingController();
   TextEditingController passwordController = TextEditingController();
 
   @override
   void initState() {
-    user = User();
+    // user = User();
     super.initState();
   }
 
   @override
   void dispose() {
-    user = User();
-    emailController.dispose();
+    // user = User();
+    usernameController.dispose();
     passwordController.dispose();
     super.dispose();
   }
@@ -47,117 +48,92 @@ class LoginPageState extends State<LoginPage> {
   @override
   Widget build(BuildContext context) {
     // counter++;
-    return BlocProvider.value(
-      // key: UniqueKey(),
-      value: BlocProvider.of<AuthenticationBloc>(context, listen: true),
-      child: Scaffold(
-        body: SafeArea(
-          child: Stack(
-            children: <Widget>[
-              Container(
-                padding: const EdgeInsets.only(top: 55),
-                height: double.infinity,
-                width: double.infinity,
-                decoration: const BoxDecoration(
-                    // backgroundBlendMode: BlendMode.hardLight,
-
-                    //     image: DecorationImage(repeat: ImageRepeat.repeat,
-                    //   fit: BoxFit.fill,
-                    //   image: AssetImage("assets/background2.png"),
-                    //   // opacity: 5.0
-                    // ) ,
-                    // gradient: LinearGradient(
-                    //     begin: Alignment.topCenter,
-                    //     end: Alignment.bottomCenter,
-                    //     colors: [
-                    //       Color(0xFFdae869),
-                    //       Color(0xFF988623),
-                    //
-                    //       // // Color(0xFFFAF3D6),
-                    //       // Color(0xFFB8292C),
-                    //       // Color(0xFF203D10)
-                    //     ]),
-                    color: Colors.orange),
-              ),
-              SingleChildScrollView(
-                keyboardDismissBehavior:
-                    ScrollViewKeyboardDismissBehavior.manual,
-                physics: const AlwaysScrollableScrollPhysics(),
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 20, vertical: 20),
-                child: Form(
-                  key: _formKey1,
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.start,
-                    crossAxisAlignment: CrossAxisAlignment.center,
-                    children: <Widget>[
-                      Container(
-                        decoration: BoxDecoration(
-                            color: Colors.white,
-                            border: Border.all(width: 2.0),
-                            borderRadius: BorderRadius.circular(20.0)),
-                        alignment: Alignment.topCenter,
-                        width: 300,
-                        // ? 300
-                        // : MediaQuery.of(context).size.width,
-                        child: Padding(
-                          padding: const EdgeInsets.all(8.0),
-                          child: Column(
-                            children: [
-                              SizedBox(
-                                  height: 90,
-                                  width: 90,
-                                  child: Image.asset('assets/lushlogo.png')),
-                              const SizedBox(height: 20.0),
-                              Column(
-                                crossAxisAlignment: CrossAxisAlignment.center,
-                                mainAxisAlignment: MainAxisAlignment.start,
-                                children: <Widget>[
-                                  _emailInputBox(),
-                                  const SizedBox(height: 20.0),
-                                  _passwordInputBox(),
-                                  _forgotPasswordButton(),
-                                  _rememberMeCheckbox(),
-                                  _LoginBtn(),
-                                  const SizedBox(height: 10),
-                                ],
-                              ),
-                            ],
-                          ),
+    return Scaffold(
+      body: Center(
+        child: Stack(
+          children: <Widget>[
+            Container(
+              padding: const EdgeInsets.only(top: 1),
+              height: 200,
+              width: double.infinity,
+              decoration: const BoxDecoration(color: Colors.orange),
+            ),
+            SingleChildScrollView(
+              keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.manual,
+              physics: const AlwaysScrollableScrollPhysics(),
+              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 20),
+              child: Form(
+                key: _formKey1,
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.start,
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: <Widget>[
+                    Container(
+                      decoration: BoxDecoration(
+                          color: Colors.white,
+                          border: Border.all(width: 2.0),
+                          borderRadius: BorderRadius.circular(20.0)),
+                      alignment: Alignment.topCenter,
+                      width: 300,
+                      // ? 300
+                      // : MediaQuery.of(context).size.width,
+                      child: Padding(
+                        padding: const EdgeInsets.all(8.0),
+                        child: Column(
+                          children: [
+                            SizedBox(
+                                height: 90,
+                                width: 90,
+                                child: Image.asset('assets/lushlogo_old.png')),
+                            const SizedBox(height: 20.0),
+                            Column(
+                              crossAxisAlignment: CrossAxisAlignment.center,
+                              mainAxisAlignment: MainAxisAlignment.start,
+                              children: <Widget>[
+                                _usernameInputBox(),
+                                const SizedBox(height: 20.0),
+                                _passwordInputBox(),
+                                _forgotPasswordButton(),
+                                _rememberMeCheckbox(),
+                                _LoginBtn(),
+                                const SizedBox(height: 10),
+                              ],
+                            ),
+                          ],
                         ),
                       ),
-                      const SizedBox(height: 10),
-                      _continueWithMobileButton(),
-                      // const SizedBox(height: 15),
-                      ButtonBar(
-                        buttonPadding:
-                            const EdgeInsets.fromLTRB(25, 10, 25, 10),
-                        alignment: MainAxisAlignment.center,
-                        children: [
-                          _googleButton(),
-                          _facebookButton(),
-                        ],
-                      ),
+                    ),
+                    SizedBox(height: 10),
+                    _continueWithMobileButton(),
+                    // const SizedBox(height: 15),
+                    OverflowBar(
+                      // spacing:
+                      //     const EdgeInsets.fromLTRB(25, 10, 25, 10),
+                      alignment: MainAxisAlignment.center,
+                      children: [
+                        _googleButton(),
+                        _facebookButton(),
+                      ],
+                    ),
 
-                      _skipButton(),
-                    ],
-                  ),
+                    _skipButton(),
+                  ],
                 ),
               ),
-            ],
-          ),
-        ), // This trailing comma makes auto-formatting nicer for build methods.
-      ),
+            ),
+          ],
+        ),
+      ), // This trailing comma makes auto-formatting nicer for build methods.
     );
   }
 
-  bool isValidEmail(String emailString) {
+  bool isValidUsername(String usernameString) {
     return RegExp(
-            r'^(([^<>()[\]\\.,;:\s@\"]+(\.[^<>()[\]\\.,;:\s@\"]+)*)|(\".+\"))@((\[\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}\])|(([a-zA-Z\-\d]+\.)+[a-zA-Z]{2,}))$')
-        .hasMatch(emailString);
+        // r'^(([^<>()[\]\\.,;:\s@\"]+(\.[^<>()[\]\\.,;:\s@\"]+)*)|(\".+\"))@((\[\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}\])|(([a-zA-Z\-\d]+\.)+[a-zA-Z]{2,}))$')
+        r'^[0-9]{10}$').hasMatch(usernameString);
   }
 
-  Widget _emailInputBox() {
+  Widget _usernameInputBox() {
     return Container(
       key: UniqueKey(),
       decoration: BoxDecoration(
@@ -166,13 +142,15 @@ class LoginPageState extends State<LoginPage> {
           borderRadius: BorderRadius.circular(20)),
       child: TextFormField(
         validator: (input) => input!.isEmpty
-            ? "       email can't be empty"
-            : isValidEmail(input)
+            ? "       username can't be empty"
+            : isValidUsername(input)
                 ? null
-                : "      Check your email",
-        controller: emailController,
+                : "      Check your username",
+        controller: usernameController,
+        maxLength: 10,
+        maxLengthEnforcement: MaxLengthEnforcement.enforced,
         textAlign: TextAlign.start,
-        keyboardType: TextInputType.emailAddress,
+        keyboardType: TextInputType.phone,
         style: const TextStyle(
             color: Colors.black, fontFamily: 'Opensans', fontSize: 14),
         decoration: InputDecoration(
@@ -180,7 +158,7 @@ class LoginPageState extends State<LoginPage> {
           // border: InputBorder.,
           // contentPadding: const EdgeInsets.only(top: 10),
           prefixIcon: const Icon(Icons.email, color: Colors.black),
-          hintText: 'Enter your e-mail',
+          hintText: 'Enter your phone number',
         ),
       ),
     );
@@ -279,14 +257,13 @@ class LoginPageState extends State<LoginPage> {
         if (_formKey1.currentState!.validate())
           {
             _formKey1.currentState!.save(),
-            Navigator.of(context).pushNamed("/home2")
+            BlocProvider.of<AuthenticationBloc>(context).add(LogIn(
+                usernameController.text,
+                passwordController.text,
+                _checkboxState)),
+
+            // Navigator.of(context).pushNamed("/home2"),
           }
-        // BlocProvider.of<AuthenticationBloc>(context).add(SignUpStart(User(
-        //     userid: '',
-        //     name: '',
-        //     password: '',
-        //     flatOrVillaNumber: '',
-        //     phoneNo: ''))),
       },
     );
   }
@@ -352,10 +329,13 @@ class LoginPageState extends State<LoginPage> {
           googleSignIn.login().then((value) async {
             value?.id != null
                 ? {
-                    user.userid = value!.id,
+                    user.id = value!.id,
                     user.email = value.email,
-                    user.name = value.displayName!,
-                    user.photoUrl = value.photoUrl!,
+                    user.firstName = value.displayName!,
+                    user.lastName = value.displayName!,
+                    user.phone = "",
+                    user.password = "",
+                    // user.photoUrl = value.photoUrl!,
                     // user.password=value.serverAuthCode,
                     BlocProvider.of<AuthenticationBloc>(context)
                         .add(SignInGoogle(user)),
@@ -393,10 +373,10 @@ class LoginPageState extends State<LoginPage> {
                 if (loginResult.status.toString() == "LoginStatus.success")
                   {
                     Facebook.userdata().then((value) => {
-                          user.name = value["name"],
-                          user.userid = value["id"],
+                          user.firstName = value["name"],
+                          user.id = value["id"],
                           user.email = value["email"],
-                          user.photoUrl = value["picture"]["data"]["url"],
+                          // user.photoUrl = value["picture"]["data"]["url"],
                           // user.password = loginResult.accessToken!.token,
                           BlocProvider.of<AuthenticationBloc>(context)
                               .add(SignInFacebook(user)),

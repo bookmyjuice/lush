@@ -2,13 +2,13 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_pw_validator/flutter_pw_validator.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
-import 'package:lush/bloc/AuthBloc.dart';
-import 'package:lush/states/AuthenticationState.dart';
+import 'package:lush/bloc/AuthBloc/AuthBloc.dart';
+import 'package:lush/bloc/AuthBloc/AuthState.dart';
 import 'package:lush/theme.dart';
 import 'package:no_context_navigation/no_context_navigation.dart';
 
 // import '../events/AuthEvents.dart';
-import '../main.dart';
+import '../../main.dart';
 import '../models/User.dart';
 
 class SignUpScreen extends StatefulWidget {
@@ -29,18 +29,20 @@ class SignUpScreenState extends State<SignUpScreen> {
   final GlobalKey<FlutterPwValidatorState> validatorKey =
       GlobalKey<FlutterPwValidatorState>();
   final TextEditingController emailController = TextEditingController();
-  final TextEditingController passwordController = TextEditingController();
-  final TextEditingController fullnameController = TextEditingController();
   final TextEditingController phoneNumberController = TextEditingController();
+  final TextEditingController passwordController = TextEditingController();
+  final TextEditingController firstNameController = TextEditingController();
+  final TextEditingController lastNameController = TextEditingController();
+
   late bool enableSubmitButton;
   // late String _res;
   // UserRepository _userRepository = UserRepository();
   // late int statusCode;
   @override
   void initState() {
-    enableSubmitButton=false;
-    if (widget.user.email != null) emailController.text = widget.user.email!;
-    if (widget.user.name != null) fullnameController.text = widget.user.name!;
+    // enableSubmitButton = false;
+    // emailController.text = widget.user.email;
+    // if (widget.user.name != null) fullnameController.text = widget.user.name!;
     // if(widget.user.phoneNo!=null) phoneNumberController.text = widget.user.phoneNo!;
     super.initState();
   }
@@ -72,15 +74,15 @@ class SignUpScreenState extends State<SignUpScreen> {
                     mainAxisAlignment: MainAxisAlignment.start,
                     crossAxisAlignment: CrossAxisAlignment.center,
                     children: <Widget>[
-                      Container(
-                          alignment: Alignment.topCenter,
-                          width: 100,
-                          padding: const EdgeInsets.only(top: 69),
-                          child: CircleAvatar(
-                            backgroundImage:
-                                NetworkImage(widget.user.photoUrl!),
-                            radius: 50,
-                          )),
+                      // Container(
+                      //     alignment: Alignment.topCenter,
+                      //     width: 100,
+                      //     padding: const EdgeInsets.only(top: 69),
+                      //     child: CircleAvatar(
+                      //       backgroundImage:
+                      //           NetworkImage(widget.user.photoUrl!),
+                      //       radius: 50,
+                      //     )),
                       const SizedBox(height: 20.0),
                       Form(
                         key: _formKey2,
@@ -89,7 +91,7 @@ class SignUpScreenState extends State<SignUpScreen> {
                           children: <Widget>[
                             _fullNameInputBox(),
                             const SizedBox(height: 30.0),
-                            _emailInputBox(state.user.email!),
+                            _emailInputBox(state.user.email),
                             const SizedBox(height: 30.0),
                             _phoneNumberInoutBox(),
                             const SizedBox(height: 30.0),
@@ -110,7 +112,7 @@ class SignUpScreenState extends State<SignUpScreen> {
                                 ScaffoldMessenger.of(context).showSnackBar(
                                     const SnackBar(
                                         content: Text("Password is good!")));
-                                enableSubmitButton=true;
+                                enableSubmitButton = true;
                               },
                               onFail: () {
                                 print("Bad Password!");
@@ -142,7 +144,8 @@ class SignUpScreenState extends State<SignUpScreen> {
   void dispose() {
     emailController.dispose();
     passwordController.dispose();
-    fullnameController.dispose();
+    firstNameController.dispose();
+    lastNameController.dispose();
     phoneNumberController.dispose();
     super.dispose();
   }
@@ -205,7 +208,7 @@ class SignUpScreenState extends State<SignUpScreen> {
         // enabled: widget.user.password ==null? true: false,
         controller: passwordController,
         onSaved: (newValue) {
-          widget.user.password = newValue;
+          widget.user.password = newValue!;
         },
         // initialValue: widget.user.password ?? '',
         // validator: (value) =>enableSubmitButton.
@@ -239,10 +242,10 @@ class SignUpScreenState extends State<SignUpScreen> {
           borderRadius: BorderRadius.circular(20)),
       child: TextFormField(
         // onSaved: (name)=> widget.user.name=name,
-        enabled: widget.user.name == null ? true : false,
+        enabled: true,
         validator: (value) =>
             value!.isEmpty ? 'fullName can\'t be empty' : null,
-        controller: fullnameController,
+        controller: firstNameController,
         textAlign: TextAlign.start,
         keyboardType: TextInputType.text,
         style: const TextStyle(
@@ -312,25 +315,28 @@ class SignUpScreenState extends State<SignUpScreen> {
   }
 
   Widget _SignUpBtn() {
-    return enableSubmitButton?ElevatedButton(
-        style: ElevatedButton.styleFrom(
-          backgroundColor: LushTheme.appbarColor,
-          padding: const EdgeInsets.all(10),
-        ),
-        child: const Text(
-          'Continue..',
-          style: TextStyle(
-              fontFamily: 'Opensans',
-              color: Colors.black,
-              fontSize: 15,
-              fontWeight: FontWeight.w400),
-        ),
-        onPressed: () {
-          if (_formKey2.currentState!.validate()) {
-            _formKey2.currentState!.save();
-            navService.pushReplacementNamed("/addressScreen",
-                args: AddresScreenArguments(widget.user));
-          }
-        }):ElevatedButton(onPressed: (){}, child: const Text("please fill all details"));
+    return enableSubmitButton
+        ? ElevatedButton(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: LushTheme.appbarColor,
+              padding: const EdgeInsets.all(10),
+            ),
+            child: const Text(
+              'Continue..',
+              style: TextStyle(
+                  fontFamily: 'Opensans',
+                  color: Colors.black,
+                  fontSize: 15,
+                  fontWeight: FontWeight.w400),
+            ),
+            onPressed: () {
+              if (_formKey2.currentState!.validate()) {
+                _formKey2.currentState!.save();
+                navService.pushReplacementNamed("/addressScreen",
+                    args: AddresScreenArguments(widget.user));
+              }
+            })
+        : ElevatedButton(
+            onPressed: () {}, child: const Text("please fill all details"));
   }
 }

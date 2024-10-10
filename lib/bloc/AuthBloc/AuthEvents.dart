@@ -1,5 +1,5 @@
 import 'package:equatable/equatable.dart';
-import '../models/User.dart';
+import '../../views/models/User.dart';
 
 abstract class AuthenticationEvent extends Equatable {
   const AuthenticationEvent();
@@ -22,20 +22,20 @@ class AuthenticationLoggedIn extends AuthenticationEvent {
   String toString() => 'AuthenticationLoggedIn { token: $token }';
 }
 
-class AuthenticationFailed extends AuthenticationEvent {
-  final User user;
-
-  const AuthenticationFailed({required this.user});
-
-  @override
-  List<Object> get props => [user];
-}
-
 class AuthenticationLoggedOut extends AuthenticationEvent {}
 
 class AutoLogIn extends AuthenticationEvent {}
 
-  class SignInGoogle extends AuthenticationEvent {
+class LogIn extends AuthenticationEvent {
+  final String username;
+  final String password;
+  final bool remember;
+  const LogIn(this.username, this.password, this.remember);
+  @override
+  List<Object> get props => [username, password, remember];
+}
+
+class SignInGoogle extends AuthenticationEvent {
   final User user;
 
   // final String signInVia;
@@ -72,15 +72,14 @@ class SignInOTP extends AuthenticationEvent {
 // }
 
 class SignUp extends AuthenticationEvent {
-  // final String username;
-  // final String password;
-  // final String fullName;
-  final User u;
-
-  const SignUp(this.u);
+  final String phone;
+  final String email;
+  final String role = "USER";
+  final String password;
+  const SignUp(this.phone, this.email, this.password);
 
   @override
-  List<Object> get props => [u];
+  List<Object> get props => [phone, email, role, password];
 }
 
 class MobileNumberEntered extends AuthenticationEvent {

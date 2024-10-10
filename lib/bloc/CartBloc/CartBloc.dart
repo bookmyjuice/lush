@@ -1,14 +1,16 @@
 import 'package:bloc/bloc.dart';
-import '../CartRepository/cartRepository.dart';
-import '../events/cart_event.dart';
-import '../models/User.dart';
-import '../states/cart_state.dart';
+import 'package:lush/getIt.dart';
+import '../../CartRepository/cartRepository.dart';
+import 'cartEvent.dart';
+import '../../views/models/User.dart';
+import 'cartState.dart';
 
 class CartBloc extends Bloc<CartEvent, CartState> {
   late User? user;
-  final CartRepository cartRepo;
+  // final CartRepository cartRepo;
+  final CartRepository carRepository = getIt.get();
 
-  CartBloc({required this.cartRepo}) : super(CartEmpty()) {
+  CartBloc() : super(CartEmpty()) {
     on<CartItemAdded>((event, emit) =>
         emit(CartNotEmpty(juices: [...state.juices]).addJuice(event.juice)));
     on<CartItemAdded>((event, emit) {
