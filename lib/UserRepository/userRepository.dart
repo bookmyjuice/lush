@@ -1,110 +1,37 @@
 import 'dart:io';
 // import 'package:flutter/foundation.dart';
 import 'package:http/io_client.dart';
+import 'package:lush/getIt.dart';
+import 'package:lush/views/models/googleSignIn.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:convert';
-// import '../views/models/User.dart';
-// import 'package:appwrite/appwrite.dart';
+
+import '../views/models/user.dart';
 
 class UserRepository {
-  late bool userLoggedIn;
-  // Client client = Client()
-  //     .setEndpoint('http://167.71.224.84/v1')
-  //     .setProject('63d3be0307eb40e0f098')
-  //     .setSelfSigned(status: true);
+  bool userLoggedIn = false;
+  User user =
+      User.blank("", "", "", "", "", "", "", "", "", "", "", "", "", "");
+  final MyGoogleSignIn googleSignIn = getIt.get();
   final Future<SharedPreferences> _prefs = SharedPreferences.getInstance();
   final HttpClient ioc = HttpClient();
+  late String token;
 
-  // Future<String?> signInGoogle({required User user}) async {
-  //   SharedPreferences sharedPreferences = await _prefs;
-  //   // (user.name==)
-
-  //   //if user exists in DB, pass ID & password, get a JWT Token and return it else return null
-  //   final data = jsonEncode({"username": user.name, "password": user.password});
-  //   try {
-  //     final HttpClient ioc = HttpClient();
-  //     ioc.badCertificateCallback =
-  //         (X509Certificate cert, String host, int port) => true;
-  //     final http = IOClient(ioc);
-  //     var response = await http.post(
-  //         Uri.parse("https://ev.powergrid.in/authenticate"),
-  //         body: data,
-  //         headers: {
-  //           "Accept": "application/json",
-  //           "Content-Type": "application/json",
-  //         });
-  //     var body = const Utf8Decoder().convert(response.bodyBytes);
-  //     String token = json.decode(body)['token'];
-  //     if (response.statusCode == 200) {
-  //       // if (rememberMe == "true") {
-  //       //   sharedPreferences.setString("rememberMe", rememberMe);
-  //       //   persistCredentials(username, password);
-  //       // }
-  //       // persistToken(token);
-  //       return token;
-  //     } else {
-  //       return null;
-  //     }
-  //   } catch (e) {
-  //     if (kDebugMode) {
-  //       print(e.toString());
-  //     }
-  //   }
-  //   return null;
-  // }
-  // Future<String?> signInFacebook({required User user}) async {
-  //   SharedPreferences sharedPreferences = await _prefs;
-  //   // (user.name==)
-  //   final data = jsonEncode({"username": user.name, "password": user.password});
-  //   try {
-  //     final HttpClient ioc = HttpClient();
-  //     ioc.badCertificateCallback =
-  //         (X509Certificate cert, String host, int port) => true;
-  //     final http = IOClient(ioc);
-  //     var response = await http.post(
-  //         Uri.parse("https://ev.powergrid.in/authenticate"),
-  //         body: data,
-  //         headers: {
-  //           "Accept": "application/json",
-  //           "Content-Type": "application/json",
-  //         });
-  //     var body = const Utf8Decoder().convert(response.bodyBytes);
-  //     String token = json.decode(body)['token'];
-  //     if (response.statusCode == 200) {
-  //       // if (rememberMe == "true") {
-  //       //   sharedPreferences.setString("rememberMe", rememberMe);
-  //       //   persistCredentials(username, password);
-  //       // }
-  //       // persistToken(token);
-  //       return token;
-  //     } else {
-  //       return null;
-  //     }
-  //   } catch (e) {
-  //     if (kDebugMode) {
-  //       print(e.toString());
-  //     }
-  //   }
-  //   return null;
-  // }
-
-  //AutoLogin function
-
-  Future<String> autoLogin() async {
+  Future<bool> autoLogin() async {
     late String data;
     SharedPreferences sharedPreferences = await _prefs;
     final String? username = sharedPreferences.getString("username");
     final String? password = sharedPreferences.getString("password");
-    // final Object? ifRememberMeChecked = sharedPreferences.get("rememberMe");
     if (username == null || password == null) {
-      return "0";
+      return false;
     } else {
       data = jsonEncode({"username": username, "password": password});
     }
     ioc.badCertificateCallback =
         (X509Certificate cert, String host, int port) => true;
     final http = IOClient(ioc);
-    var response = await http.post(Uri.parse("localhost:8080/api/auth/signin"),
+    var response = await http.post(
+        Uri.parse("192.168.1.27:8080/api/auth/signin"),
         body: data,
         headers: {
           "Accept": "application/json",
@@ -114,13 +41,26 @@ class UserRepository {
     String token = json.decode(body)['accessToken'];
     if (response.statusCode == 200) {
       sharedPreferences.setString("token", token);
-      return token;
+      token = token;
+
+      var response = await http.get(Uri.parse("localhost:8080/api/user"),
+          // body: data,
+          headers: {
+            "authorization": "Bearer $token",
+            "Accept": "application/json",
+            "Content-Type": "application/json",
+          });
+      var body = const Utf8Decoder().convert(response.bodyBytes);
+      user = json.decode(body);
+      // user.setPhone = username;
+      // user.password = password;
+      return true;
     } else {
-      return "0";
+      return false;
     }
   }
 
-  Future<String> login(String username_, String pwd, bool remember) async {
+  Future<bool> login(String username_, String pwd, bool remember) async {
     late String data;
     SharedPreferences sharedPreferences = await _prefs;
     final String username = username_;
@@ -133,7 +73,7 @@ class UserRepository {
         (X509Certificate cert, String host, int port) => true;
     final http = IOClient(ioc);
     var response = await http.post(
-        Uri.parse('http://localhost:8080/api/auth/signin'),
+        Uri.parse('http://192.168.1.27:8080/api/auth/signin'),
         body: data,
         headers: {
           "Accept": "application/json",
@@ -143,68 +83,47 @@ class UserRepository {
     String token = json.decode(body)['accessToken'];
     if (response.statusCode == 200) {
       sharedPreferences.setString("token", token);
-      return token;
+      token = token;
+      return true;
     } else {
-      return "0";
+      return true;
     }
   }
 
-  Future<String> signUp(
-      String phone, String email, String role, String pwd) async {
-    // SharedPreferences sharedPreferences = await _prefs;
-    // final HttpClient ioc = HttpClient();
-    String data;
-    data = jsonEncode(
-        {"phone": phone, "email": email, "role": role, "password": pwd});
-    ioc.badCertificateCallback =
-        (X509Certificate cert, String host, int port) => true;
-    final http = IOClient(ioc);
-    var response = await http.post(
-        Uri.parse("https://localhost:8080/api/auth/signup"),
-        body: data,
-        headers: {
-          "Accept": "application/json",
-          "Content-Type": "application/json",
-        });
-    var body = const Utf8Decoder().convert(response.bodyBytes);
-    return json.decode(body)['message'];
-  }
-
-  Future<String> registerUserWithAddress(
-      {required String id,
-      required String firstName,
-      required String lastName,
-      required String phone,
-      required String email,
-      required String address,
-      required String extendedAddr,
-      required String extendedAddr2,
-      required String city,
-      required String state,
-      required String country,
-      required String zip}) async {
+  Future<String> initialSignUp() async {
     String data;
     data = jsonEncode({
-      "firstName": firstName,
-      "lastName": lastName,
-      "id": id,
-      "phone": phone,
-      "email": email,
-      "addr": address,
-      "extendedAddr": extendedAddr,
-      "extendedAddr2": extendedAddr2,
-      "city": city,
-      "state": state,
-      "country": country,
-      "zip": zip
+      "phone": user.getPhone,
+      "email": user.getEmail,
+      "role": user.getRole,
+      "password": user.getPassword
     });
+    ioc.badCertificateCallback =
+        (X509Certificate cert, String host, int port) => true;
+    final http = IOClient(ioc);
+    try {
+      var response = await http.post(
+          Uri.parse("https://192.168.1.27:8080/api/auth/signup"),
+          body: data,
+          headers: {
+            "Accept": "application/json",
+            "Content-Type": "application/json",
+          });
+      var body = const Utf8Decoder().convert(response.bodyBytes);
+      user.setId = json.decode(body)['message'];
+      return json.decode(body)['message'];
+    } catch (e) {
+      return e.toString();
+    }
+  }
 
+  Future<String> registerUserWithAddress() async {
     ioc.badCertificateCallback =
         (X509Certificate cert, String host, int port) => true;
     final http = IOClient(ioc);
     var response = await http.post(
-        Uri.parse("https://localhost:8080/chargebee/register"),
-        body: data,
+        Uri.parse("https://192.168.1.27:8080/chargebee/register"),
+        body: user.toJson(),
         headers: {
           "Accept": "application/json",
           "Content-Type": "application/json",
@@ -241,5 +160,20 @@ class UserRepository {
     SharedPreferences sharedPreferences = await SharedPreferences.getInstance();
     String? t = sharedPreferences.getString("token");
     return t;
+  }
+
+  Future<Object?> googleSignIn_() async {
+    try {
+      await MyGoogleSignIn.login();
+    } catch (error) {
+      print("error");
+      return error;
+    }
+    user.setFirstName = MyGoogleSignIn.currentUser().displayName!.split(" ")[0];
+    user.setLastName = MyGoogleSignIn.currentUser().displayName!.split(" ")[1];
+    user.setEmail = MyGoogleSignIn.currentUser().email;
+    // user.role = "User";
+    return user;
+    // return null;
   }
 }

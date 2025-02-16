@@ -6,11 +6,8 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:lush/bloc/AuthBloc/AuthBloc.dart';
 import 'package:lush/bloc/AuthBloc/AuthEvents.dart';
 import 'package:lush/theme.dart';
-import 'package:no_context_navigation/no_context_navigation.dart';
-import '../../main.dart';
-import '../models/Facebook.dart';
-import '../models/User.dart';
-import '../models/googleSignIn.dart';
+
+import '../models/user.dart';
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
@@ -103,7 +100,7 @@ class LoginPageState extends State<LoginPage> {
                         ),
                       ),
                     ),
-                    SizedBox(height: 10),
+                    const SizedBox(height: 10),
                     _continueWithMobileButton(),
                     // const SizedBox(height: 15),
                     OverflowBar(
@@ -112,7 +109,7 @@ class LoginPageState extends State<LoginPage> {
                       alignment: MainAxisAlignment.center,
                       children: [
                         _googleButton(),
-                        _facebookButton(),
+                        // _facebookButton(),
                       ],
                     ),
 
@@ -326,36 +323,35 @@ class LoginPageState extends State<LoginPage> {
         elevation: 25.0,
         heroTag: const Text("googleBtn"),
         onPressed: () {
-          googleSignIn.login().then((value) async {
-            value?.id != null
-                ? {
-                    user.id = value!.id,
-                    user.email = value.email,
-                    user.firstName = value.displayName!,
-                    user.lastName = value.displayName!,
-                    user.phone = "",
-                    user.password = "",
-                    // user.photoUrl = value.photoUrl!,
-                    // user.password=value.serverAuthCode,
-                    BlocProvider.of<AuthenticationBloc>(context)
-                        .add(SignInGoogle(user)),
-                    // Navigator.of(context).pushNamed("/home")
-                    navService.pushReplacementNamed("/signUpScreen",
-                        args: SignUpPageArguments(user))
-                  }
-                : ScaffoldMessenger.of(context)
-                    .showMaterialBanner(MaterialBanner(
-                    content: const Text("Could not login via Google!"),
-                    actions: [
-                      TextButton(
-                          onPressed: () {
-                            ScaffoldMessenger.of(context)
-                                .clearMaterialBanners();
-                          },
-                          child: const Text('Ok!'))
-                    ],
-                  ));
-          });
+          // googleSignIn.login().then((value) async {
+          // value?.id != null
+          // ? {
+          // user.id = value!.id,
+          // user.email = value.email,
+          // user.firstName = value.displayName!.split(' ')[0],
+          // user.lastName = value.displayName!.split(' ')[1],
+          // user.phone = "",
+          // user.password = "",
+          // user.photoUrl = value.photoUrl!,
+          // user.password=value.serverAuthCode,
+          BlocProvider.of<AuthenticationBloc>(context).add(GoogleSignIn());
+          // Navigator.of(context).pushNamed("/home")
+          //           navService.pushReplacementNamed("/signUpScreen",
+          //               args: SignUpScreenArguments(user))
+          //         }
+          //       : ScaffoldMessenger.of(context)
+          //           .showMaterialBanner(MaterialBanner(
+          //           content: const Text("Could not login via Google!"),
+          //           actions: [
+          //             TextButton(
+          //                 onPressed: () {
+          //                   ScaffoldMessenger.of(context)
+          //                       .clearMaterialBanners();
+          //                 },
+          //                 child: const Text('Ok!'))
+          //           ],
+          //         ));
+          // });
         },
         backgroundColor: LushTheme.white,
         child: const FaIcon(
@@ -364,45 +360,45 @@ class LoginPageState extends State<LoginPage> {
         ));
   }
 
-  Widget _facebookButton() {
-    return FloatingActionButton(
-        key: UniqueKey(),
-        elevation: 25.0,
-        onPressed: () {
-          Facebook.login().then((loginResult) => {
-                if (loginResult.status.toString() == "LoginStatus.success")
-                  {
-                    Facebook.userdata().then((value) => {
-                          user.firstName = value["name"],
-                          user.id = value["id"],
-                          user.email = value["email"],
-                          // user.photoUrl = value["picture"]["data"]["url"],
-                          // user.password = loginResult.accessToken!.token,
-                          BlocProvider.of<AuthenticationBloc>(context)
-                              .add(SignInFacebook(user)),
-                          navService.pushReplacementNamed("/signUpScreen",
-                              args: SignUpPageArguments(user))
-                        })
-                  }
-                else
-                  ScaffoldMessenger.of(context)
-                      .showMaterialBanner(MaterialBanner(
-                    content: const Text("Could not login via facebook!"),
-                    actions: [
-                      TextButton(
-                          onPressed: () {
-                            ScaffoldMessenger.of(context)
-                                .clearMaterialBanners();
-                          },
-                          child: const Text('Ok!'))
-                    ],
-                  ))
-              });
-        },
-        backgroundColor: LushTheme.white,
-        child: const FaIcon(
-          FontAwesomeIcons.facebook,
-          color: Colors.blueAccent,
-        ));
-  }
+  // Widget _facebookButton() {
+  // return FloatingActionButton(
+  //     key: UniqueKey(),
+  //     elevation: 25.0,
+  //     onPressed: () {
+  //       Facebook.login().then((loginResult) => {
+  //             if (loginResult.status.toString() == "LoginStatus.success")
+  //               {
+  //                 Facebook.userdata().then((value) => {
+  //                       user.firstName = value["name"],
+  //                       user.id = value["id"],
+  //                       user.email = value["email"],
+  //                       // user.photoUrl = value["picture"]["data"]["url"],
+  //                       // user.password = loginResult.accessToken!.token,
+  //                       BlocProvider.of<AuthenticationBloc>(context)
+  //                           .add(SignInFacebook(user)),
+  //                       navService.pushReplacementNamed("/signUpScreen",
+  //                           args: SignUpScreenArguments(user))
+  //                     })
+  //               }
+  //             else
+  //               ScaffoldMessenger.of(context)
+  //                   .showMaterialBanner(MaterialBanner(
+  //                 content: const Text("Could not login via facebook!"),
+  //                 actions: [
+  //                   TextButton(
+  //                       onPressed: () {
+  //                         ScaffoldMessenger.of(context)
+  //                             .clearMaterialBanners();
+  //                       },
+  //                       child: const Text('Ok!'))
+  //                 ],
+  //               ))
+  //           });
+  //     },
+  //     backgroundColor: LushTheme.white,
+  //     child: const FaIcon(
+  //       FontAwesomeIcons.facebook,
+  //       color: Colors.blueAccent,
+  //     ));
+  // }
 }

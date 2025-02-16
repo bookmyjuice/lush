@@ -2,7 +2,7 @@ import 'dart:io';
 // import 'package:appwrite/models.dart';
 import 'package:flutter/foundation.dart';
 import 'package:http/io_client.dart';
-import 'package:lush/views/models/User.dart';
+import 'package:lush/views/models/user.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:convert';
 // import '../models/User.dart';
@@ -17,7 +17,7 @@ class UserRepository {
   final Future<SharedPreferences> _prefs = SharedPreferences.getInstance();
   final HttpClient ioc = HttpClient();
 
-  Future<String?> signInGoogle({required User user}) async {
+  Future<String?> signInGoogle({required user user}) async {
     // SharedPreferences sharedPreferences = await _prefs;
     // (user.name==)
 
@@ -56,7 +56,7 @@ class UserRepository {
     return null;
   }
 
-  Future<String?> signInFacebook({required User user}) async {
+  Future<String?> signInFacebook({required user user}) async {
     SharedPreferences sharedPreferences = await _prefs;
     // (user.name==)
     final data =
@@ -131,7 +131,7 @@ class UserRepository {
     }
   }
 
-  Future<bool> SignUp({required User user}) async {
+  Future<bool> SignUp({required user user}) async {
     SharedPreferences sharedPreferences = await _prefs;
     // Account account = Account(client);
     ioc.badCertificateCallback =

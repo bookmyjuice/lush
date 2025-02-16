@@ -1,17 +1,22 @@
 import 'package:flutter/material.dart';
+import 'package:lush/UserRepository/userRepository.dart';
+import 'package:lush/getIt.dart';
 import 'package:lush/views/models/JuiceListView.dart';
+// import 'package:lush/views/models/User.dart';
 import '../models/SubcriptionView.dart';
 import '../models/title_view.dart';
 import '../../theme.dart';
 
-class HomePage2 extends StatefulWidget {
-  const HomePage2({super.key});
+class Dashboard extends StatefulWidget {
+  final UserRepository userRepository = getIt.get();
+
+  Dashboard({super.key});
 
   @override
   HomePage2State createState() => HomePage2State();
 }
 
-class HomePage2State extends State<HomePage2> with TickerProviderStateMixin {
+class HomePage2State extends State<Dashboard> with TickerProviderStateMixin {
   late Animation<double> topBarAnimation;
   late AnimationController animationController;
 
@@ -249,8 +254,7 @@ class HomePage2State extends State<HomePage2> with TickerProviderStateMixin {
                     ),
                     boxShadow: <BoxShadow>[
                       BoxShadow(
-                          color:
-                              LushTheme.grey.withOpacity(0.25),
+                          color: LushTheme.grey.withOpacity(0.25),
                           offset: const Offset(1.1, 1.1),
                           blurRadius: 10.0),
                     ],
@@ -271,23 +275,23 @@ class HomePage2State extends State<HomePage2> with TickerProviderStateMixin {
                           children: <Widget>[
                             Expanded(
                               child: Padding(
-                                padding: const EdgeInsets.all(8.0),
-                                child:
-                                // Text(
-                                //   'My Juices',
-                                //   textAlign: TextAlign.left,
-                                //   style: TextStyle(
-                                //     fontFamily: LushTheme.fontName,
-                                //     fontWeight: FontWeight.w700,
-                                //     fontSize: 10 + 6 - 6 * topBarOpacity,
-                                //     letterSpacing: 1.2,
-                                //     color: LushTheme.white,
-                                //   ),
-                                // )
-                                SizedBox(
-                                    height: 20,
-                                    child: Image.asset('assets/lushlogo.png'))
-                              ),
+                                  padding: const EdgeInsets.all(8.0),
+                                  child:
+                                      // Text(
+                                      //   'My Juices',
+                                      //   textAlign: TextAlign.left,
+                                      //   style: TextStyle(
+                                      //     fontFamily: LushTheme.fontName,
+                                      //     fontWeight: FontWeight.w700,
+                                      //     fontSize: 10 + 6 - 6 * topBarOpacity,
+                                      //     letterSpacing: 1.2,
+                                      //     color: LushTheme.white,
+                                      //   ),
+                                      // )
+                                      SizedBox(
+                                          height: 20,
+                                          child: Image.asset(
+                                              'assets/lushlogo.png'))),
                             ),
                             // SizedBox(
                             //   height: 38,

@@ -1,8 +1,8 @@
 import 'package:bloc/bloc.dart';
 import 'package:lush/getIt.dart';
 import '../../CartRepository/cartRepository.dart';
+import '../../views/models/user.dart';
 import 'cartEvent.dart';
-import '../../views/models/User.dart';
 import 'cartState.dart';
 
 class CartBloc extends Bloc<CartEvent, CartState> {

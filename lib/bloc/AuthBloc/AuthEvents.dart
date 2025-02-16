@@ -1,5 +1,4 @@
 import 'package:equatable/equatable.dart';
-import '../../views/models/User.dart';
 
 abstract class AuthenticationEvent extends Equatable {
   const AuthenticationEvent();
@@ -35,58 +34,98 @@ class LogIn extends AuthenticationEvent {
   List<Object> get props => [username, password, remember];
 }
 
-class SignInGoogle extends AuthenticationEvent {
-  final User user;
+class GoogleSignIn extends AuthenticationEvent {
+  // final User user;
 
   // final String signInVia;
-  const SignInGoogle(this.user);
+  const GoogleSignIn();
 
   @override
-  List<Object> get props => [user];
+  List<Object> get props => [];
 }
 
-class SignInFacebook extends AuthenticationEvent {
-  final User user;
-
-  // final String signInVia;
-  const SignInFacebook(this.user);
-
-  @override
-  List<Object> get props => [user];
-}
-
-class SignInOTP extends AuthenticationEvent {
-  final User user;
-
-  // final String signInVia;
-  const SignInOTP(this.user);
-
-  @override
-  List<Object> get props => [user];
-}
-// class SignUp extends AuthenticationEvent {
-//   final User u;
-//   const SignUp(this.u);
-//   @override
-//   List<Object> get props => [u];
-// }
-
-class SignUp extends AuthenticationEvent {
-  final String phone;
-  final String email;
-  final String role = "USER";
-  final String password;
-  const SignUp(this.phone, this.email, this.password);
-
-  @override
-  List<Object> get props => [phone, email, role, password];
-}
-
-class MobileNumberEntered extends AuthenticationEvent {
-  const MobileNumberEntered(this.mobileNumber);
-
+class MobileSignUp extends AuthenticationEvent {
   final String mobileNumber;
 
+  const MobileSignUp({required this.mobileNumber});
   @override
   List<Object> get props => [mobileNumber];
+}
+
+class FacebookSignUp extends AuthenticationEvent {}
+
+class SignInFacebook extends AuthenticationEvent {
+  // final User user;
+
+  // // final String signInVia;
+  // const SignInFacebook(this.user);
+
+  // @override
+  // List<Object> get props => [user];
+}
+
+class InitialSignUp extends AuthenticationEvent {
+  final String phone;
+  final String email;
+  final String role;
+  final String password;
+
+  // final String signInVia;
+  const InitialSignUp(
+      {required this.email,
+      required this.password,
+      required this.phone,
+      required this.role});
+
+  @override
+  List<Object> get props => [email, phone, role, password];
+}
+
+class SignUp extends AuthenticationEvent {
+  // final String id;
+  // final String fname;
+  // final String lname;
+  // final String phone;
+  // final String email;
+  // final String role = "USER";
+  // final String password;
+  final String address;
+  final String extendedAddr;
+  final String extendedAddr2;
+  final String city;
+  final String state;
+  final String country;
+  final String zip;
+
+  const SignUp(
+      {
+      //   required this.id,
+      // required this.fname,
+      // required this.lname,
+      // required this.phone,
+      // required this.email,
+      // required this.password,
+      required this.address,
+      required this.extendedAddr,
+      required this.extendedAddr2,
+      required this.city,
+      required this.state,
+      required this.country,
+      required this.zip});
+
+  @override
+  List<Object> get props => [
+        // id,
+        // phone,
+        // email,
+        // role,
+        // password,
+        address,
+        extendedAddr,
+        extendedAddr2,
+        city,
+        state,
+        country,
+        zip
+      ];
 }

@@ -27,15 +27,17 @@ class _MobileNumberPageState extends State<MobileNumberPage> {
             Padding(
               padding: const EdgeInsets.all(16.0),
               child: TextField(
-                keyboardType: TextInputType.number,
+                  keyboardType: TextInputType.number,
                   maxLength: 10,
                   controller: MobileNoController,
-                  decoration: const InputDecoration(prefixText: "+91-",
+                  decoration: const InputDecoration(
+                      prefixText: "+91-",
                       icon: Icon(Icons.mobile_friendly_outlined))),
             ),
             ElevatedButton(
                 onPressed: () {
-                  BlocProvider.of<AuthenticationBloc>(context).add(MobileNumberEntered(MobileNoController.text));
+                  BlocProvider.of<AuthenticationBloc>(context)
+                      .add(MobileSignUp(mobileNumber: MobileNoController.text));
                   Navigator.of(context).pushNamed("/otp");
                 },
                 child: const Text("Submit"))

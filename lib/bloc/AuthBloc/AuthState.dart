@@ -1,6 +1,5 @@
 import 'package:equatable/equatable.dart';
 import 'package:flutter/cupertino.dart';
-import '../../views/models/User.dart';
 
 abstract class AuthenticationState extends Equatable {
   const AuthenticationState({Key? key});
@@ -23,22 +22,23 @@ class AutoLoginFailed extends AuthenticationState {
 
 class LogInFailed extends AuthenticationState {
   @override
-  // TODO: implement props
   List<Object?> get props => [];
 }
 
 class AuthenticationSuccess extends AuthenticationState {
+  // final User user;
+  const AuthenticationSuccess();
+  // UserRepository
   @override
-  // TODO: implement props
   List<Object?> get props => throw UnimplementedError();
 }
 
-class AuthenticationFailure extends AuthenticationState {
-  final Key key;
-  final User user;
-  const AuthenticationFailure({required this.user, required this.key});
+class AuthError extends AuthenticationState {
+  // final Key key;
+  final String error;
+  const AuthError({required this.error});
   @override
-  List<Object> get props => [user];
+  List<Object> get props => [error];
 }
 
 class AuthenticationInProgress extends AuthenticationState {
@@ -55,10 +55,14 @@ class SignUpFailed extends AuthenticationState {
 }
 
 class SignUpStarted extends AuthenticationState {
+  // final User user;
+  const SignUpStarted();
   @override
   // TODO: implement props
   List<Object?> get props => [];
 }
+
+class TokenReceived extends AuthenticationState {}
 
 class SignUpSuccessful extends AuthenticationState {
   @override

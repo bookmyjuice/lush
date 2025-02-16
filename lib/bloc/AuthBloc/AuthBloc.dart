@@ -1,4 +1,5 @@
 // import 'package:flutter/cupertino.dart';
+
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -11,69 +12,64 @@ import '../../UserRepository/userRepository.dart';
 class AuthenticationBloc
     extends Bloc<AuthenticationEvent, AuthenticationState> {
   final UserRepository userRepository = getIt.get();
-  // final Future<SharedPreferences> _prefs = SharedPreferences.getInstance();
-
-  // late String? token, signUpSuccess;
-
-  // AuthenticationState get initialState => AuthenticationInProgress();
 
   AuthenticationBloc() : super(AuthenticationInProgress()) {
     on<AutoLogIn>((event, emit) async {
       // emit(AuthenticationInProgress());
-      var loginResponse = await userRepository.autoLogin();
-      if (loginResponse == "0") {
-        // Navigator.pushNamed('/');
-        emit(LogInFailed());
-      } else {
-        emit(AuthenticationSuccess());
-      }
+      await userRepository.autoLogin()
+          ? emit(AuthenticationSuccess())
+          : emit(LogInFailed());
     });
     on<LogIn>((event, emit) async {
       // emit(AuthenticationInProgress());
-      var loginResponse = await userRepository.login(
-          event.username, event.password, event.remember);
-      if (loginResponse == "0") {
-        emit(LogInFailed());
-      } else {
-        emit(AuthenticationSuccess());
-      }
+      await userRepository.login(event.username, event.password, event.remember)
+          ? emit(AuthenticationSuccess())
+          : emit(LogInFailed());
     });
 
     on<AuthenticationLoggedIn>((event, emit) async {
       // AuthenticationInProgress();
       await userRepository.persistToken(event.token);
+      await userRepository.persistCredentials(
+          userRepository.user.getPhone, userRepository.user.getPassword);
       emit(AuthenticationSuccess());
-    });
-    on<SignInGoogle>((event, emit) async {
-      emit(AuthenticationFailure(user: event.user, key: UniqueKey()));
-      // if (await userRepository.signInGoogle(user: event.user) == null)
-      //   {emit(AuthenticationSuccess())}
-      // else
-      //   {emit(AuthenticationFailure(user: event.user, key: UniqueKey()))}
-    });
-    on<SignInFacebook>((event, emit) {
-      emit(AuthenticationFailure(user: event.user, key: UniqueKey()));
-      // if (userRepository.signInFacebook(user: event.user) == "")
-      //   {AuthenticationFailure(user: event.user)}
-      // else
-      //   {AuthenticationFailure(user: event.user)}
     });
 
     on<SignUp>((event, emit) async {
-      await userRepository
-          .signUp(event.phone, event.email, event.role, event.password)
-          .then((id) => {if (id.length == 3) {}});
-      // on<MobileNumberEntered>((event, emit) async {
-      //   userRepository.verifyMobile(event.mobileNumber);
-      // });
+      userRepository.user.setAddress = event.address;
+      userRepository.user.setExtendedAddr = event.extendedAddr;
+      userRepository.user.setExtendedAddr2 = event.extendedAddr2;
+      userRepository.user.city = event.city;
+      userRepository.user.state = event.state;
+      userRepository.user.country = event.country;
+      userRepository.user.zip = event.zip;
+      var res = await userRepository.registerUserWithAddress();
+      (res == "registered!") ? emit(SignUpSuccessful()) : emit(SignUpFailed());
     });
+    on<InitialSignUp>((event, emit) async {
+      userRepository.user.setEmail = event.email;
+      userRepository.user.setPhone = event.phone;
+      userRepository.user.setPassword = event.password;
+      userRepository.user.setRole = "user";
+      await userRepository.initialSignUp();
+      userRepository.token.isNotEmpty ? TokenReceived() : SignUpFailed();
+    });
+    on<GoogleSignIn>((event, emit) async {
+      await userRepository.googleSignIn_();
+      emit(SignUpStarted());
+    });
+    on<MobileSignUp>((event, emit) {
+      userRepository.user.setPhone = event.mobileNumber;
+      emit(SignUpStarted());
+    });
+    on<FacebookSignUp>((event, emit) {});
 
     @override
     void onChange(Change<AuthenticationState> change) {
       super.onChange(change);
       debugPrint(change.toString());
-      debugPrint(change.currentState.toString());
-      debugPrint(change.nextState.toString());
+      // debugPrint(change.currentState.toString());
+      // debugPrint(change.nextState.toString());
     }
 
     @override

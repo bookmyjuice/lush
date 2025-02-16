@@ -2,29 +2,32 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_pw_validator/flutter_pw_validator.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+import 'package:lush/UserRepository/userRepository.dart';
 import 'package:lush/bloc/AuthBloc/AuthBloc.dart';
+import 'package:lush/bloc/AuthBloc/AuthEvents.dart';
 import 'package:lush/bloc/AuthBloc/AuthState.dart';
+import 'package:lush/getIt.dart';
 import 'package:lush/theme.dart';
+// import 'package:lush/views/models/User.dart';
 import 'package:no_context_navigation/no_context_navigation.dart';
 
 // import '../events/AuthEvents.dart';
 import '../../main.dart';
-import '../models/User.dart';
+// import '../models/User.dart';
 
 class SignUpScreen extends StatefulWidget {
-  late User user;
   static const routeName = '/signUpScreen';
 
-  SignUpScreen({super.key, required this.user});
+  const SignUpScreen({super.key});
+
+  // String password = "";
 
   @override
   SignUpScreenState createState() => SignUpScreenState();
 }
 
 class SignUpScreenState extends State<SignUpScreen> {
-  // bool _checkboxState = false;
-  // late User _user;
-  // late final User _user = User();
+  final UserRepository userRepository = getIt.get();
   final _formKey2 = GlobalKey<FormState>();
   final GlobalKey<FlutterPwValidatorState> validatorKey =
       GlobalKey<FlutterPwValidatorState>();
@@ -34,12 +37,17 @@ class SignUpScreenState extends State<SignUpScreen> {
   final TextEditingController firstNameController = TextEditingController();
   final TextEditingController lastNameController = TextEditingController();
 
-  late bool enableSubmitButton;
+  bool enableSubmitButton = false;
   // late String _res;
   // UserRepository _userRepository = UserRepository();
   // late int statusCode;
   @override
   void initState() {
+    emailController.text = userRepository.user.email;
+    phoneNumberController.text = userRepository.user.phone;
+    passwordController.text = userRepository.user.password;
+    firstNameController.text = userRepository.user.firstName;
+    lastNameController.text = userRepository.user.lastName;
     // enableSubmitButton = false;
     // emailController.text = widget.user.email;
     // if (widget.user.name != null) fullnameController.text = widget.user.name!;
@@ -51,82 +59,92 @@ class SignUpScreenState extends State<SignUpScreen> {
   Widget build(BuildContext context) {
     return BlocBuilder<AuthenticationBloc, AuthenticationState>(
         builder: (context, state) {
-      if (state is AuthenticationFailure) {
+      if (state is SignUpStarted) {
         return Scaffold(
-          body: Stack(
-            children: <Widget>[
-              Container(
-                height: double.infinity,
-                width: double.infinity,
-                decoration: const BoxDecoration(
-                  color: Colors.amber,
-                ),
-              ),
-              Container(
-                alignment: Alignment.topCenter,
-                height: double.infinity,
-                width: double.infinity,
-                child: SingleChildScrollView(
-                  physics: const AlwaysScrollableScrollPhysics(),
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 20, vertical: 20),
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.start,
-                    crossAxisAlignment: CrossAxisAlignment.center,
-                    children: <Widget>[
-                      // Container(
-                      //     alignment: Alignment.topCenter,
-                      //     width: 100,
-                      //     padding: const EdgeInsets.only(top: 69),
-                      //     child: CircleAvatar(
-                      //       backgroundImage:
-                      //           NetworkImage(widget.user.photoUrl!),
-                      //       radius: 50,
-                      //     )),
-                      const SizedBox(height: 20.0),
-                      Form(
-                        key: _formKey2,
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.center,
-                          children: <Widget>[
-                            _fullNameInputBox(),
-                            const SizedBox(height: 30.0),
-                            _emailInputBox(state.user.email),
-                            const SizedBox(height: 30.0),
-                            _phoneNumberInoutBox(),
-                            const SizedBox(height: 30.0),
-                            _passwordInputBox(),
-                            const SizedBox(height: 30.0),
-                            FlutterPwValidator(
-                              key: validatorKey,
-                              controller: passwordController,
-                              minLength: 8,
-                              uppercaseCharCount: 1,
-                              numericCharCount: 2,
-                              specialCharCount: 1,
-                              normalCharCount: 3,
-                              width: 400,
-                              height: 150,
-                              onSuccess: () {
-                                print("MATCHED");
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                    const SnackBar(
-                                        content: Text("Password is good!")));
-                                enableSubmitButton = true;
-                              },
-                              onFail: () {
-                                print("Bad Password!");
-                              },
-                            ),
-                            _SignUpBtn()
-                          ],
-                        ),
-                      )
-                    ],
+          body: SafeArea(
+            child: Stack(
+              children: <Widget>[
+                Container(
+                  height: double.infinity,
+                  width: double.infinity,
+                  decoration: const BoxDecoration(
+                    color: Colors.amber,
                   ),
                 ),
-              ),
-            ],
+                Container(
+                  alignment: Alignment.topCenter,
+                  height: double.infinity,
+                  width: double.infinity,
+                  child: SingleChildScrollView(
+                    // hitTestBehavior: ,
+                    physics: const AlwaysScrollableScrollPhysics(),
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 1, vertical: 20),
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.start,
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      children: <Widget>[
+                        // Container(
+                        //     alignment: Alignment.topCenter,
+                        //     width: 100,
+                        //     padding: const EdgeInsets.only(top: 69),
+                        //     child: CircleAvatar(
+                        //       backgroundImage:
+                        //           NetworkImage(widget.user.photoUrl!),
+                        //       radius: 50,
+                        //     )),
+                        const SizedBox(height: 20.0),
+                        Form(
+                          key: _formKey2,
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.center,
+                            children: <Widget>[
+                              _fNameInputBox(userRepository.user.firstName),
+                              const SizedBox(height: 30.0),
+                              _emailInputBox(userRepository.user.email),
+                              const SizedBox(height: 30.0),
+                              _phoneNumberInoutBox(userRepository.user.phone),
+                              const SizedBox(height: 30.0),
+                              _passwordInputBox(),
+                              // const SizedBox(height: 30.0),
+                            ],
+                          ),
+                        ),
+                        FlutterPwValidator(
+                          key: validatorKey,
+                          controller: passwordController,
+                          minLength: 8,
+                          uppercaseCharCount: 1,
+                          numericCharCount: 2,
+                          specialCharCount: 1,
+                          normalCharCount: 3,
+                          width: 400,
+                          height: 150,
+                          onSuccess: () {
+                            print("MATCHED");
+                            ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(
+                                    content: Text("Password is good!")));
+                            setState(() {
+                              enableSubmitButton = true;
+                            });
+                          },
+                          onFail: () {
+                            // print("Bad Password!");
+                            // ScaffoldMessenger.of(context).showSnackBar(
+                            //     const SnackBar(
+                            //         content: Text("Bad password!")));
+                            // enableSubmitButton = true;
+                          },
+                        ),
+                        const SizedBox(height: 65.0),
+                        _SignUpBtn()
+                      ],
+                    ),
+                  ),
+                ),
+              ],
+            ),
           ), // This trailing comma makes auto-formatting nicer for build methods.
         );
       } else {
@@ -165,11 +183,11 @@ class SignUpScreenState extends State<SignUpScreen> {
   Widget _emailInputBox(String email) {
     return Container(
       decoration: BoxDecoration(
-          color: LushTheme.appbarColor,
+          color: Colors.white,
           border: Border.all(),
           borderRadius: BorderRadius.circular(20)),
       child: TextFormField(
-        enabled: widget.user.email == null ? true : false,
+        enabled: email == "" ? true : false,
         // key: _formKey2,
         validator: (input) => input!.isEmpty
             ? "      email can't be empty"
@@ -204,12 +222,17 @@ class SignUpScreenState extends State<SignUpScreen> {
           border: Border.all(),
           borderRadius: BorderRadius.circular(20)),
       child: TextFormField(
+        onSaved: (pwd) {
+          passwordController.text = pwd!;
+        },
+        // initialValue: "********",
         // key: _formKey2,
         // enabled: widget.user.password ==null? true: false,
         controller: passwordController,
-        onSaved: (newValue) {
-          widget.user.password = newValue!;
-        },
+        // onsaved:(password){},
+        // onSaved: (newValue) {
+        //   widget. = newValue!;
+        // },
         // initialValue: widget.user.password ?? '',
         // validator: (value) =>enableSubmitButton.
         // value!.isEmpty ? '    password can\'t be empty' : value!.length<8?'password length should be at least 8': value!.contains(_password),
@@ -234,17 +257,17 @@ class SignUpScreenState extends State<SignUpScreen> {
     );
   }
 
-  Widget _fullNameInputBox() {
+  Widget _fNameInputBox(String fname) {
     return Container(
       decoration: BoxDecoration(
-          color: LushTheme.appbarColor,
+          color: LushTheme.background,
           border: Border.all(),
           borderRadius: BorderRadius.circular(20)),
       child: TextFormField(
-        // onSaved: (name)=> widget.user.name=name,
+        // initialValue: fname,
+        onSaved: (name) => firstNameController.text = name!,
         enabled: true,
-        validator: (value) =>
-            value!.isEmpty ? 'fullName can\'t be empty' : null,
+        validator: (value) => value!.isEmpty ? 'Name can\'t be empty' : null,
         controller: firstNameController,
         textAlign: TextAlign.start,
         keyboardType: TextInputType.text,
@@ -264,13 +287,14 @@ class SignUpScreenState extends State<SignUpScreen> {
     );
   }
 
-  Widget _phoneNumberInoutBox() {
+  Widget _phoneNumberInoutBox(String phone) {
     return Container(
       decoration: BoxDecoration(
           color: Colors.white,
           border: Border.all(),
           borderRadius: BorderRadius.circular(5)),
       child: TextFormField(
+        // initialValue: phone,
         // enabled: widget.user.phoneNo!.isEmpty? true:false,
         maxLength: 10,
         // key: _formKey2,
@@ -287,7 +311,7 @@ class SignUpScreenState extends State<SignUpScreen> {
             //fontWeight: FontWeight.bold
             ),
         onSaved: (newValue) {
-          // widget.user.phoneNo = newValue;
+          phoneNumberController.text = newValue!;
         },
         // onFieldSubmitted: (value) {
         //   // widget.user.phoneNo = value;
@@ -331,12 +355,21 @@ class SignUpScreenState extends State<SignUpScreen> {
             ),
             onPressed: () {
               if (_formKey2.currentState!.validate()) {
-                _formKey2.currentState!.save();
-                navService.pushReplacementNamed("/addressScreen",
-                    args: AddresScreenArguments(widget.user));
+                // _formKey2.currentState!.save();
+                BlocProvider.of<AuthenticationBloc>(context).add(InitialSignUp(
+                    email: emailController.text,
+                    phone: phoneNumberController.text,
+                    role: "user",
+                    password: passwordController.text));
+                navService.pushNamed("/addressScreen",
+                    args: AddresScreenArguments(
+                        email: emailController.text,
+                        phone: phoneNumberController.text,
+                        fname: firstNameController.text,
+                        lname: lastNameController.text));
               }
             })
-        : ElevatedButton(
+        : TextButton(
             onPressed: () {}, child: const Text("please fill all details"));
   }
 }
