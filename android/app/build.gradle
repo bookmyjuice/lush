@@ -32,8 +32,8 @@ if (flutterVersionName == null) {
 
 android {
     compileSdkVersion flutter.compileSdkVersion
-    ndkVersion "25.1.8937393"
-
+    ndkVersion "27.0.12077973"
+    namespace "com.example.lush"
     compileOptions {
         sourceCompatibility JavaVersion.VERSION_1_8
         targetCompatibility JavaVersion.VERSION_1_8
@@ -59,7 +59,7 @@ android {
     }
     signingConfigs {
         debug{
-            keyAlias 'androidDebugKey'
+            keyAlias 'AndroidDebugKey'
             keyPassword 'android'
             storeFile file('debug.keystore')
             storePassword 'android'
