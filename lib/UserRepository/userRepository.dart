@@ -3,12 +3,13 @@ import 'dart:io';
 import 'package:http/io_client.dart';
 import 'package:lush/getIt.dart';
 import 'package:lush/views/models/googleSignIn.dart';
+import 'package:lush/views/models/signUpRequest.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:convert';
-
 import '../views/models/user.dart';
 
 class UserRepository {
+  String server = "http://api.bookmyjuice.co.in:8080";
   bool userLoggedIn = false;
   User user =
       User.blank("", "", "", "", "", "", "", "", "", "", "", "", "", "");
@@ -20,129 +21,154 @@ class UserRepository {
   Future<bool> autoLogin() async {
     late String data;
     SharedPreferences sharedPreferences = await _prefs;
-    final String? username = sharedPreferences.getString("username");
-    final String? password = sharedPreferences.getString("password");
-    if (username == null || password == null) {
-      return false;
-    } else {
-      data = jsonEncode({"username": username, "password": password});
-    }
     ioc.badCertificateCallback =
         (X509Certificate cert, String host, int port) => true;
     final http = IOClient(ioc);
-    var response = await http.post(
-        Uri.parse("192.168.1.27:8080/api/auth/signin"),
-        body: data,
-        headers: {
+    token = sharedPreferences.getString("token") ?? '*';
+    if (token == '*') {
+      final String? username = sharedPreferences.getString("username");
+      final String? password = sharedPreferences.getString("password");
+
+      if (username == null || password == null) {
+        userLoggedIn = false;
+        return false;
+      } else {
+        data = jsonEncode({"username": username, "password": password});
+        var response = await http
+            .post(Uri.parse("$server/api/auth/signin"), body: data, headers: {
           "Accept": "application/json",
           "Content-Type": "application/json",
         });
-    var body = const Utf8Decoder().convert(response.bodyBytes);
-    String token = json.decode(body)['accessToken'];
-    if (response.statusCode == 200) {
-      sharedPreferences.setString("token", token);
-      token = token;
-
-      var response = await http.get(Uri.parse("localhost:8080/api/user"),
-          // body: data,
-          headers: {
-            "authorization": "Bearer $token",
-            "Accept": "application/json",
-            "Content-Type": "application/json",
-          });
-      var body = const Utf8Decoder().convert(response.bodyBytes);
-      user = json.decode(body);
-      // user.setPhone = username;
-      // user.password = password;
-      return true;
+        var responseBody = const Utf8Decoder().convert(response.bodyBytes);
+        String token_ = json.decode(responseBody)['accessToken'];
+        if (response.statusCode == 200) {
+          sharedPreferences.setString("token", token);
+          token = token_;
+          return true;
+        } else {
+          return false;
+        }
+      }
     } else {
-      return false;
+      var response =
+          await http.get(Uri.parse("$server/api/auth/autologin"), headers: {
+        "authorization": "Bearer $token",
+        "Accept": "application/json",
+        "Content-Type": "application/json",
+      });
+      var body = const Utf8Decoder().convert(response.bodyBytes);
+      String res = json.decode(body)["message"];
+      if (res == "ok") {
+        userLoggedIn = true;
+        return true;
+      } else {
+        sharedPreferences.remove("token");
+        userLoggedIn = false;
+        return false;
+      }
     }
   }
 
   Future<bool> login(String username_, String pwd, bool remember) async {
-    late String data;
     SharedPreferences sharedPreferences = await _prefs;
-    final String username = username_;
-    final String password = pwd;
-    final Object ifRememberMeChecked = remember;
-    if (ifRememberMeChecked == true) persistCredentials(username, pwd);
-    data = jsonEncode({"username": username, "password": password});
-
-    ioc.badCertificateCallback =
-        (X509Certificate cert, String host, int port) => true;
-    final http = IOClient(ioc);
-    var response = await http.post(
-        Uri.parse('http://192.168.1.27:8080/api/auth/signin'),
-        body: data,
-        headers: {
-          "Accept": "application/json",
-          "Content-Type": "application/json",
-        });
-    var body = const Utf8Decoder().convert(response.bodyBytes);
-    String token = json.decode(body)['accessToken'];
-    if (response.statusCode == 200) {
-      sharedPreferences.setString("token", token);
-      token = token;
-      return true;
-    } else {
-      return true;
-    }
-  }
-
-  Future<String> initialSignUp() async {
-    String data;
-    data = jsonEncode({
-      "phone": user.getPhone,
-      "email": user.getEmail,
-      "role": user.getRole,
-      "password": user.getPassword
-    });
     ioc.badCertificateCallback =
         (X509Certificate cert, String host, int port) => true;
     final http = IOClient(ioc);
     try {
-      var response = await http.post(
-          Uri.parse("https://192.168.1.27:8080/api/auth/signup"),
-          body: data,
+      var response = await http.post(Uri.parse('$server/api/auth/signin'),
+          body: jsonEncode({"username": username_, "password": pwd}),
+          headers: {
+            "Accept": "application/json",
+            "Content-Type": "application/json",
+          });
+
+      if (response.statusCode == 200) {
+        if (remember == true) {
+          persistCredentials(username_, pwd);
+        }
+
+        var body = const Utf8Decoder().convert(response.bodyBytes);
+        // String token = json.decode(body)['accessToken'];
+        sharedPreferences.setString("token", json.decode(body)['accessToken']);
+        token = json.decode(body)['accessToken'];
+        return true;
+      } else {
+        return false;
+      }
+    } catch (e) {
+      return false;
+    }
+  }
+
+  Future<String> signUp() async {
+    final SignupRequest data = SignupRequest(
+      username: user.getPhone,
+      email: user.getEmail,
+      password: user.getPassword,
+      address: user.getAddress,
+      extendedAddr: user.getExtendedAddr,
+      extendedAddr2: user.getExtendedAddr2,
+      firstName: user.getFirstName,
+      lastName: user.getLastName,
+      city: user.getCity,
+      state: user.getState,
+      country: user.getCountry,
+      zip: user.getZip,
+      role: {"User"},
+    );
+    ioc.badCertificateCallback =
+        (X509Certificate cert, String host, int port) => true;
+    final http = IOClient(ioc);
+    try {
+      var response = await http.post(Uri.parse("$server/api/auth/signup"),
+          body: data.toJson(),
           headers: {
             "Accept": "application/json",
             "Content-Type": "application/json",
           });
       var body = const Utf8Decoder().convert(response.bodyBytes);
-      user.setId = json.decode(body)['message'];
-      return json.decode(body)['message'];
+      if (response.statusCode == 200) {
+        user.setId = json.decode(body)['message'];
+        return json.decode(body)['message'];
+      } else {
+        return "Error: ${response.statusCode}";
+      }
     } catch (e) {
       return e.toString();
     }
   }
 
-  Future<String> registerUserWithAddress() async {
-    ioc.badCertificateCallback =
-        (X509Certificate cert, String host, int port) => true;
-    final http = IOClient(ioc);
-    var response = await http.post(
-        Uri.parse("https://192.168.1.27:8080/chargebee/register"),
-        body: user.toJson(),
-        headers: {
-          "Accept": "application/json",
-          "Content-Type": "application/json",
-        });
-    var body = const Utf8Decoder().convert(response.bodyBytes);
-    return json.decode(body)['message'];
+  Future<String> getSubscriptionPageUrl() async {
+    SharedPreferences sharedPreferences = await _prefs;
+
+    if (sharedPreferences.getInt("pricing_page_url_expires_at") != null) {
+      if (isUrlvalid(
+          sharedPreferences.getInt("pricing_page_url_expires_at")!)) {
+        if (sharedPreferences.getString("pricing_page_url") == null) {
+          return get_pricing_page_url();
+        } else {
+          return sharedPreferences.getString("pricing_page_url")!;
+        }
+      } else {
+        return get_pricing_page_url();
+      }
+    } else {
+      return get_pricing_page_url();
+    }
   }
 
-  Future<void> verifyMobile(String mobileNumber) async {
-    // Account account = Account(client);
-    // // final u = account;
-    // // account.updatePhone(phone: mobileNumber, password: u.);
-    // account.createPhoneVerification();
-  }
+  //   Future<void> verifyMobile(String mobileNumber) async {
+  //     // Account account = Account(client);
+  //     // // final u = account;
+  //     // // account.updatePhone(phone: mobileNumber, password: u.);
+  //     // account.createPhoneVerification();
+  //   }
 
-  Future<void> deleteToken() async {
-    SharedPreferences sharedPreferences = await SharedPreferences.getInstance();
-    sharedPreferences.remove("token");
-  }
+  //   Future<void> deleteToken() async {
+  //     SharedPreferences sharedPreferences =
+  //         await SharedPreferences.getInstance();
+  //     sharedPreferences.remove("token");
+  //   }
 
   Future<void> persistToken(String token) async {
     SharedPreferences sharedPreferences = await SharedPreferences.getInstance();
@@ -157,16 +183,34 @@ class UserRepository {
   }
 
   Future<String?> getToken() async {
-    SharedPreferences sharedPreferences = await SharedPreferences.getInstance();
-    String? t = sharedPreferences.getString("token");
-    return t;
+    if (await autoLogin() == true) {
+      return token;
+    } else {
+      SharedPreferences sharedPreferences = await _prefs;
+      String? token = sharedPreferences.getString("token");
+      if (token == null) {
+        return null;
+      } else {
+        if (await autoLogin() == true) {
+          return token;
+        } else {
+          return null;
+        }
+      }
+    }
   }
+
+  //   Future<void> persistCustomerId(String customerId) async {
+  //     SharedPreferences sharedPreferences =
+  //         await SharedPreferences.getInstance();
+  //     sharedPreferences.setString("customerId", customerId);
+  //   }
 
   Future<Object?> googleSignIn_() async {
     try {
       await MyGoogleSignIn.login();
     } catch (error) {
-      print("error");
+      // print("error");
       return error;
     }
     user.setFirstName = MyGoogleSignIn.currentUser().displayName!.split(" ")[0];
@@ -175,5 +219,46 @@ class UserRepository {
     // user.role = "User";
     return user;
     // return null;
+  }
+
+  bool isUrlvalid(int expiresAt) {
+    return false;
+    // DateTime.now().toUtc().isAfter(
+    //       DateTime.fromMillisecondsSinceEpoch(
+    //         DateTime.fromMillisecondsSinceEpoch(expiresAt * 1000)
+    //             .millisecondsSinceEpoch,
+    //         isUtc: true,
+    //       ).toUtc(),
+    //     );
+  }
+
+  Future<String> get_pricing_page_url() async {
+    ioc.badCertificateCallback =
+        (X509Certificate cert, String host, int port) => true;
+    final http = IOClient(ioc);
+    SharedPreferences sharedPreferences = await SharedPreferences.getInstance();
+    var response = await http
+        .get(Uri.parse('$server/api/test/generate_pricing_page_session_url'),
+            // body: jsonEncode({"customerId": user.getId}),
+            headers: {
+          "Authorization": "Bearer $token}",
+          "Accept": "application/json",
+          "Content-Type": "application/json",
+        });
+
+    if (response.statusCode == 200) {
+      var body = const Utf8Decoder().convert(response.bodyBytes);
+      String url = json.decode(body)["url"];
+
+      // sharedPreferences.setInt(
+      //     "url_expires_at", json.decode(body)['expires_at']);
+      // Time expiresAt = DateTime.parse(json.decode(body)['expires_at']);
+      sharedPreferences.setString("pricing_page_url", url);
+      sharedPreferences.setInt(
+          "pricing_page_url_expires_at", json.decode(body)['expires_at']);
+      return url;
+    } else {
+      return "Error: ${response.statusCode}";
+    }
   }
 }

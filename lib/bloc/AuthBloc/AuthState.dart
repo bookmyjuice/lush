@@ -49,9 +49,12 @@ class AuthenticationInProgress extends AuthenticationState {
 }
 
 class SignUpFailed extends AuthenticationState {
+  final String error;
+
+  const SignUpFailed({super.key, required this.error});
+
   @override
-  // TODO: implement props
-  List<Object?> get props => [];
+  List<Object?> get props => [error];
 }
 
 class SignUpStarted extends AuthenticationState {

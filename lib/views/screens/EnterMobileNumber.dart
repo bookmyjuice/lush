@@ -36,9 +36,9 @@ class _MobileNumberPageState extends State<MobileNumberPage> {
             ),
             ElevatedButton(
                 onPressed: () {
+                  Navigator.of(context).popAndPushNamed("/otp");
                   BlocProvider.of<AuthenticationBloc>(context)
                       .add(MobileSignUp(mobileNumber: MobileNoController.text));
-                  Navigator.of(context).pushNamed("/otp");
                 },
                 child: const Text("Submit"))
           ]),

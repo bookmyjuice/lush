@@ -3,11 +3,12 @@ import 'package:flutter/material.dart';
 import 'package:lush/bloc/AuthBloc/AuthEvents.dart';
 import 'package:lush/bloc/AuthBloc/AuthState.dart';
 import 'package:lush/getIt.dart';
+import 'package:lush/views/all_Screens.dart';
 import 'package:lush/views/models/model.dart';
 import 'package:no_context_navigation/no_context_navigation.dart';
 import 'bloc/AuthBloc/AuthBloc.dart';
-import 'views/all_Screens.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:toastification/toastification.dart';
 
 void main() {
   // Bloc.observer = AuthenticationBlocObserver();
@@ -18,65 +19,34 @@ void main() {
           lazy: false, create: (_) => AuthenticationBloc()..add(AutoLogIn())),
       // BlocProvider<CartBloc>(lazy: false, create: (_) => CartBloc())
     ],
-    child: MaterialApp(
-      debugShowCheckedModeBanner: false,
-      // home: const AuthWrapper(),
-      navigatorKey: NavigationService.navigationKey,
-      initialRoute: '/',
-      routes: {
-        '/': (_) => const AuthWrapper(),
-      },
-      //   '/login': (_) => const LoginPage(),
-      //   '/splash': (_) => const SplashScreen(),
-      //   '/home2': (_) => const HomePage2(),
-      //   // '/home': (_) => const HomePage(),
-      //   '/menu': (_) => const Menu(),
-      //   '/subscriptions': (_) => const Subscription(),
-      //   '/mobileNumberPage': (_) => const MobileNumberPage(),
-      //   '/otp': (_) => const OTPLoginPage(),
-      //   // '/signup': (context) => const SignUpScreen(user:),
-      // },
-      onGenerateRoute: (settings) {
-        //   if (settings.name == DetailPage.routeName) {
-        //     final args = settings.arguments as DetailScreenArguments;
-        //     return MaterialPageRoute(
-        //       builder: (context) {
-        //         return DetailPage(
-        //           args.p,
-        //         );
-        //       },
-        //     );
-        //   } else if (settings.name == SignUpScreen.routeName) {
-        //     final args = settings.arguments as SignUpPageArguments;
-        //     return MaterialPageRoute(
-        //       builder: (context) {
-        //         return SignUpScreen(
-        //           user: args.user,
-        //         );
-        //       },
-        //     );
-        //   } else
-        if (settings.name == AddressScreen.routeName) {
-          final args = settings.arguments as AddresScreenArguments;
-          return MaterialPageRoute(builder: (context) {
-            return AddressScreen();
-          });
-        } else if (settings.name == SignUpScreen.routeName) {
-          final args = settings.arguments as SignUpScreenArguments;
-          return MaterialPageRoute(
-            builder: (context) {
-              return SignUpScreen();
-            },
-          );
-        }
-        return null;
-        //else if (settings.name == Payments.routeName) {
-        //     final args = settings.arguments as PaymentScreenArguments;
-        //     return MaterialPageRoute(
-        //       builder: (context) {
-        //         return Payments(
-        //             amount: args.amount, description: args.description);
-      },
+    child: ToastificationWrapper(
+      child: MaterialApp(
+        debugShowCheckedModeBanner: false,
+        // home: const AuthWrapper(),
+        navigatorKey: NavigationService.navigationKey,
+        initialRoute: '/',
+        routes: {
+          '/': (_) => const AuthWrapper(),
+          '/mobileNumberPage': (_) => MobileNumberPage(),
+          '/otp': (_) => OTPLoginPage(),
+          // '/subscriptions': (_) => Subscription()
+        },
+        onGenerateRoute: (settings) {
+          if (settings.name == '/subscriptions') {
+            // final args = settings.arguments;
+            return MaterialPageRoute(
+              builder: (_) {
+                final args = settings.arguments;
+                return Subscription(
+                  args as String,
+                );
+              },
+            );
+          } else {
+            return null;
+          }
+        },
+      ),
     ),
   ));
 }
@@ -94,81 +64,26 @@ class AuthWrapper extends StatelessWidget {
           return LoginPage();
         } else if (state is AuthError) {
           return LoginPage();
+        } else if (state is SignUpFailed) {
+          return LoginPage();
         } else if (state is SignUpStarted) {
           return SignUpScreen();
+        } else if (state is SignUpSuccessful) {
+          return LoginPage();
+        } else if (state is AuthenticationInProgress) {
+          return const SplashScreen();
+          // } else if (state is SignUpInProgress) {
+          //   return const SplashScreen();
+          // } else if (state is LogInInProgress) {
+          //   return const SplashScreen();
+          // } else if (state is GoogleSignInInProgress) {
+        } else {
+          return const SplashScreen();
         }
-        return const SplashScreen();
       },
-
-      // navigatorKey: NavigationService.navigationKey,
-      // home: const SplashScreen(),
-      // initialRoute: '/',
-      // routes: {
-      //   '/': (_) => const HomePage(),
-      //   '/login': (_) => const LoginPage(),
-      //   '/splash': (_) => const SplashScreen(),
-      //   '/home2': (_) => const HomePage2(),
-      //   // '/home': (_) => const HomePage(),
-      //   '/menu': (_) => const Menu(),
-      //   '/subscriptions': (_) => const Subscription(),
-      //   '/mobileNumberPage': (_) => const MobileNumberPage(),
-      //   '/otp': (_) => const OTPLoginPage(),
-      //   // '/signup': (context) => const SignUpScreen(user:),
-      // },
-      // onGenerateRoute: (settings) {
-      //   if (settings.name == DetailPage.routeName) {
-      //     final args = settings.arguments as DetailScreenArguments;
-      //     return MaterialPageRoute(
-      //       builder: (context) {
-      //         return DetailPage(
-      //           args.p,
-      //         );
-      //       },
-      //     );
-      //   } else if (settings.name == SignUpScreen.routeName) {
-      //     final args = settings.arguments as SignUpPageArguments;
-      //     return MaterialPageRoute(
-      //       builder: (context) {
-      //         return SignUpScreen(
-      //           user: args.user,
-      //         );
-      //       },
-      //     );
-      //   } else if (settings.name == AddressScreen.routeName) {
-      //     final args = settings.arguments as AddresScreenArguments;
-      //     return MaterialPageRoute(
-      //       builder: (context) {
-      //         return AddressScreen(
-      //           user: args.user,
-      //         );
-      //       },
-      //     );
-      //   } else if (settings.name == Payments.routeName) {
-      //     final args = settings.arguments as PaymentScreenArguments;
-      //     return MaterialPageRoute(
-      //       builder: (context) {
-      //         return Payments(
-      //             amount: args.amount, description: args.description);
-      //       },
-      //     );
-      //   }
-      //   {
-      //     return null;
-      //   }
-      // },
-      // onUnknownRoute: (settings) {
-      //   return MaterialPageRoute(
-      //     builder: (context) {
-      //       return const LoginPage();
-      //     },
-      //   );
-      // },
-      // title: 'bookMyJuice',
     );
   }
 }
-
-// const LushApp({super.key});
 
 class DetailScreenArguments {
   final Product p;
@@ -176,23 +91,15 @@ class DetailScreenArguments {
   DetailScreenArguments(this.p);
 }
 
-class SignUpScreenArguments {
-  final user user;
-  SignUpScreenArguments(this.user);
+class SubscriptionPageUrlArgument {
+  final String url;
+
+  SubscriptionPageUrlArgument(this.url);
 }
 
-class AddresScreenArguments {
-  // final User user;
-  final String fname;
-  final String lname;
-  final String phone;
-  final String email;
-
-  AddresScreenArguments(
-      {required this.email,
-      required this.fname,
-      required this.lname,
-      required this.phone});
+class SignUpScreenArguments {
+  // final user user;
+  SignUpScreenArguments();
 }
 
 class PaymentScreenArguments {

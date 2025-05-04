@@ -5,6 +5,7 @@ import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:lush/bloc/AuthBloc/AuthBloc.dart';
 import 'package:lush/bloc/AuthBloc/AuthEvents.dart';
+import 'package:lush/bloc/AuthBloc/AuthState.dart';
 import 'package:lush/theme.dart';
 
 import '../models/user.dart';
@@ -44,83 +45,146 @@ class LoginPageState extends State<LoginPage> {
 
   @override
   Widget build(BuildContext context) {
-    // counter++;
-    return Scaffold(
-      body: Center(
-        child: Stack(
-          children: <Widget>[
-            Container(
-              padding: const EdgeInsets.only(top: 1),
-              height: 200,
-              width: double.infinity,
-              decoration: const BoxDecoration(color: Colors.orange),
+    return BlocListener<AuthenticationBloc, AuthenticationState>(
+      listener: (context, state) {
+        if (state is SignUpFailed) {
+          ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+            content: Text(state.error),
+            action: SnackBarAction(
+              label: 'Ok',
+              onPressed: () {
+                BlocProvider.of<AuthenticationBloc>(context).add(SignUp());
+              },
             ),
-            SingleChildScrollView(
-              keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.manual,
-              physics: const AlwaysScrollableScrollPhysics(),
-              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 20),
-              child: Form(
-                key: _formKey1,
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.start,
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  children: <Widget>[
-                    Container(
-                      decoration: BoxDecoration(
-                          color: Colors.white,
-                          border: Border.all(width: 2.0),
-                          borderRadius: BorderRadius.circular(20.0)),
-                      alignment: Alignment.topCenter,
-                      width: 300,
-                      // ? 300
-                      // : MediaQuery.of(context).size.width,
-                      child: Padding(
-                        padding: const EdgeInsets.all(8.0),
-                        child: Column(
-                          children: [
-                            SizedBox(
-                                height: 90,
-                                width: 90,
-                                child: Image.asset('assets/lushlogo_old.png')),
-                            const SizedBox(height: 20.0),
-                            Column(
-                              crossAxisAlignment: CrossAxisAlignment.center,
-                              mainAxisAlignment: MainAxisAlignment.start,
-                              children: <Widget>[
-                                _usernameInputBox(),
-                                const SizedBox(height: 20.0),
-                                _passwordInputBox(),
-                                _forgotPasswordButton(),
-                                _rememberMeCheckbox(),
-                                _LoginBtn(),
-                                const SizedBox(height: 10),
-                              ],
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-                    const SizedBox(height: 10),
-                    _continueWithMobileButton(),
-                    // const SizedBox(height: 15),
-                    OverflowBar(
-                      // spacing:
-                      //     const EdgeInsets.fromLTRB(25, 10, 25, 10),
-                      alignment: MainAxisAlignment.center,
-                      children: [
-                        _googleButton(),
-                        // _facebookButton(),
-                      ],
-                    ),
-
-                    _skipButton(),
-                  ],
+          ));
+        }
+        if (state is LogInFailed) {
+          ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+            content: Text("login failed"),
+            action: SnackBarAction(
+              label: 'Ok',
+              onPressed: () {
+                Navigator.of(context).popUntil((route) => route.isFirst);
+              },
+            ),
+          ));
+        }
+      },
+      child: Scaffold(
+        body: Center(
+          child: Stack(
+            children: <Widget>[
+              // Background gradient
+              Container(
+                height: double.infinity,
+                width: double.infinity,
+                decoration: const BoxDecoration(
+                  gradient: LinearGradient(
+                    colors: [Color(0xFFFFA726), Color(0xFFFF7043)],
+                    begin: Alignment.topCenter,
+                    end: Alignment.bottomCenter,
+                  ),
                 ),
               ),
-            ),
-          ],
+              SingleChildScrollView(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 20, vertical: 40),
+                child: Form(
+                  key: _formKey1,
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: <Widget>[
+                      // Logo
+                      SizedBox(
+                        height: 125,
+                        width: 250,
+                        child: Image.asset('assets/bmjlogo.png'),
+                      ),
+                      const SizedBox(height: 10),
+                      // Title
+                      Text(
+                        "Welcome Back!",
+                        style: GoogleFonts.poppins(
+                          textStyle: const TextStyle(
+                            fontSize: 24,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.white,
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 10),
+                      Text(
+                        "Login to continue",
+                        style: GoogleFonts.poppins(
+                          textStyle: const TextStyle(
+                            fontSize: 14,
+                            color: Colors.white70,
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 30),
+                      // Username input
+                      _usernameInputBox(),
+                      const SizedBox(height: 20),
+                      // Password input
+                      _passwordInputBox(),
+                      const SizedBox(height: 10),
+                      // Forgot password button
+                      _forgotPasswordButton(),
+                      const SizedBox(height: 20),
+                      // Login button
+                      _LoginBtn(),
+                      const SizedBox(height: 20),
+                      // Divider
+                      Row(
+                        children: const [
+                          Expanded(
+                            child: Divider(
+                              color: Colors.white70,
+                              thickness: 1,
+                            ),
+                          ),
+                          Padding(
+                            padding: EdgeInsets.symmetric(horizontal: 10),
+                            child: Text(
+                              "OR",
+                              style: TextStyle(color: Colors.white70),
+                            ),
+                          ),
+                          Expanded(
+                            child: Divider(
+                              color: Colors.white70,
+                              thickness: 1,
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 20),
+                      // Continue with mobile button
+                      _continueWithMobileButton(),
+                      const SizedBox(height: 20),
+                      // Social login buttons
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          _googleButton(),
+                          const SizedBox(width: 20),
+                          // Uncomment if Facebook button is needed
+                          // _facebookButton(),
+                        ],
+                      ),
+                      const SizedBox(height: 20),
+                      // Skip button
+                      _skipButton(),
+                    ],
+                  ),
+                ),
+              ),
+            ],
+          ),
         ),
-      ), // This trailing comma makes auto-formatting nicer for build methods.
+      ),
     );
   }
 
@@ -258,8 +322,6 @@ class LoginPageState extends State<LoginPage> {
                 usernameController.text,
                 passwordController.text,
                 _checkboxState)),
-
-            // Navigator.of(context).pushNamed("/home2"),
           }
       },
     );

@@ -1,12 +1,12 @@
 class Juice {
   Juice({
-    this.juiceID=0,
-    this.imagePath='',
-    this.titleTxt='',
-    this.startColor='',
-    this.endColor='',
-    this.meals= const [],
-    this.kacl=0,
+    this.juiceID = 0,
+    this.imagePath = '',
+    this.titleTxt = '',
+    this.startColor = '',
+    this.endColor = '',
+    this.meals = const [],
+    this.kacl = 0,
   });
 
   int juiceID;
@@ -19,16 +19,16 @@ class Juice {
 
   static List<Juice> tabIconsList = <Juice>[
     Juice(
-      juiceID:0,
+      juiceID: 0,
       imagePath: 'assets/watermelon.png',
       titleTxt: 'Watermelon',
       kacl: 525,
       meals: <String>['Watermelon juice'],
-      startColor: '#FA7D82',
-      endColor: '#FFB295',
+      startColor: '#FFB1C9',
+      endColor: '#B8292C',
     ),
     Juice(
-      juiceID:1,
+      juiceID: 1,
       imagePath: 'assets/pineapple.png',
       titleTxt: 'Pineapple',
       kacl: 602,
@@ -38,8 +38,9 @@ class Juice {
         'It' 's a pineapple',
         'in bottle!'
       ],
-      startColor: '#FEE12D',
-      endColor:  '#ffd964',
+      startColor: '#fad704',
+      // endColor: '#B8292C',
+      endColor: '#ffd964',
     ),
     Juice(
       juiceID: 2,

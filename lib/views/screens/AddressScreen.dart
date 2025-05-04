@@ -142,6 +142,8 @@ class AddressScreenState extends State<AddressScreen> {
                         const SizedBox(height: 30.0),
                         extendedAddress2(),
                         const SizedBox(height: 30.0),
+                        city(),
+                        const SizedBox(height: 30.0),
                         zip()
                       ],
                     ),
@@ -172,14 +174,7 @@ class AddressScreenState extends State<AddressScreen> {
         onPressed: () {
           if (_formKey.currentState!.validate()) {
             _formKey.currentState!.save();
-            BlocProvider.of<AuthenticationBloc>(context).add(SignUp(
-                address: addressController.text,
-                extendedAddr: extAddressController.text,
-                extendedAddr2: extAddress2Controller.text,
-                city: "Gurugram",
-                state: "Haryana",
-                country: "IN",
-                zip: zipController.text));
+            BlocProvider.of<AuthenticationBloc>(context).add(SignUp());
           }
         });
   }
@@ -214,7 +209,7 @@ class AddressScreenState extends State<AddressScreen> {
     );
   }
 
-  extendedAddress() {
+  Widget extendedAddress() {
     return Container(
       decoration: BoxDecoration(
           color: Colors.white,
@@ -247,7 +242,7 @@ class AddressScreenState extends State<AddressScreen> {
     );
   }
 
-  extendedAddress2() {
+  Widget extendedAddress2() {
     return Container(
       decoration: BoxDecoration(
           color: Colors.white,
@@ -277,7 +272,7 @@ class AddressScreenState extends State<AddressScreen> {
     );
   }
 
-  zip() {
+  Widget zip() {
     return Container(
       decoration: BoxDecoration(
           color: Colors.white,
@@ -318,33 +313,88 @@ class AddressScreenState extends State<AddressScreen> {
       ),
     );
   }
-  // flatOrVillaSelector() {
-  //   return Container(
-  //     color: Colors.white,
-  //     child: Padding(
-  //       padding: const EdgeInsets.all(8.0),
-  //       child: DropdownButton(
-  //         key: Key("flat"),
-  //         alignment: Alignment.center,
-  //         focusColor: Colors.white,
-  //         // dropdownColor: Colors.amber,
 
-  //         isExpanded: true,
-  //         icon: const Icon(Icons.home),
-  //         value: flatOrVillaNumber,
-  //         items: flatsorVillas.map((String items) {
-  //           return DropdownMenuItem(
-  //             value: items,
-  //             child: Text(items),
-  //           );
-  //         }).toList(),
-  //         onChanged: (String? newValue) {
-  //           setState(() {
-  //             flatOrVillaNumber = newValue!;
-  //           });
-  //         },
-  //       ),
-  //     ),
-  //   );
-  // }
+  city() {
+    return Container(
+      decoration: BoxDecoration(
+          color: Colors.white,
+          border: Border.all(),
+          borderRadius: BorderRadius.circular(5)),
+      child: TextFormField(
+        // initialValue: phone,
+        // enabled: widget.user.phoneNo!.isEmpty? true:false,
+        maxLength: 6,
+        // key: _formKey2,
+        validator: (input) => (input!.isEmpty) ? "Enter city name" : "",
+        // : phoneNumberValidator(input)
+        //     ? null
+        //     : "      Check your phone number",
+        controller: cityController,
+        textAlign: TextAlign.start,
+        // initialValue: widget.user.phoneNo,
+        keyboardType: TextInputType.streetAddress,
+        style: const TextStyle(fontFamily: 'Opensans', fontSize: 15
+            //fontWeight: FontWeight.bold
+            ),
+        onSaved: (newValue) {
+          cityController.text = newValue!;
+        },
+        // onFieldSubmitted: (value) {
+        //   // widget.user.phoneNo = value;
+        // },
+        decoration: const InputDecoration(
+          hintStyle: TextStyle(
+              color: LushTheme.appbarColor, fontFamily: 'Opensans', fontSize: 15
+              //fontWeight: FontWeight.bold
+              ),
+          border: InputBorder.none,
+          contentPadding: EdgeInsets.only(top: 10.0),
+          prefixIcon: Icon(Icons.phone, color: LushTheme.appbarColor),
+          hintText: 'Phone number ..',
+        ),
+      ),
+    );
+  }
+
+  Widget state() {
+    return Container(
+      decoration: BoxDecoration(
+          color: Colors.white,
+          border: Border.all(),
+          borderRadius: BorderRadius.circular(5)),
+      child: TextFormField(
+        // initialValue: phone,
+        // enabled: widget.user.phoneNo!.isEmpty? true:false,
+        maxLength: 6,
+        // key: _formKey2,
+        validator: (input) => (input!.isEmpty) ? "Enter city name" : "",
+        // : phoneNumberValidator(input)
+        //     ? null
+        //     : "      Check your phone number",
+        controller: cityController,
+        textAlign: TextAlign.start,
+        // initialValue: widget.user.phoneNo,
+        keyboardType: TextInputType.text,
+        style: const TextStyle(fontFamily: 'Opensans', fontSize: 15
+            //fontWeight: FontWeight.bold
+            ),
+        onSaved: (newValue) {
+          cityController.text = newValue!;
+        },
+        // onFieldSubmitted: (value) {
+        //   // widget.user.phoneNo = value;
+        // },
+        decoration: const InputDecoration(
+          hintStyle: TextStyle(
+              color: LushTheme.appbarColor, fontFamily: 'Opensans', fontSize: 15
+              //fontWeight: FontWeight.bold
+              ),
+          border: InputBorder.none,
+          contentPadding: EdgeInsets.only(top: 10.0),
+          prefixIcon: Icon(Icons.phone, color: LushTheme.appbarColor),
+          hintText: 'Phone number ..',
+        ),
+      ),
+    );
+  }
 }

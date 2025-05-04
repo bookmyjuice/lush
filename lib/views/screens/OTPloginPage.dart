@@ -14,7 +14,7 @@ class OTPLoginPage extends StatefulWidget {
 class _OTPLoginPageState extends State<OTPLoginPage> {
   final TextEditingController _OTP_controller = TextEditingController(text: '');
 
-  get decoration => PinDecoration;
+  // get decoration => PinDecoration;
 
   @override
   Widget build(BuildContext context) {
@@ -25,18 +25,25 @@ class _OTPLoginPageState extends State<OTPLoginPage> {
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
           Padding(
-            padding: const EdgeInsets.all(30.0),
-            child: PinInputTextField(
-              autoFocus: true,
-              pinLength: 6,
-              controller: _OTP_controller,
-              decoration: decoration,
-            ),
-          ),
+              padding: const EdgeInsets.all(30.0),
+              child: PinInputTextField(
+                  autoFocus: true,
+                  pinLength: 6,
+                  controller: _OTP_controller,
+                  decoration: UnderlineDecoration(
+                    colorBuilder:
+                        PinListenColorBuilder(Colors.cyan, Colors.green),
+                    // bgColorBuilder: ColorBuilder.a,
+                    obscureStyle: ObscureStyle(
+                      isTextObscure: true,
+                      obscureText: '*',
+                    ),
+                  ))),
           // Text(_OTP_controller.text + "=> OK"),
           ElevatedButton(
               onPressed: () {
-                Navigator.of(context).pushNamed("/home2");
+                Navigator.of(context).pop();
+                // BlocProvider.of<AuthenticationBloc>(context).add(SignUp());
               },
               child: const Text("Submit"))
         ]));

@@ -63,14 +63,24 @@ class HomePage2State extends State<Dashboard> with TickerProviderStateMixin {
     const int count = 9;
     listViews.add(
       InkWell(
-        onTap: () {
-          Navigator.pushNamed(context, '/subscriptions');
+        onTap: () async {
+          String url = await widget.userRepository.getSubscriptionPageUrl();
+          if (url.isEmpty) {
+            // Handle the case when the URL is empty
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(
+                content: Text('No subscription plans available.'),
+              ),
+            );
+            return;
+          }
+          Navigator.pushNamed(context, '/subscriptions', arguments: url);
         },
         child: Padding(
           padding: const EdgeInsets.only(top: 19.0),
           child: TitleView(
-            titleTxt: 'Subscriptions',
-            subTxt: 'Plans',
+            titleTxt: 'My subscriptions',
+            subTxt: 'All plans',
             animation: Tween<double>(begin: 0.0, end: 1.0).animate(
                 CurvedAnimation(
                     parent: animationController,
@@ -107,8 +117,8 @@ class HomePage2State extends State<Dashboard> with TickerProviderStateMixin {
           Navigator.pushNamed(context, '/menu');
         },
         child: TitleView(
-          titleTxt: 'All Juices',
-          subTxt: 'Menu',
+          titleTxt: 'Menu',
+          subTxt: 'All options',
           animation: Tween<double>(begin: 0.0, end: 1.0).animate(
               CurvedAnimation(
                   parent: animationController,
@@ -197,6 +207,10 @@ class HomePage2State extends State<Dashboard> with TickerProviderStateMixin {
         backgroundColor: Colors.transparent,
         body: Stack(
           children: <Widget>[
+            Image.asset(
+              'assets/yellowDripping.jpg',
+              fit: BoxFit.fill,
+            ),
             getAppBarUI(),
             getMainListViewUI(),
             // Expanded(child: getMainListViewUI()),
@@ -236,135 +250,105 @@ class HomePage2State extends State<Dashboard> with TickerProviderStateMixin {
   }
 
   Widget getAppBarUI() {
-    return Column(
-      children: <Widget>[
-        AnimatedBuilder(
-          animation: animationController,
-          builder: (BuildContext context, Widget? child) {
-            return FadeTransition(
-              opacity: topBarAnimation,
-              child: Transform(
-                transform: Matrix4.translationValues(
-                    0.0, 30 * (1.0 - topBarAnimation.value), 0.0),
-                child: Container(
-                  decoration: BoxDecoration(
-                    color: LushTheme.appbarColor.withOpacity(topBarOpacity),
-                    borderRadius: const BorderRadius.only(
-                      bottomLeft: Radius.circular(32.0),
-                    ),
-                    boxShadow: <BoxShadow>[
-                      BoxShadow(
-                          color: LushTheme.grey.withOpacity(0.25),
-                          offset: const Offset(1.1, 1.1),
-                          blurRadius: 10.0),
-                    ],
-                  ),
-                  child: Column(
-                    children: <Widget>[
-                      SizedBox(
-                        height: MediaQuery.of(context).padding.top,
-                      ),
-                      Padding(
-                        padding: EdgeInsets.only(
-                            left: 16,
-                            right: 16,
-                            top: 16 - 8.0 * topBarOpacity,
-                            bottom: 12 - 8.0 * topBarOpacity),
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: <Widget>[
-                            Expanded(
-                              child: Padding(
-                                  padding: const EdgeInsets.all(8.0),
-                                  child:
-                                      // Text(
-                                      //   'My Juices',
-                                      //   textAlign: TextAlign.left,
-                                      //   style: TextStyle(
-                                      //     fontFamily: LushTheme.fontName,
-                                      //     fontWeight: FontWeight.w700,
-                                      //     fontSize: 10 + 6 - 6 * topBarOpacity,
-                                      //     letterSpacing: 1.2,
-                                      //     color: LushTheme.white,
-                                      //   ),
-                                      // )
-                                      SizedBox(
-                                          height: 20,
-                                          child: Image.asset(
-                                              'assets/lushlogo.png'))),
-                            ),
-                            // SizedBox(
-                            //   height: 38,
-                            //   width: 38,
-                            //   child: InkWell(
-                            //     highlightColor: Colors.transparent,
-                            //     borderRadius: const BorderRadius.all(
-                            //         Radius.circular(32.0)),
-                            //     onTap: () {},
-                            //     child: const Center(
-                            //       child: Icon(
-                            //         Icons.keyboard_arrow_left,
-                            //         color: LushTheme.grey,
-                            //       ),
-                            //     ),
-                            //   ),
-                            // ),
-                            // Padding(
-                            //   padding: const EdgeInsets.only(
-                            //     left: 8,
-                            //     right: 8,
-                            //   ),
-                            //   child: Row(
-                            //     children: const <Widget>[
-                            //       Padding(
-                            //         padding: EdgeInsets.only(right: 8),
-                            //         child: Icon(
-                            //           Icons.calendar_today,
-                            //           color: LushTheme.grey,
-                            //           size: 18,
-                            //         ),
-                            //       ),
-                            //       Text(
-                            //         '15 May',
-                            //         textAlign: TextAlign.left,
-                            //         style: TextStyle(
-                            //           fontFamily: LushTheme.fontName,
-                            //           fontWeight: FontWeight.normal,
-                            //           fontSize: 18,
-                            //           letterSpacing: -0.2,
-                            //           color: LushTheme.darkerText,
-                            //         ),
-                            //       ),
-                            //     ],
-                            //   ),
-                            // ),
-                            // SizedBox(
-                            //   height: 38,
-                            //   width: 38,
-                            //   child: InkWell(
-                            //     highlightColor: Colors.transparent,
-                            //     borderRadius: const BorderRadius.all(
-                            //         Radius.circular(32.0)),
-                            //     onTap: () {},
-                            //     child: const Center(
-                            //       child: Icon(
-                            //         Icons.keyboard_arrow_right,
-                            //         color: LushTheme.grey,
-                            //       ),
-                            //     ),
-                            //   ),
-                            // ),
-                          ],
-                        ),
-                      )
-                    ],
+    return AppBar(
+      backgroundColor: Colors.orangeAccent,
+      elevation: 4,
+      title: const Text(
+        "Dashboard",
+        style: TextStyle(
+          fontSize: 22,
+          fontWeight: FontWeight.bold,
+          color: Colors.white,
+        ),
+      ),
+      centerTitle: true,
+      leading: Builder(
+        builder: (context) => IconButton(
+          icon: const Icon(Icons.menu, color: Colors.white),
+          onPressed: () {
+            Scaffold.of(context).openDrawer();
+          },
+        ),
+      ),
+    );
+  }
+
+  Widget buildDrawer() {
+    return Drawer(
+      child: ListView(
+        padding: EdgeInsets.zero,
+        children: <Widget>[
+          DrawerHeader(
+            decoration: const BoxDecoration(
+              color: Colors.orangeAccent,
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const CircleAvatar(
+                  radius: 30,
+                  backgroundColor: Colors.white,
+                  child:
+                      Icon(Icons.person, size: 40, color: Colors.orangeAccent),
+                ),
+                const SizedBox(height: 10),
+                const Text(
+                  "Welcome, User!",
+                  style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.white,
                   ),
                 ),
-              ),
-            );
-          },
-        )
-      ],
+                const Text(
+                  "user@example.com",
+                  style: TextStyle(
+                    fontSize: 14,
+                    color: Colors.white70,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          ListTile(
+            leading: const Icon(Icons.home, color: Colors.orangeAccent),
+            title: const Text("Home"),
+            onTap: () {
+              Navigator.pop(context);
+            },
+          ),
+          ListTile(
+            leading:
+                const Icon(Icons.subscriptions, color: Colors.orangeAccent),
+            title: const Text("Subscriptions"),
+            onTap: () {
+              Navigator.pushNamed(context, '/subscriptions');
+            },
+          ),
+          ListTile(
+            leading: const Icon(Icons.menu_book, color: Colors.orangeAccent),
+            title: const Text("Menu"),
+            onTap: () {
+              Navigator.pushNamed(context, '/menu');
+            },
+          ),
+          ListTile(
+            leading: const Icon(Icons.settings, color: Colors.orangeAccent),
+            title: const Text("Settings"),
+            onTap: () {
+              Navigator.pushNamed(context, '/settings');
+            },
+          ),
+          const Divider(),
+          ListTile(
+            leading: const Icon(Icons.logout, color: Colors.redAccent),
+            title: const Text("Logout"),
+            onTap: () {
+              Navigator.pushNamed(context, '/login');
+            },
+          ),
+        ],
+      ),
     );
   }
 }
