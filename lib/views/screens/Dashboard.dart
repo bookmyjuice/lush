@@ -204,13 +204,14 @@ class HomePage2State extends State<Dashboard> with TickerProviderStateMixin {
     return Container(
       color: LushTheme.background,
       child: Scaffold(
+        drawer: buildDrawer(),
         backgroundColor: Colors.transparent,
         body: Stack(
           children: <Widget>[
-            Image.asset(
-              'assets/yellowDripping.jpg',
-              fit: BoxFit.fill,
-            ),
+            // Image.asset(
+            //   'assets/ABC.png',
+            //   fit: BoxFit.fill,
+            // ),
             getAppBarUI(),
             getMainListViewUI(),
             // Expanded(child: getMainListViewUI()),
@@ -253,14 +254,10 @@ class HomePage2State extends State<Dashboard> with TickerProviderStateMixin {
     return AppBar(
       backgroundColor: Colors.orangeAccent,
       elevation: 4,
-      title: const Text(
-        "Dashboard",
-        style: TextStyle(
-          fontSize: 22,
-          fontWeight: FontWeight.bold,
-          color: Colors.white,
-        ),
-      ),
+      title: const Image(
+          fit: BoxFit.fitHeight,
+          height: 64,
+          image: AssetImage('assets/bmjlogo.png')),
       centerTitle: true,
       leading: Builder(
         builder: (context) => IconButton(
@@ -279,6 +276,7 @@ class HomePage2State extends State<Dashboard> with TickerProviderStateMixin {
         padding: EdgeInsets.zero,
         children: <Widget>[
           DrawerHeader(
+            
             decoration: const BoxDecoration(
               color: Colors.orangeAccent,
             ),
