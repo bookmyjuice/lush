@@ -60,6 +60,7 @@ class UserRepository {
       String res = json.decode(body)["message"];
       if (res == "ok") {
         userLoggedIn = true;
+        getUserDetailsFromServer();
         return true;
       } else {
         sharedPreferences.remove("token");
@@ -86,11 +87,11 @@ class UserRepository {
         if (remember == true) {
           persistCredentials(username_, pwd);
         }
-
         var body = const Utf8Decoder().convert(response.bodyBytes);
         // String token = json.decode(body)['accessToken'];
         sharedPreferences.setString("token", json.decode(body)['accessToken']);
         token = json.decode(body)['accessToken'];
+        getUserDetailsFromServer();
         return true;
       } else {
         return false;
@@ -114,14 +115,14 @@ class UserRepository {
       state: user.getState,
       country: user.getCountry,
       zip: user.getZip,
-      role: {"User"},
+      role: {"user"},
     );
     ioc.badCertificateCallback =
         (X509Certificate cert, String host, int port) => true;
     final http = IOClient(ioc);
     try {
       var response = await http.post(Uri.parse("$server/api/auth/signup"),
-          body: data.toJson(),
+          body: jsonEncode(data.toJson()),
           headers: {
             "Accept": "application/json",
             "Content-Type": "application/json",
@@ -134,7 +135,7 @@ class UserRepository {
         return "Error: ${response.statusCode}";
       }
     } catch (e) {
-      return e.toString();
+      return "Error: ${e.toString()}";
     }
   }
 
@@ -222,14 +223,13 @@ class UserRepository {
   }
 
   bool isUrlvalid(int expiresAt) {
-    return false;
-    // DateTime.now().toUtc().isAfter(
-    //       DateTime.fromMillisecondsSinceEpoch(
-    //         DateTime.fromMillisecondsSinceEpoch(expiresAt * 1000)
-    //             .millisecondsSinceEpoch,
-    //         isUtc: true,
-    //       ).toUtc(),
-    //     );
+    return DateTime.now().toUtc().isAfter(
+          DateTime.fromMillisecondsSinceEpoch(
+            DateTime.fromMillisecondsSinceEpoch(expiresAt * 1000)
+                .millisecondsSinceEpoch,
+            isUtc: true,
+          ).toUtc(),
+        );
   }
 
   Future<String> get_pricing_page_url() async {
@@ -260,5 +260,84 @@ class UserRepository {
     } else {
       return "Error: ${response.statusCode}";
     }
+  }
+
+  Future<String> getSelfServePageUrl() async {
+    SharedPreferences sharedPreferences = await _prefs;
+    if (sharedPreferences.getInt("self_serve_page_url_expires_at") != null) {
+      if (isUrlvalid(
+          sharedPreferences.getInt("self_serve_page_url_expires_at")!)) {
+        if (sharedPreferences.getString("self_serve_page_url") == null) {
+          return get_self_serve_page_url();
+        } else {
+          return sharedPreferences.getString("self_serve_page_url")!;
+        }
+      } else {
+        return get_self_serve_page_url();
+      }
+    } else {
+      return get_self_serve_page_url();
+    }
+  }
+
+  Future<String> get_self_serve_page_url() async {
+    ioc.badCertificateCallback =
+        (X509Certificate cert, String host, int port) => true;
+    final http = IOClient(ioc);
+    SharedPreferences sharedPreferences = await SharedPreferences.getInstance();
+    var response = await http.get(Uri.parse('$server/api/test/portal'),
+        // body: jsonEncode({"customerId": user.getId}),
+        headers: {
+          "Authorization": "Bearer $token}",
+          "Accept": "application/json",
+          "Content-Type": "application/json",
+        });
+
+    if (response.statusCode == 200) {
+      var body = const Utf8Decoder().convert(response.bodyBytes);
+      String url = json.decode(body)["access_url"];
+      sharedPreferences.setInt(
+          "self_serve_page_url_expires_at", json.decode(body)['expires_at']);
+      return url;
+    } else {
+      return "Error: ${response.statusCode}";
+    }
+  }
+
+  Future<void> logout() async {
+    SharedPreferences sharedPreferences = await _prefs;
+    sharedPreferences.remove("token");
+    sharedPreferences.remove("username");
+    sharedPreferences.remove("password");
+    sharedPreferences.remove("customerId");
+    userLoggedIn = false;
+  }
+
+  Future<void> getUserDetailsFromServer() async {
+    ioc.badCertificateCallback =
+        (X509Certificate cert, String host, int port) => true;
+    final http = IOClient(ioc);
+    var response = await http.get(Uri.parse("$server/api/test/user"), headers: {
+      "authorization": "Bearer $token",
+      "Accept": "application/json",
+      "Content-Type": "application/json",
+    });
+    var body = const Utf8Decoder().convert(response.bodyBytes);
+    user.setFirstName = json.decode(body)["firstName"];
+    user.setLastName = json.decode(body)["lastName"];
+    user.setEmail = json.decode(body)["email"];
+    user.setAddress = json.decode(body)["address"];
+    user.setExtendedAddr = json.decode(body)["extendedAddr"];
+    user.setExtendedAddr2 = json.decode(body)["extendedAddr2"];
+    user.setCity = json.decode(body)["city"];
+    user.setState = json.decode(body)["state"];
+    user.setCountry = json.decode(body)["country"];
+    user.setId = json.decode(body)["id"];
+    user.setZip = json.decode(body)["zip"];
+    user.setRole = json
+        .decode(body)["roles"]["name"]
+        .toString()
+        .substring(5, 9)
+        .toLowerCase();
   }
 }

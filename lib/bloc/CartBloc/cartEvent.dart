@@ -1,58 +1,51 @@
-
 import 'package:equatable/equatable.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:lush/views/models/Juice.dart';
 
 abstract class CartEvent extends Equatable {
-  const CartEvent({Key? key});
+  const CartEvent();
+
   @override
   List<Object?> get props => [];
 }
 
-class CartItemAdded extends CartEvent{
+class CartItemAdded extends CartEvent {
   final Juice juice;
+
   const CartItemAdded(this.juice);
+
+  @override
+  List<Object?> get props => [juice];
 }
 
-class CartItemRemoved extends CartEvent{
+class CartItemRemoved extends CartEvent {
   final Juice juice;
+
   const CartItemRemoved(this.juice);
+
+  @override
+  List<Object?> get props => [juice];
 }
-class CartEmptied extends CartEvent{
-  // final Juice juice;
+
+class CartEmptied extends CartEvent {
   const CartEmptied();
-}
-
-class AddItem extends CartEvent {
-  final Juice product;
-  final int quantity;
-
-  const AddItem(this.product, this.quantity);
 
   @override
-  List<Object> get props => [product, quantity];
-}
-
-class RemoveItem extends CartEvent {
-  final Juice product;
-
-  const RemoveItem(this.product);
-
-  @override
-  List<Object> get props => [product];
+  List<Object?> get props => [];
 }
 
 class UpdateQuantity extends CartEvent {
-  final Juice product;
+  final Juice juice;
   final int newQuantity;
 
-  const UpdateQuantity(this.product, this.newQuantity);
+  const UpdateQuantity(this.juice, this.newQuantity);
 
   @override
-  List<Object> get props => [product, newQuantity];
+  List<Object?> get props => [juice, newQuantity];
 }
 
 class ClearCart extends CartEvent {
+  const ClearCart();
+
   @override
-  List<Object> get props => [];
+  List<Object?> get props => [];
 }

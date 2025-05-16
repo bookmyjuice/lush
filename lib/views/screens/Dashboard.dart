@@ -1,8 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:lush/UserRepository/userRepository.dart';
+import 'package:lush/bloc/AuthBloc/AuthBloc.dart';
+import 'package:lush/bloc/AuthBloc/AuthEvents.dart';
+import 'package:lush/bloc/AuthBloc/AuthState.dart';
 import 'package:lush/getIt.dart';
 import 'package:lush/views/models/JuiceListView.dart';
-// import 'package:lush/views/models/User.dart';
+import 'package:lush/views/models/user.dart';
 import '../models/SubcriptionView.dart';
 import '../models/title_view.dart';
 import '../../theme.dart';
@@ -106,7 +110,7 @@ class HomePage2State extends State<Dashboard> with TickerProviderStateMixin {
     //   MediterranesnDietView(
     //     animation: Tween<double>(begin: 0.0, end: 1.0).animate(CurvedAnimation(
     //         parent: widget.animationController!,
-    //         curve:
+    //         curve:F
     //         Interval((1 / count) * 1, 1.0, curve: Curves.fastOutSlowIn))),
     //     animationController: widget.animationController!,
     //   ),
@@ -201,26 +205,37 @@ class HomePage2State extends State<Dashboard> with TickerProviderStateMixin {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      color: LushTheme.background,
-      child: Scaffold(
-        drawer: buildDrawer(),
-        backgroundColor: Colors.transparent,
-        body: Stack(
-          children: <Widget>[
-            // Image.asset(
-            //   'assets/ABC.png',
-            //   fit: BoxFit.fill,
-            // ),
-            getAppBarUI(),
-            getMainListViewUI(),
-            // Expanded(child: getMainListViewUI()),
-            // SizedBox(
-            //   height: MediaQuery.of(context).padding.bottom,
-            // )
-          ],
-        ),
-      ),
+    return BlocBuilder<AuthenticationBloc, AuthenticationState>(
+      builder: (context, state) {
+        if (state is AuthenticationSuccess) {
+          return Container(
+            color: LushTheme.background,
+            child: Scaffold(
+              bottomNavigationBar: buildBottomNavigationBar(),
+              drawer: buildDrawer(state.user),
+              backgroundColor: Colors.transparent,
+              appBar: getAppBarUI(),
+              body: Stack(
+                children: <Widget>[
+                  // Image.asset(
+                  //   'assets/ABC.png',
+                  //   fit: BoxFit.fill,
+                  // ),
+
+                  getMainListViewUI(),
+
+                  // Expanded(child: getMainListViewUI()),
+                  // SizedBox(
+                  //   height: MediaQuery.of(context).padding.bottom,
+                  // )
+                ],
+              ),
+            ),
+          );
+        } else {
+          return CircularProgressIndicator();
+        }
+      },
     );
   }
 
@@ -234,8 +249,7 @@ class HomePage2State extends State<Dashboard> with TickerProviderStateMixin {
           return ListView.builder(
             controller: scrollController,
             padding: EdgeInsets.only(
-              top: AppBar().preferredSize.height +
-                  MediaQuery.of(context).padding.top,
+              top: MediaQuery.of(context).padding.top,
               bottom: 1 + MediaQuery.of(context).padding.bottom,
             ),
             itemCount: listViews.length,
@@ -250,7 +264,7 @@ class HomePage2State extends State<Dashboard> with TickerProviderStateMixin {
     );
   }
 
-  Widget getAppBarUI() {
+  AppBar getAppBarUI() {
     return AppBar(
       backgroundColor: Colors.orangeAccent,
       elevation: 4,
@@ -261,7 +275,7 @@ class HomePage2State extends State<Dashboard> with TickerProviderStateMixin {
       centerTitle: true,
       leading: Builder(
         builder: (context) => IconButton(
-          icon: const Icon(Icons.menu, color: Colors.white),
+          icon: const Icon(Icons.menu, color: Colors.black),
           onPressed: () {
             Scaffold.of(context).openDrawer();
           },
@@ -270,13 +284,12 @@ class HomePage2State extends State<Dashboard> with TickerProviderStateMixin {
     );
   }
 
-  Widget buildDrawer() {
+  Widget buildDrawer(User user) {
     return Drawer(
       child: ListView(
         padding: EdgeInsets.zero,
         children: <Widget>[
           DrawerHeader(
-            
             decoration: const BoxDecoration(
               color: Colors.orangeAccent,
             ),
@@ -290,16 +303,16 @@ class HomePage2State extends State<Dashboard> with TickerProviderStateMixin {
                       Icon(Icons.person, size: 40, color: Colors.orangeAccent),
                 ),
                 const SizedBox(height: 10),
-                const Text(
-                  "Welcome, User!",
+                Text(
+                  "Welcome ${user.firstName} ${user.lastName}!",
                   style: TextStyle(
                     fontSize: 18,
                     fontWeight: FontWeight.bold,
                     color: Colors.white,
                   ),
                 ),
-                const Text(
-                  "user@example.com",
+                Text(
+                  user.email,
                   style: TextStyle(
                     fontSize: 14,
                     color: Colors.white70,
@@ -310,9 +323,13 @@ class HomePage2State extends State<Dashboard> with TickerProviderStateMixin {
           ),
           ListTile(
             leading: const Icon(Icons.home, color: Colors.orangeAccent),
-            title: const Text("Home"),
-            onTap: () {
-              Navigator.pop(context);
+            title: const Text("My Account"),
+            onTap: () async {
+              String selfServePageUrl =
+                  await widget.userRepository.getSelfServePageUrl();
+              Navigator.pushNamed(context, '/subscriptions',
+                  arguments: selfServePageUrl);
+              // Navigator.pop(context);
             },
           ),
           ListTile(
@@ -342,11 +359,43 @@ class HomePage2State extends State<Dashboard> with TickerProviderStateMixin {
             leading: const Icon(Icons.logout, color: Colors.redAccent),
             title: const Text("Logout"),
             onTap: () {
-              Navigator.pushNamed(context, '/login');
+              // Navigator.pushNamed(context, '/login');
+              BlocProvider.of<AuthenticationBloc>(context).add(LogOut());
             },
           ),
         ],
       ),
+    );
+  }
+
+  Widget buildBottomNavigationBar() {
+    return BottomNavigationBar(
+      items: const [
+        BottomNavigationBarItem(
+          icon: Icon(Icons.home),
+          label: 'Home',
+        ),
+        BottomNavigationBarItem(
+          icon: Icon(Icons.subscriptions),
+          label: 'Subscriptions',
+        ),
+        BottomNavigationBarItem(
+          icon: Icon(Icons.menu),
+          label: 'Menu',
+        ),
+      ],
+      currentIndex: 0,
+      selectedItemColor: Colors.orangeAccent,
+      onTap: (index) {
+        // Handle bottom navigation tap
+        if (index == 0) {
+          Navigator.pushNamed(context, '/home');
+        } else if (index == 1) {
+          Navigator.pushNamed(context, '/subscriptions');
+        } else if (index == 2) {
+          Navigator.pushNamed(context, '/menu');
+        }
+      },
     );
   }
 }

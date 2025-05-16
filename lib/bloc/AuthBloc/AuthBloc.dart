@@ -13,21 +13,21 @@ class AuthenticationBloc
   AuthenticationBloc() : super(AuthenticationInProgress()) {
     on<AutoLogIn>((event, emit) async {
       await userRepository.autoLogin()
-          ? emit(AuthenticationSuccess())
+          ? emit(AuthenticationSuccess(userRepository.user))
           : emit(LogInFailed());
     });
     on<LogIn>((event, emit) async {
+      emit(AuthenticationInProgress());
       await userRepository.login(event.username, event.password, event.remember)
-          ? emit(AuthenticationSuccess())
+          ? emit(AuthenticationSuccess(userRepository.user))
           : emit(LogInFailed());
     });
 
-    // on<AuthenticationLoggedIn>((event, emit) async {
-    //   await userRepository.persistToken(event.token);
-    //   await userRepository.persistCredentials(
-    //       userRepository.user.getPhone, userRepository.user.getPassword);
-    //   emit(AuthenticationSuccess());
-    // });
+    on<LogOut>((event, emit) async {
+      emit(AuthenticationInProgress());
+      await userRepository.logout();
+      emit(LoggedOut());
+    });
 
     on<SignUp>((event, emit) async {
       var res = await userRepository.signUp();

@@ -42,6 +42,16 @@ void main() {
                 );
               },
             );
+          } else if (settings.name == "/productDetails") {
+            // final args = settings.arguments;
+            return MaterialPageRoute(
+              builder: (_) {
+                final args = settings.arguments;
+                return DetailPage(
+                  args as Product,
+                );
+              },
+            );
           } else {
             return null;
           }
@@ -72,11 +82,8 @@ class AuthWrapper extends StatelessWidget {
           return LoginPage();
         } else if (state is AuthenticationInProgress) {
           return const SplashScreen();
-          // } else if (state is SignUpInProgress) {
-          //   return const SplashScreen();
-          // } else if (state is LogInInProgress) {
-          //   return const SplashScreen();
-          // } else if (state is GoogleSignInInProgress) {
+        } else if (state is LoggedOut) {
+          return LoginPage();
         } else {
           return const SplashScreen();
         }

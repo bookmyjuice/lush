@@ -77,7 +77,9 @@ class SubscriptionState extends State<Subscription> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Subscription plans'),
+        title: url.contains("portal")
+            ? const Text('My Accout')
+            : const Text('Subscription plans'),
         bottom: _loadingProgress < 100
             ? PreferredSize(
                 preferredSize: const Size.fromHeight(23.0),

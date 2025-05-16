@@ -5,7 +5,7 @@ import '../models/model.dart';
 class DetailPage extends StatefulWidget {
   // Declare a field that holds product
 
-  static const routeName = '/productArgument';
+  static const routeName = '/productDetails';
   final Product product;
   const DetailPage(this.product, {super.key});
 

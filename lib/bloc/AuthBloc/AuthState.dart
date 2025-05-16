@@ -1,5 +1,6 @@
 import 'package:equatable/equatable.dart';
 import 'package:flutter/cupertino.dart';
+import 'package:lush/views/models/user.dart';
 
 abstract class AuthenticationState extends Equatable {
   const AuthenticationState({Key? key});
@@ -26,11 +27,11 @@ class LogInFailed extends AuthenticationState {
 }
 
 class AuthenticationSuccess extends AuthenticationState {
-  // final User user;
-  const AuthenticationSuccess();
+  final User user;
+  const AuthenticationSuccess(this.user);
   // UserRepository
   @override
-  List<Object?> get props => throw UnimplementedError();
+  List<Object?> get props => [user];
 }
 
 class AuthError extends AuthenticationState {
@@ -61,7 +62,6 @@ class SignUpStarted extends AuthenticationState {
   // final User user;
   const SignUpStarted();
   @override
-  // TODO: implement props
   List<Object?> get props => [];
 }
 
@@ -69,6 +69,10 @@ class TokenReceived extends AuthenticationState {}
 
 class SignUpSuccessful extends AuthenticationState {
   @override
-  // TODO: implement props
+  List<Object?> get props => [];
+}
+
+class LoggedOut extends AuthenticationState {
+  @override
   List<Object?> get props => [];
 }

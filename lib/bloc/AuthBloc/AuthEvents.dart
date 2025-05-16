@@ -21,7 +21,7 @@ class AuthenticationLoggedIn extends AuthenticationEvent {
   String toString() => 'AuthenticationLoggedIn { token: $token }';
 }
 
-class AuthenticationLoggedOut extends AuthenticationEvent {}
+class LogOut extends AuthenticationEvent {}
 
 class AutoLogIn extends AuthenticationEvent {}
 

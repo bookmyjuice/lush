@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:hexcolor/hexcolor.dart';
-import '../../main.dart';
 import '../screens/detail.dart';
 import '../../theme.dart';
 import 'Juice.dart';
@@ -33,7 +32,7 @@ class JuicesView extends StatelessWidget {
             child: InkWell(
               onTap: () {
                 Navigator.pushNamed(context, DetailPage.routeName,
-                    arguments: DetailScreenArguments(p));
+                    arguments: p);
               },
               child: SizedBox(
                 width: MediaQuery.of(context).size.width / 2.6,
