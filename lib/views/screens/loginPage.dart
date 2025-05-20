@@ -7,14 +7,17 @@ import 'package:lush/bloc/AuthBloc/AuthBloc.dart';
 import 'package:lush/bloc/AuthBloc/AuthEvents.dart';
 import 'package:lush/bloc/AuthBloc/AuthState.dart';
 import 'package:lush/theme.dart';
-
-import '../models/user.dart';
+import 'package:toastification/toastification.dart';
+// import '../models/user.dart';
 
 class LoginPage extends StatefulWidget {
-  const LoginPage({super.key});
+  const LoginPage(
+      {super.key,
+      required this.toast_message,
+      required this.toast_heading});
 
-  // const LoginPage({super.key});
-  // int counter=0;
+  final String toast_message;
+  final String toast_heading;
 
   @override
   LoginPageState createState() => LoginPageState();
@@ -24,15 +27,27 @@ class LoginPageState extends State<LoginPage> {
   // int counter = 0;
   final _formKey1 = GlobalKey<FormState>();
   // final GlobalKey<  FlutterPwValidatorState> validatorKey = GlobalKey<FlutterPwValidatorState>();
-  late User user;
+  // late User user;
   final bool _checkboxState = false;
   TextEditingController usernameController = TextEditingController();
   TextEditingController passwordController = TextEditingController();
+  bool _dialogShown = false;
 
   @override
   void initState() {
-    // user = User();
     super.initState();
+    if (widget.toast_heading!="") {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        toastification.show(
+          icon: const Icon(Icons.error),
+          closeButton: ToastCloseButton(),
+          alignment: Alignment.center,
+          title: Text(widget.toast_heading),
+          description: Text(widget.toast_message),
+          type: ToastificationType.error,
+        );
+      });
+    }
   }
 
   @override
@@ -45,33 +60,41 @@ class LoginPageState extends State<LoginPage> {
 
   @override
   Widget build(BuildContext context) {
-    return BlocListener<AuthenticationBloc, AuthenticationState>(
-      listener: (context, state) {
-        if (state is SignUpFailed) {
-          ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-            content: Text(state.error),
-            action: SnackBarAction(
-              label: 'Ok',
-              onPressed: () {
-                BlocProvider.of<AuthenticationBloc>(context).add(SignUp());
-              },
-            ),
-          ));
-        }
-        if (state is LogInFailed) {
-          ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-            content: Text("login failed"),
-            action: SnackBarAction(
-              label: 'Ok',
-              onPressed: () {
-                Navigator.of(context).popUntil((route) => route.isFirst);
-              },
-            ),
-          ));
-        }
-      },
-      child: Scaffold(
-        body: Center(
+    return Scaffold(
+      body: BlocListener<AuthenticationBloc, AuthenticationState>(
+        listenWhen: (previous, current) => (current is LogInFailed ||
+            current is SignUpFailed ||
+            current is AutoLoginFailed),
+        listener: (context, state) async {
+          if ((state is LogInFailed) && !_dialogShown) {
+            _dialogShown = true;
+            toastification.show(
+              closeButton: ToastCloseButton(),
+              title: Text('Login Failed'),
+              description: Text('Please check your credentials and try again.'),
+              type: ToastificationType.error,
+            );
+          }
+          if (state is SignUpFailed) {
+            _dialogShown = true;
+            toastification.show(
+              closeButton: ToastCloseButton(),
+              title: Text('SignUp Failed!'),
+              description: Text('Please try again!'),
+              type: ToastificationType.error,
+            );
+          }
+          if (state is AutoLoginFailed) {
+            _dialogShown = true;
+            toastification.show(
+              closeButton: ToastCloseButton(),
+              title: Text('AutoLogin Failed!'),
+              description: Text('Please Login!'),
+              type: ToastificationType.error,
+            );
+          }
+        },
+        child: Center(
           child: Stack(
             children: <Widget>[
               // Background gradient
@@ -119,7 +142,9 @@ class LoginPageState extends State<LoginPage> {
                         style: GoogleFonts.poppins(
                           textStyle: const TextStyle(
                             fontSize: 14,
-                            color: Colors.white70,
+                            fontStyle: FontStyle.normal,
+                            fontWeight: FontWeight.w500,
+                            color: Colors.white,
                           ),
                         ),
                       ),
@@ -129,13 +154,14 @@ class LoginPageState extends State<LoginPage> {
                       const SizedBox(height: 20),
                       // Password input
                       _passwordInputBox(),
-                      const SizedBox(height: 10),
+                      const SizedBox(height: 6),
                       // Forgot password button
                       _forgotPasswordButton(),
                       const SizedBox(height: 20),
                       // Login button
                       _LoginBtn(),
-                      const SizedBox(height: 20),
+                      // const SizedBox(height: 20),
+                      // showStateMessage(),
                       // Divider
                       Row(
                         children: const [
@@ -146,7 +172,7 @@ class LoginPageState extends State<LoginPage> {
                             ),
                           ),
                           Padding(
-                            padding: EdgeInsets.symmetric(horizontal: 10),
+                            padding: EdgeInsets.symmetric(horizontal: 6),
                             child: Text(
                               "OR",
                               style: TextStyle(color: Colors.white70),
@@ -185,6 +211,8 @@ class LoginPageState extends State<LoginPage> {
           ),
         ),
       ),
+
+      // }
     );
   }
 
@@ -196,17 +224,17 @@ class LoginPageState extends State<LoginPage> {
 
   Widget _usernameInputBox() {
     return Container(
-      key: UniqueKey(),
+      // key: UniqueKey(),
       decoration: BoxDecoration(
           // color: Colors.white,
           border: Border.all(),
           borderRadius: BorderRadius.circular(20)),
       child: TextFormField(
         validator: (input) => input!.isEmpty
-            ? "       username can't be empty"
+            ? "       Please enter phone number!"
             : isValidUsername(input)
                 ? null
-                : "      Check your username",
+                : "      Check your phone number!",
         controller: usernameController,
         maxLength: 10,
         maxLengthEnforcement: MaxLengthEnforcement.enforced,
@@ -218,8 +246,14 @@ class LoginPageState extends State<LoginPage> {
           hintStyle: GoogleFonts.cormorant(color: Colors.black, fontSize: 16),
           // border: InputBorder.,
           // contentPadding: const EdgeInsets.only(top: 10),
-          prefixIcon: const Icon(Icons.email, color: Colors.black),
-          hintText: 'Enter your phone number',
+          prefixIcon: const Icon(Icons.phone, color: Colors.black),
+          suffixIcon: IconButton(
+            icon: const Icon(Icons.clear),
+            onPressed: () {
+              usernameController.clear();
+            },
+          ),
+          hintText: 'Enter 10 digit phone no.',
         ),
       ),
     );
@@ -234,7 +268,7 @@ class LoginPageState extends State<LoginPage> {
           borderRadius: BorderRadius.circular(20)),
       child: TextFormField(
         validator: (value) =>
-            value!.isEmpty ? '        password can\'t be empty' : null,
+            value!.isEmpty ? '        Please enter password!' : null,
         controller: passwordController,
         obscureText: true,
         textAlign: TextAlign.start,
@@ -257,7 +291,10 @@ class LoginPageState extends State<LoginPage> {
       key: UniqueKey(),
       alignment: Alignment.centerRight,
       child: MaterialButton(
-          onPressed: () {}, child: Text('Forgot Password', style: Mystyle(10))),
+          onPressed: () {
+            Navigator.of(context).pushNamed("/mobileNumberPage");
+          },
+          child: Text('Forgot Password', style: Mystyle(10))),
     );
   }
 
@@ -388,38 +425,34 @@ class LoginPageState extends State<LoginPage> {
           // googleSignIn.login().then((value) async {
           // value?.id != null
           // ? {
-          // user.id = value!.id,
-          // user.email = value.email,
-          // user.firstName = value.displayName!.split(' ')[0],
-          // user.lastName = value.displayName!.split(' ')[1],
-          // user.phone = "",
-          // user.password = "",
-          // user.photoUrl = value.photoUrl!,
-          // user.password=value.serverAuthCode,
+
           BlocProvider.of<AuthenticationBloc>(context).add(GoogleSignIn());
-          // Navigator.of(context).pushNamed("/home")
-          //           navService.pushReplacementNamed("/signUpScreen",
-          //               args: SignUpScreenArguments(user))
-          //         }
-          //       : ScaffoldMessenger.of(context)
-          //           .showMaterialBanner(MaterialBanner(
-          //           content: const Text("Could not login via Google!"),
-          //           actions: [
-          //             TextButton(
-          //                 onPressed: () {
-          //                   ScaffoldMessenger.of(context)
-          //                       .clearMaterialBanners();
-          //                 },
-          //                 child: const Text('Ok!'))
-          //           ],
-          //         ));
-          // });
         },
         backgroundColor: LushTheme.white,
         child: const FaIcon(
           FontAwesomeIcons.google,
           color: Colors.red,
         ));
+  }
+
+  Widget showStateMessage() {
+    return Container(
+      color: Colors.black45,
+      child: BlocBuilder<AuthenticationBloc, AuthenticationState>(
+        builder: (context, state) {
+          if (state is SignUpFailed) {
+            return Text("SignUp failed: ${state.error}",
+                style: const TextStyle(color: Colors.red));
+          } else if (state is LogInFailed) {
+            return const Text(
+              "Login failed!",
+              style: TextStyle(color: Colors.red, fontWeight: FontWeight.bold),
+            );
+          }
+          return const SizedBox.shrink();
+        },
+      ),
+    );
   }
 
   // Widget _facebookButton() {

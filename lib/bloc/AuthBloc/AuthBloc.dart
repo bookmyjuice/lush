@@ -14,13 +14,15 @@ class AuthenticationBloc
     on<AutoLogIn>((event, emit) async {
       await userRepository.autoLogin()
           ? emit(AuthenticationSuccess(userRepository.user))
-          : emit(LogInFailed());
+          : emit(AutoLoginFailed(toast_heading: "AutoLogin Failed!", toast_message: "Please login again or register"));
     });
     on<LogIn>((event, emit) async {
       emit(AuthenticationInProgress());
-      await userRepository.login(event.username, event.password, event.remember)
+      bool loginSuccess = await userRepository.login(
+          event.username, event.password, event.remember);
+      loginSuccess
           ? emit(AuthenticationSuccess(userRepository.user))
-          : emit(LogInFailed());
+          : emit(LogInFailed(toast_heading: "Login Failed!", toast_message: "Please check your credentials!"));
     });
 
     on<LogOut>((event, emit) async {
@@ -32,7 +34,7 @@ class AuthenticationBloc
     on<SignUp>((event, emit) async {
       var res = await userRepository.signUp();
       (res.split(':')[0] == "Error")
-          ? emit(SignUpFailed(error: res))
+          ? emit(SignUpFailed(error: res.split(':')[1], error_heading: "SignUp Failed!"))
           : emit(SignUpSuccessful());
     });
     on<GoogleSignIn>((event, emit) async {

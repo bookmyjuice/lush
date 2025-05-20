@@ -5,6 +5,7 @@ import 'package:lush/bloc/AuthBloc/AuthState.dart';
 import 'package:lush/getIt.dart';
 import 'package:lush/views/all_Screens.dart';
 import 'package:lush/views/models/model.dart';
+import 'package:lush/views/screens/ForgotPasswordPage.dart';
 import 'package:no_context_navigation/no_context_navigation.dart';
 import 'bloc/AuthBloc/AuthBloc.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -29,6 +30,7 @@ void main() {
           '/': (_) => const AuthWrapper(),
           '/mobileNumberPage': (_) => MobileNumberPage(),
           '/otp': (_) => OTPLoginPage(),
+          '/forgotPasswordPage': (_) => ForgotPasswordPage(),
           // '/subscriptions': (_) => Subscription()
         },
         onGenerateRoute: (settings) {
@@ -70,20 +72,21 @@ class AuthWrapper extends StatelessWidget {
       builder: (context, state) {
         if (state is AuthenticationSuccess) {
           return Dashboard();
+        } else if (state is AutoLoginFailed) {
+          return LoginPage(toast_message: state.toast_message, toast_heading: state.toast_heading);
         } else if (state is LogInFailed) {
-          return LoginPage();
-        } else if (state is AuthError) {
-          return LoginPage();
-        } else if (state is SignUpFailed) {
-          return LoginPage();
-        } else if (state is SignUpStarted) {
+          return LoginPage(toast_message: state.toast_message, toast_heading: state.toast_heading);
+        } else if (state is SignUpFailed){
+          return LoginPage(toast_message: state.error, toast_heading: "SignUp Failed!");
+        } 
+        else if (state is SignUpStarted) {
           return SignUpScreen();
         } else if (state is SignUpSuccessful) {
-          return LoginPage();
+          return LoginPage(toast_heading: "Signup Successfull!", toast_message:  "Please login to continue..");
         } else if (state is AuthenticationInProgress) {
           return const SplashScreen();
         } else if (state is LoggedOut) {
-          return LoginPage();
+          return LoginPage(toast_heading: "User logged out!", toast_message: "Please login to continue..");
         } else {
           return const SplashScreen();
         }

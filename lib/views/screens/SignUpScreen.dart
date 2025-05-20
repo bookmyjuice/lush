@@ -202,13 +202,16 @@ class SignUpScreenState extends State<SignUpScreen> {
                               ),
                               const SizedBox(height: 16),
                               _buildTextField(
+                                
                                 controller: zipController,
                                 label: "Zip Code",
                                 icon: Icons.pin_drop,
+                                
                                 keyboardType: TextInputType.number,
                                 validator: (value) => value!.isEmpty
                                     ? "Zip code is required"
                                     : null,
+                                    inputFormatters: [LengthLimitingTextInputFormatter(6)]
                               ),
                             ],
                           ),

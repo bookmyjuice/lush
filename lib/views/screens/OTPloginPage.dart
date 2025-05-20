@@ -1,5 +1,9 @@
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:lush/bloc/AuthBloc/AuthEvents.dart';
 import 'package:pin_input_text_field/pin_input_text_field.dart';
 import 'package:flutter/material.dart';
+
+import '../../bloc/AuthBloc/AuthBloc.dart';
 // import 'package:rive/rive.dart';
 
 class OTPLoginPage extends StatefulWidget {
@@ -42,8 +46,8 @@ class _OTPLoginPageState extends State<OTPLoginPage> {
           // Text(_OTP_controller.text + "=> OK"),
           ElevatedButton(
               onPressed: () {
-                Navigator.of(context).pop();
-                // BlocProvider.of<AuthenticationBloc>(context).add(SignUp());
+                Navigator.of(context).popUntil((ModalRoute.withName('/')));
+                BlocProvider.of<AuthenticationBloc>(context).add(SignUp());
               },
               child: const Text("Submit"))
         ]));

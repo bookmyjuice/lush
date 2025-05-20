@@ -212,7 +212,7 @@ class HomePage2State extends State<Dashboard> with TickerProviderStateMixin {
             color: LushTheme.background,
             child: Scaffold(
               bottomNavigationBar: buildBottomNavigationBar(),
-              drawer: buildDrawer(state.user),
+              drawer: buildDrawer(widget.userRepository.user),
               backgroundColor: Colors.transparent,
               appBar: getAppBarUI(),
               body: Stack(
@@ -304,7 +304,9 @@ class HomePage2State extends State<Dashboard> with TickerProviderStateMixin {
                 ),
                 const SizedBox(height: 10),
                 Text(
-                  "Welcome ${user.firstName} ${user.lastName}!",
+                  user.getFirstName.toString().length+user.getLastName.toString().length>8?
+                  "Welcome ${user.getFirstName}!":
+                  "Welcome ${user.getFirstName} ${user.getLastName}!",
                   style: TextStyle(
                     fontSize: 18,
                     fontWeight: FontWeight.bold,
@@ -312,7 +314,7 @@ class HomePage2State extends State<Dashboard> with TickerProviderStateMixin {
                   ),
                 ),
                 Text(
-                  user.email,
+                  user.getPhone,
                   style: TextStyle(
                     fontSize: 14,
                     color: Colors.white70,
@@ -383,9 +385,14 @@ class HomePage2State extends State<Dashboard> with TickerProviderStateMixin {
           icon: Icon(Icons.menu),
           label: 'Menu',
         ),
+        BottomNavigationBarItem(
+          icon: Icon(Icons.help_sharp),
+          label: 'Help',
+        ),
       ],
       currentIndex: 0,
-      selectedItemColor: Colors.orangeAccent,
+      selectedItemColor: Colors.orange[400],
+      unselectedItemColor: Colors.grey,
       onTap: (index) {
         // Handle bottom navigation tap
         if (index == 0) {
@@ -394,6 +401,8 @@ class HomePage2State extends State<Dashboard> with TickerProviderStateMixin {
           Navigator.pushNamed(context, '/subscriptions');
         } else if (index == 2) {
           Navigator.pushNamed(context, '/menu');
+        } else if (index == 3) {
+          Navigator.pushNamed(context, '/help');
         }
       },
     );

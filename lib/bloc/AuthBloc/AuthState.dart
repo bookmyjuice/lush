@@ -16,14 +16,21 @@ class AuthenticationInitiated extends AuthenticationState {
 }
 
 class AutoLoginFailed extends AuthenticationState {
+  final String toast_message, toast_heading;
+
+  const AutoLoginFailed({super.key, required this.toast_message, required this.toast_heading});
   @override
-  // TODO: implement props
-  List<Object?> get props => [];
+  
+  List<Object?> get props => [toast_heading, toast_message];
 }
 
 class LogInFailed extends AuthenticationState {
+  final String toast_message, toast_heading;
+
+  const LogInFailed({super.key, required this.toast_message, required this.toast_heading});
+  
   @override
-  List<Object?> get props => [];
+  List<Object?> get props => [toast_heading,toast_message];
 }
 
 class AuthenticationSuccess extends AuthenticationState {
@@ -34,6 +41,7 @@ class AuthenticationSuccess extends AuthenticationState {
   List<Object?> get props => [user];
 }
 
+
 class AuthError extends AuthenticationState {
   // final Key key;
   final String error;
@@ -43,19 +51,17 @@ class AuthError extends AuthenticationState {
 }
 
 class AuthenticationInProgress extends AuthenticationState {
-  // final User user=User();
   @override
-  // TODO: implement props
   List<Object?> get props => [];
 }
 
 class SignUpFailed extends AuthenticationState {
-  final String error;
+  final String error_heading, error;
 
-  const SignUpFailed({super.key, required this.error});
+  const SignUpFailed({super.key, required this.error_heading, required this.error});
 
   @override
-  List<Object?> get props => [error];
+  List<Object?> get props => [error_heading, error];
 }
 
 class SignUpStarted extends AuthenticationState {

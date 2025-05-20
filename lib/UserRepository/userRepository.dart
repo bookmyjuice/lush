@@ -60,7 +60,7 @@ class UserRepository {
       String res = json.decode(body)["message"];
       if (res == "ok") {
         userLoggedIn = true;
-        getUserDetailsFromServer();
+        await getUserDetailsFromServer();
         return true;
       } else {
         sharedPreferences.remove("token");
@@ -326,16 +326,17 @@ class UserRepository {
     user.setFirstName = json.decode(body)["firstName"];
     user.setLastName = json.decode(body)["lastName"];
     user.setEmail = json.decode(body)["email"];
+    user.setPhone = json.decode(body)["username"];
     user.setAddress = json.decode(body)["address"];
     user.setExtendedAddr = json.decode(body)["extendedAddr"];
     user.setExtendedAddr2 = json.decode(body)["extendedAddr2"];
     user.setCity = json.decode(body)["city"];
     user.setState = json.decode(body)["state"];
     user.setCountry = json.decode(body)["country"];
-    user.setId = json.decode(body)["id"];
+    user.setId = json.decode(body)["id"].toString();
     user.setZip = json.decode(body)["zip"];
     user.setRole = json
-        .decode(body)["roles"]["name"]
+        .decode(body)["roles"][0]["name"]
         .toString()
         .substring(5, 9)
         .toLowerCase();
