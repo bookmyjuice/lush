@@ -34,6 +34,8 @@ dependencies:
   toastification: ^3.0.1
   webview_flutter: ^4.10.0
   carousel_slider: ^5.0.0
+  flutter_launcher_icons: ^0.14.3
+  toggle_switch: ^2.3.0
 
 dev_dependencies:
   flutter_test:
@@ -47,6 +49,10 @@ flutter:
   assets:
     - assets/
 
+flutter_launcher_icons:
+  android: "launcher_icon"
+  ios: true
+  image_path: "assets/bmjlogoSquare.png"
 
   
   

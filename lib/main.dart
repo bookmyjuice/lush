@@ -6,6 +6,7 @@ import 'package:lush/getIt.dart';
 import 'package:lush/views/all_Screens.dart';
 import 'package:lush/views/models/model.dart';
 import 'package:lush/views/screens/ForgotPasswordPage.dart';
+import 'package:lush/views/screens/MyAccountPage.dart';
 import 'package:no_context_navigation/no_context_navigation.dart';
 import 'bloc/AuthBloc/AuthBloc.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -34,13 +35,18 @@ void main() {
           // '/subscriptions': (_) => Subscription()
         },
         onGenerateRoute: (settings) {
+          if (settings.name == '/myaccount') {
+            return MaterialPageRoute(builder: (_) {
+              return MyAccountPage(settings.arguments as String);
+            });
+          }
           if (settings.name == '/subscriptions') {
             // final args = settings.arguments;
             return MaterialPageRoute(
               builder: (_) {
-                final args = settings.arguments;
                 return Subscription(
-                  args as String,
+                  settings.arguments
+                      as SubscriptionPageUrlArgument, // Pass the SubscriptionPageUrlArgument,
                 );
               },
             );
@@ -48,9 +54,8 @@ void main() {
             // final args = settings.arguments;
             return MaterialPageRoute(
               builder: (_) {
-                final args = settings.arguments;
                 return DetailPage(
-                  args as Product,
+                  settings.arguments as Product,
                 );
               },
             );
@@ -73,20 +78,32 @@ class AuthWrapper extends StatelessWidget {
         if (state is AuthenticationSuccess) {
           return Dashboard();
         } else if (state is AutoLoginFailed) {
-          return LoginPage(toast_message: state.toast_message, toast_heading: state.toast_heading);
+          return LoginPage(
+              toast_message: state.toast_message,
+              toast_heading: state.toast_heading);
         } else if (state is LogInFailed) {
-          return LoginPage(toast_message: state.toast_message, toast_heading: state.toast_heading);
-        } else if (state is SignUpFailed){
-          return LoginPage(toast_message: state.error, toast_heading: "SignUp Failed!");
-        } 
-        else if (state is SignUpStarted) {
+          return LoginPage(
+              toast_message: state.toast_message,
+              toast_heading: state.toast_heading);
+        } else if (state is SignUpFailed) {
+          return LoginPage(
+              toast_message: state.error, toast_heading: "SignUp Failed!");
+        } else if (state is SignUpStarted) {
           return SignUpScreen();
         } else if (state is SignUpSuccessful) {
-          return LoginPage(toast_heading: "Signup Successfull!", toast_message:  "Please login to continue..");
+          return LoginPage(
+              toast_heading: "Signup Successfull!",
+              toast_message: "Please login to continue..");
         } else if (state is AuthenticationInProgress) {
           return const SplashScreen();
         } else if (state is LoggedOut) {
-          return LoginPage(toast_heading: "User logged out!", toast_message: "Please login to continue..");
+          return LoginPage(
+              toast_heading: "You've logged out!",
+              toast_message: "Please login to continue..");
+        } else if (state is InternetIssue) {
+          return LoginPage(
+              toast_message: state.toast_message,
+              toast_heading: state.toast_heading);
         } else {
           return const SplashScreen();
         }
@@ -101,10 +118,18 @@ class DetailScreenArguments {
   DetailScreenArguments(this.p);
 }
 
-class SubscriptionPageUrlArgument {
+class MyAccountPageUrl {
   final String url;
 
-  SubscriptionPageUrlArgument(this.url);
+  MyAccountPageUrl(this.url);
+}
+
+class SubscriptionPageUrlArgument {
+  final String premium_page_url, signature_page_url, delight_page_url;
+  SubscriptionPageUrlArgument(
+      {required this.premium_page_url,
+      required this.signature_page_url,
+      required this.delight_page_url});
 }
 
 class SignUpScreenArguments {

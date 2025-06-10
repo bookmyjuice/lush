@@ -5,8 +5,10 @@ import 'package:lush/bloc/AuthBloc/AuthBloc.dart';
 import 'package:lush/bloc/AuthBloc/AuthEvents.dart';
 import 'package:lush/bloc/AuthBloc/AuthState.dart';
 import 'package:lush/getIt.dart';
+import 'package:lush/main.dart';
 import 'package:lush/views/models/JuiceListView.dart';
 import 'package:lush/views/models/user.dart';
+import 'package:toggle_switch/toggle_switch.dart';
 import '../models/SubcriptionView.dart';
 import '../models/title_view.dart';
 import '../../theme.dart';
@@ -68,17 +70,15 @@ class HomePage2State extends State<Dashboard> with TickerProviderStateMixin {
     listViews.add(
       InkWell(
         onTap: () async {
-          String url = await widget.userRepository.getSubscriptionPageUrl();
-          if (url.isEmpty) {
-            // Handle the case when the URL is empty
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(
-                content: Text('No subscription plans available.'),
-              ),
-            );
-            return;
-          }
-          Navigator.pushNamed(context, '/subscriptions', arguments: url);
+          Map<String, String> urls =
+              await widget.userRepository.getSubscriptionPageUrl();
+          mounted
+              ? Navigator.pushNamed(context, '/subscriptions',
+                  arguments: SubscriptionPageUrlArgument(
+                      premium_page_url: urls["premium"]!,
+                      signature_page_url: urls["signature"]!,
+                      delight_page_url: urls["delight"]!))
+              : Future.delayed(Duration(seconds: 1));
         },
         child: Padding(
           padding: const EdgeInsets.only(top: 19.0),
@@ -106,6 +106,52 @@ class HomePage2State extends State<Dashboard> with TickerProviderStateMixin {
         animationController: animationController,
       ),
     );
+    listViews.add(
+      Padding(
+        padding: const EdgeInsets.all(10.0),
+        child: ToggleSwitch(
+          borderColor: [Colors.black45],
+          borderWidth: 2.0,
+          fontSize: 14.0,
+          customWidths: [110, 110, 110],
+          dividerColor: Colors.orangeAccent,
+          centerText: true,
+          dividerMargin: 10.0,
+          animate: true,
+          animationDuration: 300,
+          cornerRadius: 20.0,
+          activeBgColor: [Colors.orange.shade400],
+          activeFgColor: Colors.black,
+          inactiveBgColor: Colors.grey[300],
+          initialLabelIndex: 0,
+          totalSwitches: 3,
+          labels: const ['Premium', 'Signature', 'Delight'],
+          onToggle: (index) {
+            switch (index) {
+              case 0:
+                // _controller.loadRequest(Uri.parse(
+                //     'https://www.example.com/subscription/premium'));
+                break;
+              case 1:
+                // _controller.loadRequest(Uri.parse(
+                //     'https://www.example.com/subscription/signature'));
+                break;
+              case 2:
+                // _controller.loadRequest(Uri.parse(
+                //     'https://www.example.com/subscription/delight'));
+                break;
+            }
+            // if (index == 0) {
+            //   _controller.loadRequest(Uri.parse(
+            //       'https://www.example.com/subscription/monthly'));
+            // } else {
+            //   _controller.loadRequest(Uri.parse(
+            //       'https://www.example.com/subscription/yearly'));
+            // }
+          },
+        ),
+      ),
+    );
     // listViews.add(
     //   MediterranesnDietView(
     //     animation: Tween<double>(begin: 0.0, end: 1.0).animate(CurvedAnimation(
@@ -115,23 +161,23 @@ class HomePage2State extends State<Dashboard> with TickerProviderStateMixin {
     //     animationController: widget.animationController!,
     //   ),
     // );
-    listViews.add(
-      InkWell(
-        onTap: () {
-          Navigator.pushNamed(context, '/menu');
-        },
-        child: TitleView(
-          titleTxt: 'Menu',
-          subTxt: 'All options',
-          animation: Tween<double>(begin: 0.0, end: 1.0).animate(
-              CurvedAnimation(
-                  parent: animationController,
-                  curve: const Interval((1 / count) * 2, 1.0,
-                      curve: Curves.fastOutSlowIn))),
-          animationController: animationController,
-        ),
-      ),
-    );
+    // listViews.add(
+    //   InkWell(
+    //     onTap: () {
+    //       Navigator.pushNamed(context, '/menu');
+    //     },
+    //     child: TitleView(
+    //       titleTxt: 'Menu',
+    //       subTxt: 'All options',
+    //       animation: Tween<double>(begin: 0.0, end: 1.0).animate(
+    //           CurvedAnimation(
+    //               parent: animationController,
+    //               curve: const Interval((1 / count) * 2, 1.0,
+    //                   curve: Curves.fastOutSlowIn))),
+    //       animationController: animationController,
+    //     ),
+    //   ),
+    // );
 
     listViews.add(
       JuiceListView(
@@ -268,10 +314,13 @@ class HomePage2State extends State<Dashboard> with TickerProviderStateMixin {
     return AppBar(
       backgroundColor: Colors.orangeAccent,
       elevation: 4,
-      title: const Image(
-          fit: BoxFit.fitHeight,
-          height: 64,
-          image: AssetImage('assets/bmjlogo.png')),
+      title: SizedBox(
+        height: 40,
+        child: Image.asset(
+          'assets/bmjlogo.png', // Make sure this path is correct
+          fit: BoxFit.contain,
+        ),
+      ),
       centerTitle: true,
       leading: Builder(
         builder: (context) => IconButton(
@@ -304,9 +353,11 @@ class HomePage2State extends State<Dashboard> with TickerProviderStateMixin {
                 ),
                 const SizedBox(height: 10),
                 Text(
-                  user.getFirstName.toString().length+user.getLastName.toString().length>8?
-                  "Welcome ${user.getFirstName}!":
-                  "Welcome ${user.getFirstName} ${user.getLastName}!",
+                  user.getFirstName.toString().length +
+                              user.getLastName.toString().length >
+                          8
+                      ? "Welcome ${user.getFirstName}!"
+                      : "Welcome ${user.getFirstName} ${user.getLastName}!",
                   style: TextStyle(
                     fontSize: 18,
                     fontWeight: FontWeight.bold,
@@ -329,7 +380,7 @@ class HomePage2State extends State<Dashboard> with TickerProviderStateMixin {
             onTap: () async {
               String selfServePageUrl =
                   await widget.userRepository.getSelfServePageUrl();
-              Navigator.pushNamed(context, '/subscriptions',
+              Navigator.pushNamed(context, '/myaccount',
                   arguments: selfServePageUrl);
               // Navigator.pop(context);
             },

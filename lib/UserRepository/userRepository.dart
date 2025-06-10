@@ -17,6 +17,17 @@ class UserRepository {
   final Future<SharedPreferences> _prefs = SharedPreferences.getInstance();
   final HttpClient ioc = HttpClient();
   late String token;
+  Future<bool> isInternetAvailable() async {
+    try {
+      final result = await InternetAddress.lookup('google.com');
+      if (result.isNotEmpty && result[0].rawAddress.isNotEmpty) {
+        return true;
+      }
+      return false;
+    } on SocketException catch (_) {
+      return false;
+    }
+  }
 
   Future<bool> autoLogin() async {
     late String data;
@@ -139,22 +150,46 @@ class UserRepository {
     }
   }
 
-  Future<String> getSubscriptionPageUrl() async {
+  Future<Map<String, String>> getSubscriptionPageUrl() async {
     SharedPreferences sharedPreferences = await _prefs;
 
-    if (sharedPreferences.getInt("pricing_page_url_expires_at") != null) {
-      if (isUrlvalid(
-          sharedPreferences.getInt("pricing_page_url_expires_at")!)) {
-        if (sharedPreferences.getString("pricing_page_url") == null) {
-          return get_pricing_page_url();
-        } else {
-          return sharedPreferences.getString("pricing_page_url")!;
-        }
+    if (sharedPreferences
+                .getInt("premium_pricing_page_url_expires_at") !=
+            null &&
+        sharedPreferences.getInt("delight_pricing_page_url_expires_at") !=
+            null &&
+        sharedPreferences.getInt("signature_pricing_page_url_expires_at") !=
+            null) {
+      if (isUrlvalid(sharedPreferences
+              .getInt("premium_pricing_page_url_expires_at")!) &&
+          isUrlvalid(sharedPreferences
+              .getInt("delight_pricing_page_url_expires_at")!) &&
+          isUrlvalid(sharedPreferences
+              .getInt("signature_pricing_page_url_expires_at")!)) {
+        return pricingPageUrlsMap();
       } else {
-        return get_pricing_page_url();
+        try {
+          await get_pricing_page_url();
+          return pricingPageUrlsMap();
+        } catch (e) {
+          return {
+            "premium": "could not get premium subscription page url",
+            "delight": "could not get delight subscription page url",
+            "signature": "could not get signature subscription page url"
+          };
+        }
       }
     } else {
-      return get_pricing_page_url();
+      try {
+        await get_pricing_page_url();
+        return pricingPageUrlsMap();
+      } catch (e) {
+        return {
+          "premium": "could not get premium subscription page url",
+          "delight": "could not get delight subscription page url",
+          "signature": "could not get signature subscription page url"
+        };
+      }
     }
   }
 
@@ -232,7 +267,7 @@ class UserRepository {
         );
   }
 
-  Future<String> get_pricing_page_url() async {
+  Future<void> get_pricing_page_url() async {
     ioc.badCertificateCallback =
         (X509Certificate cert, String host, int port) => true;
     final http = IOClient(ioc);
@@ -248,17 +283,20 @@ class UserRepository {
 
     if (response.statusCode == 200) {
       var body = const Utf8Decoder().convert(response.bodyBytes);
-      String url = json.decode(body)["url"];
-
-      // sharedPreferences.setInt(
-      //     "url_expires_at", json.decode(body)['expires_at']);
-      // Time expiresAt = DateTime.parse(json.decode(body)['expires_at']);
-      sharedPreferences.setString("pricing_page_url", url);
-      sharedPreferences.setInt(
-          "pricing_page_url_expires_at", json.decode(body)['expires_at']);
-      return url;
+      sharedPreferences.setString(
+          "premium_pricing_page_url", json.decode(body)["premium"]["url"]);
+      sharedPreferences.setString(
+          "delight_pricing_page_url", json.decode(body)["delight"]["url"]);
+      sharedPreferences.setString(
+          "signature_pricing_page_url", json.decode(body)["signature"]["url"]);
+      sharedPreferences.setInt("premium_pricing_page_url_expires_at",
+          json.decode(body)["premium"]['expires_at']);
+      sharedPreferences.setInt("delight_pricing_page_url_expires_at",
+          json.decode(body)["delight"]['expires_at']);
+      sharedPreferences.setInt("signature_pricing_page_url_expires_at",
+          json.decode(body)["signature"]['expires_at']);
     } else {
-      return "Error: ${response.statusCode}";
+      throw Exception("Error: ${response.statusCode}");
     }
   }
 
@@ -340,5 +378,17 @@ class UserRepository {
         .toString()
         .substring(5, 9)
         .toLowerCase();
+  }
+
+  Future<Map<String, String>> pricingPageUrlsMap() async {
+    Map<String, String> urls = {"premium": "", "delight": "", "signature": ""};
+    SharedPreferences sharedPreferences = await _prefs;
+    urls["premium"] =
+        sharedPreferences.getString("premium_pricing_page_url") ?? "";
+    urls["delight"] =
+        sharedPreferences.getString("delight_pricing_page_url") ?? "";
+    urls["signature"] =
+        sharedPreferences.getString("signature_pricing_page_url") ?? "";
+    return urls;
   }
 }

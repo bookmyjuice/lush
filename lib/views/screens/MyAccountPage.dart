@@ -1,24 +1,20 @@
 import 'package:flutter/material.dart';
-import 'package:lush/main.dart';
-import 'package:toastification/toastification.dart';
-import 'package:toggle_switch/toggle_switch.dart';
 import 'package:webview_flutter/webview_flutter.dart';
-// import '../models/subscriptionPlan.dart';
 import 'package:http/http.dart' as http;
 
-class Subscription extends StatefulWidget {
+class MyAccountPage extends StatefulWidget {
   static const routeName = '/subscriptions';
-  final SubscriptionPageUrlArgument args;
+  final String url;
 
-  const Subscription(this.args, {super.key});
+  const MyAccountPage(this.url, {super.key});
 
 // Subscription({super.key, required this.premium_page_url, required this.delight_page_url, required this.signature_page_url});
 
   @override
-  SubscriptionState createState() => SubscriptionState();
+  MyAccountPageState createState() => MyAccountPageState();
 }
 
-class SubscriptionState extends State<Subscription> {
+class MyAccountPageState extends State<MyAccountPage> {
   late final String url;
   late WebViewController _controller;
   int _selectedIndex = 0; // Track selected toggle switch
@@ -28,8 +24,7 @@ class SubscriptionState extends State<Subscription> {
   @override
   void initState() {
     super.initState();
-    url = widget
-        .args.premium_page_url; // Set the initial URL to the premium page URL
+    url = widget.url; // Set the initial URL to the premium page URL
 
     // if (!url.contains("http")) {
     //   toastification.show(
@@ -96,9 +91,7 @@ class SubscriptionState extends State<Subscription> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: url.contains("portal")
-            ? const Text('My Accout')
-            : const Text('Subscription plans'),
+        title: const Text('My Accout'),
         bottom: _loadingProgress < 100
             ? PreferredSize(
                 preferredSize: const Size.fromHeight(23.0),
@@ -111,56 +104,12 @@ class SubscriptionState extends State<Subscription> {
             : null,
       ),
       body: Padding(
-        padding: const EdgeInsets.all(2.0),
-        child: Stack(
+        padding: const EdgeInsets.all(5.0),
+        child: Column(
           children: [
-            Padding(
-              padding: const EdgeInsets.fromLTRB(0, 35, 0, 0),
-              child: Expanded(
-                  // height: MediaQuery.of(context).size.height - 136,
-                  child: WebViewWidget(controller: _controller)),
-            ),
-            Align(
-              alignment: Alignment.topCenter,
-              child: ToggleSwitch(
-                borderColor: [Colors.black45],
-                borderWidth: 2.0,
-                fontSize: 14.0,
-                customWidths: [110, 110, 110],
-                dividerColor: Colors.orangeAccent,
-                centerText: true,
-                dividerMargin: 10.0,
-                animate: true,
-                animationDuration: 300,
-                cornerRadius: 20.0,
-                activeBgColor: [Colors.orange.shade400],
-                activeFgColor: Colors.black,
-                inactiveBgColor: Colors.grey[300],
-                initialLabelIndex: _selectedIndex,
-                totalSwitches: 3,
-                labels: const ['Premium', 'Signature', 'Delight'],
-                onToggle: (index) {
-                  setState(() {
-                    _selectedIndex = index!;
-                  });
-                  switch (index) {
-                    case 0:
-                      _controller
-                          .loadRequest(Uri.parse(widget.args.premium_page_url));
-                      break;
-                    case 1:
-                      _controller.loadRequest(
-                          Uri.parse(widget.args.signature_page_url));
-                      break;
-
-                    case 2:
-                      _controller
-                          .loadRequest(Uri.parse(widget.args.delight_page_url));
-                      break;
-                  }
-                },
-              ),
-            ),
+            Expanded(
+                // height: MediaQuery.of(context).size.height - 136,
+                child: WebViewWidget(controller: _controller))
           ],
         ),
       ),

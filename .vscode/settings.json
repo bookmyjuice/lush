@@ -1,5 +1,9 @@
 {
   "java.configuration.updateBuildConfiguration": "interactive",
   "cmake.configureOnOpen": true,
-  "emulator.emulatorPathWindows": "C:\\Users\\BHARA\\AppData\\Local\\Android\\Sdk\\emulator"
+  "emulator.emulatorPathWindows": "C:\\Users\\BHARA\\AppData\\Local\\Android\\Sdk\\emulator",
+  "flutterTools.displayGetxContextMenu": false,
+  "flutterTools.displayMobxContextMenu": false,
+  "flutterTools.displayRiverpodContextMenu": false,
+  "flutterTools.displayModularContextMenu": false
 }

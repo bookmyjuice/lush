@@ -55,6 +55,13 @@ class AuthenticationInProgress extends AuthenticationState {
   List<Object?> get props => [];
 }
 
+class InternetIssue extends AuthenticationState {
+  final String toast_message, toast_heading;
+
+  const InternetIssue({super.key, required this.toast_message, required this.toast_heading});
+  @override
+  List<Object?> get props => [toast_heading, toast_message];
+}
 class SignUpFailed extends AuthenticationState {
   final String error_heading, error;
 
