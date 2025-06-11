@@ -1,0 +1,2 @@
+D:/Book_My_Juice/frontend/lush/android/app/.cxx/Debug/2l2z702u/armeabi-v7a/CMakeFiles/edit_cache.dir
+D:/Book_My_Juice/frontend/lush/android/app/.cxx/Debug/2l2z702u/armeabi-v7a/CMakeFiles/rebuild_cache.dir
