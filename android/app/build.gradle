@@ -61,7 +61,7 @@ android {
         debug{
             keyAlias 'AndroidDebugKey'
             keyPassword 'android'
-            storeFile file('debug.keystore')
+            storeFile file(System.getProperty("user.home") + "/.android/debug.keystore")
             storePassword 'android'
         }
     }
