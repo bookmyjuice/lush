@@ -12,6 +12,7 @@ import 'package:toggle_switch/toggle_switch.dart';
 import '../models/SubcriptionView.dart';
 import '../models/title_view.dart';
 import '../../theme.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class Dashboard extends StatefulWidget {
   final UserRepository userRepository = getIt.get();
@@ -444,7 +445,7 @@ class HomePage2State extends State<Dashboard> with TickerProviderStateMixin {
       currentIndex: 0,
       selectedItemColor: Colors.orange[400],
       unselectedItemColor: Colors.grey,
-      onTap: (index) {
+      onTap: (index) async {
         // Handle bottom navigation tap
         if (index == 0) {
           Navigator.pushNamed(context, '/home');
@@ -453,7 +454,23 @@ class HomePage2State extends State<Dashboard> with TickerProviderStateMixin {
         } else if (index == 2) {
           Navigator.pushNamed(context, '/menu');
         } else if (index == 3) {
-          Navigator.pushNamed(context, '/help');
+           final user=context.read<AuthenticationBloc>().userRepository.user;
+           final String phoneNumber = '6397033207';
+           final String message = 
+            'Hello, I need help with my account. \n'
+            'Customer ID: ${user.id}\n'
+            'Name: ${user.firstName} ${user.lastName}\n'
+            'Phone: ${user.phone}\n'
+            'Email: ${user.email}';
+
+          final Uri whatsappUrl = Uri.parse(
+            "https://wa.me/$phoneNumber?text=${Uri.encodeComponent(message)}",
+          );
+          if (await canLaunchUrl(whatsappUrl)) {
+            await launchUrl(whatsappUrl, mode: LaunchMode.externalApplication);
+          } else {
+            debugPrint("Could not launch WhatsApp");
+          }
         }
       },
     );

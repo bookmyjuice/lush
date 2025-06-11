@@ -3,7 +3,7 @@ import 'package:webview_flutter/webview_flutter.dart';
 import 'package:http/http.dart' as http;
 
 class MyAccountPage extends StatefulWidget {
-  static const routeName = '/subscriptions';
+  static const routeName = '/myaccount';
   final String url;
 
   const MyAccountPage(this.url, {super.key});
