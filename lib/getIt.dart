@@ -1,7 +1,8 @@
 import 'package:get_it/get_it.dart';
 import 'package:lush/CartRepository/cartRepository.dart';
 import 'package:lush/UserRepository/userRepository.dart';
-import 'package:lush/views/models/googleSignIn.dart';
+import 'package:lush/services/ItemService.dart';
+// Keep for backward compatibility
 
 final getIt = GetIt.instance;
 
@@ -12,5 +13,5 @@ void registerRepositories() {
   getIt.registerLazySingleton<UserRepository>(
     () => UserRepository(),
   );
-  getIt.registerLazySingleton<MyGoogleSignIn>(() => MyGoogleSignIn());
+  getIt.registerLazySingleton<ItemService>(() => ItemService());
 }

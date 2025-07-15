@@ -24,47 +24,47 @@ class Address {
       required this.validation_status,
       required this.subscription_id});
 
-  get getFirstName => firstName;
+  String get getFirstName => firstName;
 
   set setFirstName(firstName) => this.firstName = firstName;
 
-  get getLastName => lastName;
+  String get getLastName => lastName;
 
   set setLastName(lastName) => this.lastName = lastName;
 
-  get getPhone => phone;
+  String get getPhone => phone;
 
   set setPhone(phone) => this.phone = phone;
 
-  get getAddr => addr;
+  String get getAddr => addr;
 
   set setAddr(addr) => this.addr = addr;
 
-  get extendedaddr => extended_addr;
+  String get extendedaddr => extended_addr;
 
   set extendedaddr(value) => extended_addr = value;
 
-  get extendedaddr2 => extended_addr2;
+  String get extendedaddr2 => extended_addr2;
 
   set extendedaddr2(value) => extended_addr2 = value;
 
-  get getCity => city;
+  String get getCity => city;
 
   set setCity(city) => this.city = city;
 
-  get statecode => state_code;
+  String get statecode => state_code;
 
   set statecode(value) => state_code = value;
 
-  get getZip => zip;
+  String get getZip => zip;
 
   set setZip(zip) => this.zip = zip;
 
-  get validationstatus => validation_status;
+  bool get validationstatus => validation_status;
 
   set validationstatus(value) => validation_status = value;
 
-  get subscriptionid => subscription_id;
+  String get subscriptionid => subscription_id;
 
   set subscriptionid(value) => subscription_id = value;
 }

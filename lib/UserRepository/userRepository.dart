@@ -1,7 +1,6 @@
 import 'dart:io';
 // import 'package:flutter/foundation.dart';
 import 'package:http/io_client.dart';
-import 'package:lush/getIt.dart';
 import 'package:lush/views/models/googleSignIn.dart';
 import 'package:lush/views/models/signUpRequest.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -13,7 +12,7 @@ class UserRepository {
   bool userLoggedIn = false;
   User user =
       User.blank("", "", "", "", "", "", "", "", "", "", "", "", "", "");
-  final MyGoogleSignIn googleSignIn = getIt.get();
+
   final Future<SharedPreferences> _prefs = SharedPreferences.getInstance();
   final HttpClient ioc = HttpClient();
   late String token;
@@ -53,31 +52,39 @@ class UserRepository {
         var responseBody = const Utf8Decoder().convert(response.bodyBytes);
         String token_ = json.decode(responseBody)['accessToken'];
         if (response.statusCode == 200) {
-          sharedPreferences.setString("token", token);
+          sharedPreferences.setString("token", token_);
           token = token_;
           return true;
         } else {
-          return false;
+          return AutologinWithToken();
         }
       }
     } else {
-      var response =
-          await http.get(Uri.parse("$server/api/auth/autologin"), headers: {
-        "authorization": "Bearer $token",
-        "Accept": "application/json",
-        "Content-Type": "application/json",
-      });
-      var body = const Utf8Decoder().convert(response.bodyBytes);
-      String res = json.decode(body)["message"];
-      if (res == "ok") {
-        userLoggedIn = true;
-        await getUserDetailsFromServer();
-        return true;
-      } else {
-        sharedPreferences.remove("token");
-        userLoggedIn = false;
-        return false;
-      }
+      return AutologinWithToken();
+    }
+  }
+
+  Future<bool> AutologinWithToken() async {
+    SharedPreferences sharedPreferences = await _prefs;
+    ioc.badCertificateCallback =
+        (X509Certificate cert, String host, int port) => true;
+    final http = IOClient(ioc);
+    var response =
+        await http.get(Uri.parse("$server/api/auth/autologin"), headers: {
+      "authorization": "Bearer $token",
+      "Accept": "application/json",
+      "Content-Type": "application/json",
+    });
+    var body = const Utf8Decoder().convert(response.bodyBytes);
+    String res = json.decode(body)["message"];
+    if (res == "ok") {
+      userLoggedIn = true;
+      await getUserDetailsFromServer();
+      return true;
+    } else {
+      sharedPreferences.remove("token");
+      userLoggedIn = false;
+      return false;
     }
   }
 
@@ -249,9 +256,23 @@ class UserRepository {
       // print("error");
       return error;
     }
-    user.setFirstName = MyGoogleSignIn.currentUser().displayName!.split(" ")[0];
-    user.setLastName = MyGoogleSignIn.currentUser().displayName!.split(" ")[1];
-    user.setEmail = MyGoogleSignIn.currentUser().email;
+
+    final currentUser = MyGoogleSignIn.currentUser;
+    if (currentUser == null) {
+      return "Google Sign-In failed: No user found";
+    }
+
+    final displayName = currentUser.displayName;
+    if (displayName != null && displayName.contains(" ")) {
+      final nameParts = displayName.split(" ");
+      user.setFirstName = nameParts[0];
+      user.setLastName = nameParts.length > 1 ? nameParts[1] : "";
+    } else {
+      user.setFirstName = displayName ?? "";
+      user.setLastName = "";
+    }
+
+    user.setEmail = currentUser.email;
     // user.role = "User";
     return user;
     // return null;
@@ -352,6 +373,7 @@ class UserRepository {
   }
 
   Future<void> getUserDetailsFromServer() async {
+    SharedPreferences sharedPreferences = await _prefs;
     ioc.badCertificateCallback =
         (X509Certificate cert, String host, int port) => true;
     final http = IOClient(ioc);
@@ -361,6 +383,14 @@ class UserRepository {
       "Content-Type": "application/json",
     });
     var body = const Utf8Decoder().convert(response.bodyBytes);
+    if (response.statusCode != 200) {
+      response = await http.get(Uri.parse("$server/api/test/user"), headers: {
+        "authorization": "Bearer ${sharedPreferences.getString('token')}",
+        "Accept": "application/json",
+        "Content-Type": "application/json",
+      });
+      body = const Utf8Decoder().convert(response.bodyBytes);
+    }
     user.setFirstName = json.decode(body)["firstName"];
     user.setLastName = json.decode(body)["lastName"];
     user.setEmail = json.decode(body)["email"];
@@ -381,6 +411,24 @@ class UserRepository {
   }
 
   Future<Map<String, String>> pricingPageUrlsMap() async {
+    try {
+      // First try to get URLs from the backend
+      final apiUrls = await getPricingPageUrls();
+      if (apiUrls.isNotEmpty) {
+        // Save to SharedPreferences for future use
+        SharedPreferences sharedPreferences = await _prefs;
+        for (var entry in apiUrls.entries) {
+          await sharedPreferences.setString(
+              "${entry.key}_pricing_page_url", entry.value);
+        }
+        return apiUrls;
+      }
+    } catch (e) {
+      print('Error fetching pricing page URLs from API: $e');
+      // Fall back to cached URLs if API call fails
+    }
+
+    // Fallback to cached URLs
     Map<String, String> urls = {"premium": "", "delight": "", "signature": ""};
     SharedPreferences sharedPreferences = await _prefs;
     urls["premium"] =
@@ -390,5 +438,253 @@ class UserRepository {
     urls["signature"] =
         sharedPreferences.getString("signature_pricing_page_url") ?? "";
     return urls;
+  }
+
+  /// Fetch pricing page URLs from the backend
+  Future<Map<String, String>> getPricingPageUrls() async {
+    try {
+      ioc.badCertificateCallback =
+          (X509Certificate cert, String host, int port) => true;
+      final http = IOClient(ioc);
+
+      var response = await http.get(
+        Uri.parse('$server/api/test/generate_pricing_page_session_url'),
+        headers: {
+          "Authorization": "Bearer $token",
+          "Accept": "application/json",
+          "Content-Type": "application/json",
+        },
+      );
+
+      if (response.statusCode == 200) {
+        var body = const Utf8Decoder().convert(response.bodyBytes);
+        Map<String, dynamic> responseJson = json.decode(body);
+
+        // Extract URLs from the response
+        Map<String, String> urls = {};
+
+        if (responseJson.containsKey('premium') &&
+            responseJson['premium'] is Map) {
+          final premiumData = responseJson['premium'] as Map<String, dynamic>;
+          if (premiumData.containsKey('hosted_page') &&
+              premiumData['hosted_page'] is Map &&
+              premiumData['hosted_page'].containsKey('url')) {
+            urls['premium'] = premiumData['hosted_page']['url'];
+          }
+        }
+
+        if (responseJson.containsKey('signature') &&
+            responseJson['signature'] is Map) {
+          final signatureData =
+              responseJson['signature'] as Map<String, dynamic>;
+          if (signatureData.containsKey('hosted_page') &&
+              signatureData['hosted_page'] is Map &&
+              signatureData['hosted_page'].containsKey('url')) {
+            urls['signature'] = signatureData['hosted_page']['url'];
+          }
+        }
+
+        if (responseJson.containsKey('delight') &&
+            responseJson['delight'] is Map) {
+          final delightData = responseJson['delight'] as Map<String, dynamic>;
+          if (delightData.containsKey('hosted_page') &&
+              delightData['hosted_page'] is Map &&
+              delightData['hosted_page'].containsKey('url')) {
+            urls['delight'] = delightData['hosted_page']['url'];
+          }
+        }
+
+        return urls;
+      } else {
+        throw Exception(
+            'Failed to load pricing page URLs: ${response.statusCode}');
+      }
+    } catch (e) {
+      print('Error in getPricingPageUrls: $e');
+      return {};
+    }
+  }
+
+  /// Fetch charge items (one-time purchase items) from the backend
+  /// These are the items displayed in the menu for one-time orders
+  Future<List<Map<String, dynamic>>> getChargeItems() async {
+    try {
+      ioc.badCertificateCallback =
+          (X509Certificate cert, String host, int port) => true;
+      final http = IOClient(ioc);
+
+      var response = await http.get(
+        Uri.parse('$server/api/test/charge-items'),
+        headers: {
+          "Authorization": "Bearer $token",
+          "Accept": "application/json",
+          "Content-Type": "application/json",
+        },
+      );
+
+      if (response.statusCode == 200) {
+        var body = const Utf8Decoder().convert(response.bodyBytes);
+        List<dynamic> chargeItemsJson = json.decode(body);
+
+        // Convert to List<Map<String, dynamic>>
+        List<Map<String, dynamic>> chargeItems = chargeItemsJson
+            .map((item) => Map<String, dynamic>.from(item))
+            .toList();
+
+        print(
+            'Successfully loaded ${chargeItems.length} charge items from API');
+        return chargeItems;
+      } else {
+        print(
+            'Failed to load charge items: ${response.statusCode} - ${response.body}');
+        throw Exception('Failed to load charge items: ${response.statusCode}');
+      }
+    } catch (e) {
+      print('Error in getChargeItems: $e');
+      // Return default items if there's an error
+      return getDefaultChargeItems();
+    }
+  }
+
+  /// Get default charge items when backend is not available
+  List<Map<String, dynamic>> getDefaultChargeItems() {
+    return [
+      {
+        "id": "abc_default",
+        "name": "ABC",
+        "description": "Apple Beetroot Carrot juice",
+        "imagePath": "assets/ABC.png",
+        "startColor": "#673f45",
+        "endColor": "#7a1f3d",
+        "kacl": 120,
+        "meals": ["Apple", "Beetroot", "Carrot"],
+        "type": "CHARGE",
+        "status": "ACTIVE",
+        "itemFamilyId": "Premium",
+        "itemPrices": [
+          {
+            "id": "abc_100ml",
+            "name": "Small (100ml)",
+            "description": "Perfect for a quick refreshment",
+            "price": 50.0,
+            "currencyCode": "INR",
+            "period": null,
+            "periodUnit": null,
+            "pricingModel": "PER_UNIT"
+          },
+          {
+            "id": "abc_200ml",
+            "name": "Medium (200ml)",
+            "description": "Good for regular consumption",
+            "price": 90.0,
+            "currencyCode": "INR",
+            "period": null,
+            "periodUnit": null,
+            "pricingModel": "PER_UNIT"
+          },
+          {
+            "id": "abc_500ml",
+            "name": "Large (500ml)",
+            "description": "Best value for money",
+            "price": 200.0,
+            "currencyCode": "INR",
+            "period": null,
+            "periodUnit": null,
+            "pricingModel": "PER_UNIT"
+          }
+        ]
+      },
+      {
+        "id": "pineapple_default",
+        "name": "Pineapple",
+        "description": "Fresh pineapple juice",
+        "imagePath": "assets/pineapple.png",
+        "startColor": "#fad704",
+        "endColor": "#ffd964",
+        "kacl": 602,
+        "meals": ["Fresh pineapple", "Natural sweetness"],
+        "type": "CHARGE",
+        "status": "ACTIVE",
+        "itemFamilyId": "Signature",
+        "itemPrices": [
+          {
+            "id": "pineapple_100ml",
+            "name": "Small (100ml)",
+            "description": "Perfect for a quick refreshment",
+            "price": 60.0,
+            "currencyCode": "INR",
+            "period": null,
+            "periodUnit": null,
+            "pricingModel": "PER_UNIT"
+          },
+          {
+            "id": "pineapple_200ml",
+            "name": "Medium (200ml)",
+            "description": "Good for regular consumption",
+            "price": 110.0,
+            "currencyCode": "INR",
+            "period": null,
+            "periodUnit": null,
+            "pricingModel": "PER_UNIT"
+          }
+        ]
+      },
+      {
+        "juiceID": "watermelon_default",
+        "name": "Watermelon",
+        "description": "Fresh watermelon juice",
+        "imagePath": "assets/watermelon.png",
+        "startColor": "#FFB1C9",
+        "endColor": "#B8292C",
+        "kacl": 525,
+        "meals": ["Fresh watermelon", "Hydrating"],
+        "type": "CHARGE",
+        "status": "ACTIVE"
+      },
+      {
+        "juiceID": "vitamin_c_default",
+        "name": "Vitamin C",
+        "description": "Vitamin C rich juice",
+        "imagePath": "assets/VitaminC.png",
+        "startColor": "#FFF12D",
+        "endColor": "#988623",
+        "kacl": 180,
+        "meals": ["Citrus fruits", "Immunity boost"],
+        "type": "CHARGE",
+        "status": "ACTIVE"
+      }
+    ];
+  }
+
+  /// Get cart checkout URL from Chargebee
+  Future<String> getCartCheckoutUrl() async {
+    try {
+      ioc.badCertificateCallback =
+          (X509Certificate cert, String host, int port) => true;
+      final http = IOClient(ioc);
+
+      var response = await http.get(
+        Uri.parse('$server/cartCheckout'),
+        headers: {
+          "Authorization": "Bearer $token",
+          "Accept": "application/json",
+          "Content-Type": "application/json",
+        },
+      );
+
+      if (response.statusCode == 200) {
+        var body = const Utf8Decoder().convert(response.bodyBytes);
+        // Assuming the response contains a URL field
+        var jsonResponse = json.decode(body);
+        return jsonResponse["url"] ??
+            jsonResponse["checkout_url"] ??
+            jsonResponse.toString();
+      } else {
+        throw Exception(
+            'Failed to get cart checkout URL: ${response.statusCode}');
+      }
+    } catch (e) {
+      throw Exception('Error getting cart checkout URL: $e');
+    }
   }
 }

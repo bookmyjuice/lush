@@ -8,8 +8,6 @@ class MyAccountPage extends StatefulWidget {
 
   const MyAccountPage(this.url, {super.key});
 
-// Subscription({super.key, required this.premium_page_url, required this.delight_page_url, required this.signature_page_url});
-
   @override
   MyAccountPageState createState() => MyAccountPageState();
 }
@@ -17,7 +15,6 @@ class MyAccountPage extends StatefulWidget {
 class MyAccountPageState extends State<MyAccountPage> {
   late final String url;
   late WebViewController _controller;
-  int _selectedIndex = 0; // Track selected toggle switch
 
   int _loadingProgress = 0; // Add this variable to track progress
 
@@ -26,16 +23,6 @@ class MyAccountPageState extends State<MyAccountPage> {
     super.initState();
     url = widget.url; // Set the initial URL to the premium page URL
 
-    // if (!url.contains("http")) {
-    //   toastification.show(
-    //     icon: const Icon(Icons.error),
-    //     closeButton: ToastCloseButton(),
-    //     alignment: Alignment.center,
-    //     title: Text(url),
-    //     description: Text(url),
-    //     type: ToastificationType.error,
-    //   );
-    // } else {
     _controller = WebViewController()
       ..setJavaScriptMode(JavaScriptMode.unrestricted)
       ..setNavigationDelegate(
@@ -46,10 +33,7 @@ class MyAccountPageState extends State<MyAccountPage> {
             });
           },
           onNavigationRequest: (NavigationRequest request) async {
-            // final finalUrl = await getFinalUrl(request.url);
             return await getFinalUrl(request.url).then((finalUrl) {
-              // debugPrint('Initial URL: ${request.url}');
-              // debugPrint('Final URL: $finalUrl');
               if (!finalUrl.startsWith('https://')) {
                 return NavigationDecision.prevent;
               } else if (request.url != finalUrl) {

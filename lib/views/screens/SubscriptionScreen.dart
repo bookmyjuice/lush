@@ -1,9 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:lush/main.dart';
-import 'package:toastification/toastification.dart';
 import 'package:toggle_switch/toggle_switch.dart';
 import 'package:webview_flutter/webview_flutter.dart';
-// import '../models/subscriptionPlan.dart';
 import 'package:http/http.dart' as http;
 
 class Subscription extends StatefulWidget {

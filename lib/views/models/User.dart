@@ -44,59 +44,59 @@ class User {
   String country;
   String zip;
   String roles = "user";
-  get getId => id;
+  String get getId => id;
 
   set setId(id_) => id = id_;
 
-  get getEmail => email;
+  String get getEmail => email;
 
   set setEmail(email_) => email = email_;
 
-  get getPhone => phone;
+  String get getPhone => phone;
 
   set setPhone(phone_) => phone = phone_;
 
-  get getRole => role;
+  String get getRole => role;
 
   set setRole(role_) => role = role_;
 
-  get getFirstName => firstName;
+  String get getFirstName => firstName;
 
   set setFirstName(firstName_) => firstName = firstName_;
 
-  get getLastName => lastName;
+  String get getLastName => lastName;
 
   set setLastName(lastName_) => lastName = lastName_;
 
-  get getPassword => password;
+  String get getPassword => password;
 
   set setPassword(password_) => password = password_;
 
-  get getAddress => address;
+  String get getAddress => address;
 
   set setAddress(address_) => address = address_;
 
-  get getExtendedAddr => extendedAddr;
+  String get getExtendedAddr => extendedAddr;
 
   set setExtendedAddr(extendedAddr_) => extendedAddr = extendedAddr_;
 
-  get getExtendedAddr2 => extendedAddr2;
+  String get getExtendedAddr2 => extendedAddr2;
 
   set setExtendedAddr2(extendedAddr2_) => extendedAddr2 = extendedAddr2_;
 
-  get getCity => city;
+  String get getCity => city;
 
   set setCity(city_) => city = city_;
 
-  get getState => state;
+  String get getState => state;
 
   set setState(state_) => state = state_;
 
-  get getCountry => country;
+  String get getCountry => country;
 
   set setCountry(country_) => country = country_;
 
-  get getZip => zip;
+  String get getZip => zip;
 
   set setZip(zip_) => zip = zip_;
   Map<String, dynamic> toJson() => {

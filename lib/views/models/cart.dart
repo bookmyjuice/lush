@@ -1,10 +1,20 @@
-
-
-
-import 'Juice.dart';
+import 'Item.dart';
 
 class Cart {
-  Cart(this.juices);
-  List<Juice> juices;
-  // Juice getById(int id)=> Juice(, Juices);
+  Cart(this.items);
+  List<Item> items;
+
+  // Helper method to get total price
+  double getTotalPrice() {
+    double total = 0;
+    for (var item in items) {
+      total += item.price ?? 0;
+    }
+    return total;
+  }
+
+  // Helper method to get item count
+  int getItemCount() {
+    return items.length;
+  }
 }

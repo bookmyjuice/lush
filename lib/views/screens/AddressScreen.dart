@@ -314,7 +314,7 @@ class AddressScreenState extends State<AddressScreen> {
     );
   }
 
-  city() {
+  Container city() {
     return Container(
       decoration: BoxDecoration(
           color: Colors.white,

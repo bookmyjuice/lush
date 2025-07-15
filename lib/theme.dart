@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 class LushTheme {
   LushTheme._();
   static const Color nearlyWhite = Color(0xFFFAFAFA);
+  static const Color orangeAccent = Color(0xFFFFA726);
   static const Color white = Color(0xFFFFFFFF);
   static const Color background = Color.fromARGB(255, 249, 245, 234);
   static const Color nearlyDarkBlue = Color(0xFF2633C5);
@@ -12,6 +13,11 @@ class LushTheme {
   static const Color nearlyBlack = Color(0xFF213333);
   static const Color grey = Color(0xFF3A5160);
   static const Color dark_grey = Color(0xFF313A44);
+
+  // Helper method to replace deprecated withOpacity
+  static Color withOpacity(Color color, double opacity) {
+    return color.withValues(alpha: (opacity * 255).round().toDouble());
+  }
 
   static const Color darkText = Color(0xFF253840);
   static const Color darkerText = Color(0xFF17262A);

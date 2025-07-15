@@ -1,5 +1,5 @@
 import 'package:equatable/equatable.dart';
-import 'package:lush/views/models/Juice.dart';
+import 'package:lush/views/models/CartItem.dart';
 
 abstract class CartState extends Equatable {
   const CartState();
@@ -8,18 +8,22 @@ abstract class CartState extends Equatable {
   List<Object?> get props => [];
 }
 
-class CartEmpty extends CartState {
-  const CartEmpty();
+class CartLoading extends CartState {}
+
+class CartLoaded extends CartState {
+  final List<CartItem> items;
+
+  const CartLoaded(this.items);
 
   @override
-  List<Object?> get props => [];
+  List<Object?> get props => [items];
 }
 
-class CartNotEmpty extends CartState {
-  final List<Juice> juices;
+class CartError extends CartState {
+  final String message;
 
-  const CartNotEmpty({required this.juices});
+  const CartError(this.message);
 
   @override
-  List<Object?> get props => [juices];
+  List<Object?> get props => [message];
 }

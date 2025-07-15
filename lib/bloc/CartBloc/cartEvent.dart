@@ -1,5 +1,5 @@
+import '../../views/models/CartItem.dart';
 import 'package:equatable/equatable.dart';
-import 'package:lush/views/models/Juice.dart';
 
 abstract class CartEvent extends Equatable {
   const CartEvent();
@@ -8,44 +8,30 @@ abstract class CartEvent extends Equatable {
   List<Object?> get props => [];
 }
 
-class CartItemAdded extends CartEvent {
-  final Juice juice;
+class LoadCart extends CartEvent {}
 
-  const CartItemAdded(this.juice);
+class AddToCart extends CartEvent {
+  final CartItem item;
+  const AddToCart(this.item);
 
   @override
-  List<Object?> get props => [juice];
+  List<Object?> get props => [item];
 }
 
-class CartItemRemoved extends CartEvent {
-  final Juice juice;
-
-  const CartItemRemoved(this.juice);
+class RemoveFromCart extends CartEvent {
+  final CartItem item;
+  const RemoveFromCart(this.item);
 
   @override
-  List<Object?> get props => [juice];
+  List<Object?> get props => [item];
 }
 
-class CartEmptied extends CartEvent {
-  const CartEmptied();
+class ClearCart extends CartEvent {}
+
+class UpdateCartItem extends CartEvent {
+  final CartItem item;
+  const UpdateCartItem(this.item);
 
   @override
-  List<Object?> get props => [];
-}
-
-class UpdateQuantity extends CartEvent {
-  final Juice juice;
-  final int newQuantity;
-
-  const UpdateQuantity(this.juice, this.newQuantity);
-
-  @override
-  List<Object?> get props => [juice, newQuantity];
-}
-
-class ClearCart extends CartEvent {
-  const ClearCart();
-
-  @override
-  List<Object?> get props => [];
+  List<Object?> get props => [item];
 }

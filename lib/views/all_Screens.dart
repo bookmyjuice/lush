@@ -10,3 +10,6 @@ export 'package:lush/views/screens/Dashboard.dart';
 export 'package:lush/views/screens/EnterMobileNumber.dart';
 export 'package:lush/views/screens/detail.dart';
 export 'package:lush/views/screens/AddressScreen.dart';
+export 'package:lush/views/screens/SettingsPage.dart';
+export 'package:lush/views/screens/OrderHistoryPage.dart';
+export 'package:lush/views/screens/CartScreen.dart';

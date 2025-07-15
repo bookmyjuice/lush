@@ -7,14 +7,13 @@ import 'package:lush/bloc/AuthBloc/AuthBloc.dart';
 import 'package:lush/bloc/AuthBloc/AuthEvents.dart';
 import 'package:lush/bloc/AuthBloc/AuthState.dart';
 import 'package:lush/theme.dart';
+import 'package:lush/utils/font_utils.dart';
 import 'package:toastification/toastification.dart';
 // import '../models/user.dart';
 
 class LoginPage extends StatefulWidget {
   const LoginPage(
-      {super.key,
-      required this.toast_message,
-      required this.toast_heading});
+      {super.key, required this.toast_message, required this.toast_heading});
 
   final String toast_message;
   final String toast_heading;
@@ -36,7 +35,7 @@ class LoginPageState extends State<LoginPage> {
   @override
   void initState() {
     super.initState();
-    if (widget.toast_heading!="") {
+    if (widget.toast_heading != "") {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         toastification.show(
           icon: const Icon(Icons.error),
@@ -128,24 +127,19 @@ class LoginPageState extends State<LoginPage> {
                       // Title
                       Text(
                         "Welcome Back!",
-                        style: GoogleFonts.poppins(
-                          textStyle: const TextStyle(
-                            fontSize: 24,
-                            fontWeight: FontWeight.bold,
-                            color: Colors.white,
-                          ),
+                        style: FontUtils.heading1(
+                          color: Colors.white,
+                          fontSize: 24,
+                          fontWeight: FontWeight.bold,
                         ),
                       ),
                       const SizedBox(height: 10),
                       Text(
                         "Login to continue",
-                        style: GoogleFonts.poppins(
-                          textStyle: const TextStyle(
-                            fontSize: 14,
-                            fontStyle: FontStyle.normal,
-                            fontWeight: FontWeight.w500,
-                            color: Colors.white,
-                          ),
+                        style: FontUtils.bodyText(
+                          color: Colors.white,
+                          fontSize: 14,
+                          fontWeight: FontWeight.w500,
                         ),
                       ),
                       const SizedBox(height: 30),
@@ -240,10 +234,9 @@ class LoginPageState extends State<LoginPage> {
         maxLengthEnforcement: MaxLengthEnforcement.enforced,
         textAlign: TextAlign.start,
         keyboardType: TextInputType.phone,
-        style: const TextStyle(
-            color: Colors.black, fontFamily: 'Opensans', fontSize: 14),
+        style: FontUtils.bodyText(color: Colors.black, fontSize: 14),
         decoration: InputDecoration(
-          hintStyle: GoogleFonts.cormorant(color: Colors.black, fontSize: 16),
+          hintStyle: FontUtils.hintText(color: Colors.black, fontSize: 16),
           // border: InputBorder.,
           // contentPadding: const EdgeInsets.only(top: 10),
           prefixIcon: const Icon(Icons.phone, color: Colors.black),
@@ -273,10 +266,9 @@ class LoginPageState extends State<LoginPage> {
         obscureText: true,
         textAlign: TextAlign.start,
         keyboardType: TextInputType.text,
-        style: const TextStyle(
-            color: Colors.black, fontFamily: 'Opensans', fontSize: 15),
+        style: FontUtils.bodyText(color: Colors.black, fontSize: 15),
         decoration: InputDecoration(
-          hintStyle: GoogleFonts.cormorant(color: Colors.black, fontSize: 16),
+          hintStyle: FontUtils.hintText(color: Colors.black, fontSize: 16),
           border: InputBorder.none,
           contentPadding: const EdgeInsets.only(top: 10.0),
           prefixIcon: const Icon(Icons.vpn_key, color: Colors.black),
@@ -299,12 +291,8 @@ class LoginPageState extends State<LoginPage> {
   }
 
   TextStyle Mystyle(double n) {
-    return GoogleFonts.changa(
-        textStyle: TextStyle(
-            color: Colors.black,
-            // fontFamily: 'Opensans',
-            fontSize: n,
-            fontWeight: FontWeight.bold));
+    return FontUtils.bodyText(
+        color: Colors.black, fontSize: n, fontWeight: FontWeight.bold);
   }
 
   Widget _rememberMeCheckbox() {
@@ -343,12 +331,10 @@ class LoginPageState extends State<LoginPage> {
       icon: const FaIcon(FontAwesomeIcons.arrowRight),
       label: Text(
         'Login',
-        style: GoogleFonts.rokkitt(
-          textStyle: const TextStyle(
-              // fontFamily: 'Opensans',
-              color: Colors.white,
-              fontSize: 14,
-              fontWeight: FontWeight.w700),
+        style: FontUtils.buttonText(
+          color: Colors.white,
+          fontSize: 14,
+          fontWeight: FontWeight.w700,
         ),
       ),
       onPressed: () => {
@@ -379,12 +365,10 @@ class LoginPageState extends State<LoginPage> {
       icon: const FaIcon(FontAwesomeIcons.mobileScreen),
       label: Text(
         'Continue with Mobile Number',
-        style: GoogleFonts.rokkitt(
-          textStyle: const TextStyle(
-              // fontFamily: 'Opensans',
-              color: Colors.white,
-              fontSize: 14,
-              fontWeight: FontWeight.w700),
+        style: FontUtils.buttonText(
+          color: Colors.white,
+          fontSize: 14,
+          fontWeight: FontWeight.w700,
         ),
       ),
       onPressed: () => {
