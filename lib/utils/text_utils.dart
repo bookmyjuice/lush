@@ -119,6 +119,6 @@ class TextUtils {
 
   /// Validates if text contains only English characters
   static bool isEnglishText(String text) {
-    return RegExp(r'^[a-zA-Z0-9\s\.,!?;:()"' + "'" + r'\\-]+$').hasMatch(text);
+    return RegExp(r'^[a-zA-Z0-9\s\.,!?;:()"' "'" r'\\-]+$').hasMatch(text);
   }
 }

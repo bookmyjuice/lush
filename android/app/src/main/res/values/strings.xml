@@ -1,9 +1,4 @@
-<?xml version="1.0" encoding= "utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">lush</string>
-    <string name="facebook_app_id">575699037395610</string>
-    <string name="fb_login_protocol_scheme">fb575699037395610</string>
-    <string name="facebook_client_token">6558ecb2558313cf762441688bd86a79</string>
+    <string name="app_name">BookMyJuice</string>
 </resources>
-
-

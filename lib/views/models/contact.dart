@@ -18,29 +18,29 @@ class Contact {
 
   String get firstname => first_name;
 
-  set firstname(value) => first_name = value;
+  set firstname(String value) => first_name = value;
 
   String get lastname => last_name;
 
-  set lastname(value) => last_name = value;
+  set lastname(String value) => last_name = value;
 
   String get getEmail => email;
 
-  set setEmail(email) => this.email = email;
+  set setEmail(String email) => this.email = email;
 
   String get getPhone => phone;
 
-  set setPhone(phone) => this.phone = phone;
+  set setPhone(String phone) => this.phone = phone;
 
   bool get getEnabled => enabled;
 
-  set setEnabled(enabled) => this.enabled = enabled;
+  set setEnabled(bool enabled) => this.enabled = enabled;
 
   bool get sendaccount_email => send_account_email;
 
-  set sendaccount_email(value) => send_account_email = value;
+  set sendaccount_email(bool value) => send_account_email = value;
 
   bool get sendbilling_email => send_billing_email;
 
-  set sendbilling_email(value) => send_billing_email = value;
+  set sendbilling_email(bool value) => send_billing_email = value;
 }

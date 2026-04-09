@@ -27,16 +27,12 @@ class MenuState extends State<Menu> with TickerProviderStateMixin {
   String _selectedCategory = 'Premium'; // Default category
   final List<String> _categories = ['Premium', 'Signature', 'Delight'];
 
-  // Size selection
-  final List<String> _sizes = [
-    'Small (100ml)',
-    'Medium (250ml)',
-    'Large (500ml)'
-  ];
-  String _selectedSize = 'Medium (250ml)'; // Default size
+  // Size selection (will be populated dynamically)
+  List<String> _sizes = [];
+  String _selectedSize = '';
 
   // Type selection
-  String _selectedType = 'CHARGE'; // Default to one-time purchases
+  final String _selectedType = 'CHARGE'; // Default to one-time purchases
   final List<String> _types = [
     'CHARGE',
     'PLAN',
@@ -63,76 +59,97 @@ class MenuState extends State<Menu> with TickerProviderStateMixin {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: LushTheme.background,
-      body: Container(
-        decoration: const BoxDecoration(color: LushTheme.background),
-        child: Stack(
-          fit: StackFit.passthrough,
-          children: [
-            SafeArea(
-              child: Column(
-                children: [
-                  SizedBox(height: 120.h), // Space for app bar
-
-                  // Filter options widget
-                  Padding(
-                    padding:
-                        EdgeInsets.symmetric(horizontal: 16.w, vertical: 8.h),
-                    child: FilterOptions(
-                      selectedCategory: _selectedCategory,
-                      categories: _categories,
-                      onCategoryChanged: (category) {
-                        setState(() {
-                          _selectedCategory = category;
-                        });
-                      },
-                      selectedSize: _selectedSize,
-                      sizes: _sizes,
-                      onSizeChanged: (size) {
-                        setState(() {
-                          _selectedSize = size;
-                        });
-                      },
-                      // selectedType: _selectedType,
-                      // types: _types,
-                      // onTypeChanged: (type) {
-                      //   setState(() {
-                      //     _selectedType = type;
-                      //   });
-                      // },
-                    ),
-                  ),
-
-                  // Item list
-                  Expanded(
-                    child: Padding(
-                      padding: EdgeInsets.symmetric(horizontal: 8.w),
-                      child: ItemListView(
-                        mainScreenAnimation:
-                            Tween<double>(begin: 0.0, end: 1.0).animate(
-                          CurvedAnimation(
-                            parent: animationController,
-                            curve: const Interval(0.3, 0.7,
-                                curve: Curves.easeOutCubic),
+    return FutureBuilder<List<String>>(
+      future: _fetchSizes(),
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return const Center(child: CircularProgressIndicator());
+        }
+        if (snapshot.hasError) {
+          return Center(child: Text('Error loading sizes'));
+        }
+        _sizes = snapshot.data ?? [];
+        if (_selectedSize.isEmpty && _sizes.isNotEmpty) {
+          _selectedSize = _sizes[0];
+        }
+        return Scaffold(
+          backgroundColor: LushTheme.background,
+          body: Container(
+            decoration: const BoxDecoration(color: LushTheme.background),
+            child: Stack(
+              fit: StackFit.passthrough,
+              children: [
+                SafeArea(
+                  child: Column(
+                    children: [
+                      SizedBox(height: 120.h), // Space for app bar
+                      // Filter options widget
+                      Padding(
+                        padding: EdgeInsets.symmetric(
+                            horizontal: 16.w, vertical: 8.h),
+                        child: FilterOptions(
+                          selectedCategory: _selectedCategory,
+                          categories: _categories,
+                          onCategoryChanged: (category) {
+                            setState(() {
+                              _selectedCategory = category;
+                            });
+                          },
+                          selectedSize: _selectedSize,
+                          sizes: _sizes,
+                          onSizeChanged: (size) {
+                            setState(() {
+                              _selectedSize = size;
+                            });
+                          },
+                        ),
+                      ),
+                      // Item list
+                      Expanded(
+                        child: Padding(
+                          padding: EdgeInsets.symmetric(horizontal: 8.w),
+                          child: ItemListView(
+                            mainScreenAnimation:
+                                Tween<double>(begin: 0.0, end: 1.0).animate(
+                              CurvedAnimation(
+                                parent: animationController,
+                                curve: const Interval(0.3, 0.7,
+                                    curve: Curves.easeOutCubic),
+                              ),
+                            ),
+                            mainScreenAnimationController: animationController,
+                            category: _selectedCategory,
+                            size: _selectedSize,
+                            type: _selectedType,
                           ),
                         ),
-                        mainScreenAnimationController: animationController,
-                        category: _selectedCategory,
-                        size: _selectedSize,
-                        type: _selectedType,
-                        // Don't use fallback items in Menu page - fetch from server
                       ),
-                    ),
+                    ],
                   ),
-                ],
-              ),
+                ),
+                getAppBarUI(),
+              ],
             ),
-            getAppBarUI(),
-          ],
-        ),
-      ),
+          ),
+        );
+      },
     );
+  }
+
+  Future<List<String>> _fetchSizes() async {
+    try {
+      final items = await itemService.fetchItems();
+      final sizes = items
+          .map((item) => item.servingSize)
+          .where((size) => size.toString().isNotEmpty)
+          .map((size) => size.toString())
+          .toSet()
+          .toList();
+      sizes.sort();
+      return sizes;
+    } catch (e) {
+      return ['Small (100ml)', 'Medium (250ml)', 'Large (500ml)'];
+    }
   }
 
   Widget getAppBarUI() {
@@ -219,6 +236,40 @@ class MenuState extends State<Menu> with TickerProviderStateMixin {
                               onTap: () {
                                 Navigator.of(context).pushNamed('/cart');
                               },
+                            ),
+                            const SizedBox(width: 8),
+                            PopupMenuButton<String>(
+                              icon: const Icon(Icons.more_vert,
+                                  color: Colors.white),
+                              onSelected: (value) {
+                                switch (value) {
+                                  case 'subscriptions':
+                                    Navigator.pushNamed(
+                                        context, '/manage-subscriptions');
+                                    break;
+                                  case 'orders':
+                                    Navigator.pushNamed(
+                                        context, '/order-history');
+                                    break;
+                                  case 'invoices':
+                                    Navigator.pushNamed(context, '/invoices');
+                                    break;
+                                }
+                              },
+                              itemBuilder: (context) => [
+                                const PopupMenuItem(
+                                  value: 'subscriptions',
+                                  child: Text('Manage Subscriptions'),
+                                ),
+                                const PopupMenuItem(
+                                  value: 'orders',
+                                  child: Text('Order History'),
+                                ),
+                                const PopupMenuItem(
+                                  value: 'invoices',
+                                  child: Text('View Invoices'),
+                                ),
+                              ],
                             ),
                           ],
                         ),

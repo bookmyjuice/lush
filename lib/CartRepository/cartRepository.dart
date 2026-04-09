@@ -1,7 +1,9 @@
 import 'dart:convert';
+
 import 'package:shared_preferences/shared_preferences.dart';
-import '../views/models/Item.dart';
+
 import '../views/models/CartItem.dart';
+import '../views/models/Item.dart';
 
 class CartRepository {
   static const String _cartKey = 'cart_items';
@@ -30,13 +32,15 @@ class CartRepository {
         return [];
       }
 
-      final List<dynamic> cartList = json.decode(cartJson);
+      final List<dynamic> cartList = json.decode(cartJson) as List<dynamic>;
       final items = <CartItem>[];
 
       // Safely parse each item, skipping any that cause errors
-      for (var item in cartList) {
+      for (final item in cartList) {
         try {
-          items.add(_cartItemFromJson(item));
+          if (item is Map<String, dynamic>) {
+            items.add(_cartItemFromJson(item));
+          }
         } catch (e) {
           print('Error parsing cart item: $e');
           // Skip this item and continue with the next one
@@ -102,6 +106,90 @@ class CartRepository {
     }
   }
 
+  // Add item to cart (NEW - Critical for functionality)
+  Future<void> addItemToCart(CartItem newItem) async {
+    try {
+      final items = await getCartItems();
+      
+      // Check if item already exists (same product + same price/size)
+      final existingIndex = items.indexWhere((item) =>
+        _isSameCartItem(item, newItem)
+      );
+      
+      if (existingIndex >= 0) {
+        // Item exists - increment quantity
+        final existingItem = items[existingIndex];
+        items[existingIndex] = CartItem(
+          item: existingItem.item,
+          quantity: existingItem.quantity + newItem.quantity,
+          selectedSize: existingItem.selectedSize,
+          customizations: existingItem.customizations,
+          selectedPrice: existingItem.selectedPrice,
+        );
+        print('Item exists in cart, quantity updated to: ${items[existingIndex].quantity}');
+      } else {
+        // New item - add to cart
+        items.add(newItem);
+        print('New item added to cart: ${newItem.item.name}');
+      }
+      
+      await saveCartItems(items);
+      print('Cart saved with ${items.length} items');
+    } catch (e) {
+      print('Error adding item to cart: $e');
+      rethrow;
+    }
+  }
+
+  // Update cart item quantity (NEW)
+  Future<void> updateCartItemQuantity(CartItem updatedItem) async {
+    try {
+      final items = await getCartItems();
+      
+      final existingIndex = items.indexWhere((item) =>
+        _isSameCartItem(item, updatedItem)
+      );
+      
+      if (existingIndex >= 0) {
+        final existingItem = items[existingIndex];
+        if (updatedItem.quantity <= 0) {
+          // Remove item if quantity is 0 or less
+          items.removeAt(existingIndex);
+        } else {
+          // Update quantity - create new CartItem since quantity is final
+          items[existingIndex] = CartItem(
+            item: existingItem.item,
+            quantity: updatedItem.quantity,
+            selectedSize: existingItem.selectedSize,
+            customizations: existingItem.customizations,
+            selectedPrice: existingItem.selectedPrice,
+          );
+        }
+        
+        await saveCartItems(items);
+      }
+    } catch (e) {
+      print('Error updating cart item quantity: $e');
+      rethrow;
+    }
+  }
+
+  // Remove item from cart (NEW)
+  Future<void> removeCartItem(CartItem itemToRemove) async {
+    try {
+      final items = await getCartItems();
+      
+      items.removeWhere((item) =>
+        _isSameCartItem(item, itemToRemove)
+      );
+      
+      await saveCartItems(items);
+    } catch (e) {
+      print('Error removing item from cart: $e');
+      rethrow;
+    }
+  }
+
   // Helper methods for JSON serialization
   Map<String, dynamic> _cartItemToJson(CartItem item) {
     return {
@@ -123,14 +211,15 @@ class CartRepository {
       // Parse item with error handling
       Item item;
       try {
-        item = Item.fromJson(json['item']);
+        item = Item.fromJson(json['item'] as Map<String, dynamic>);
       } catch (e) {
         print('Error parsing item in cart: $e');
         // Create a minimal valid item to prevent crashes
         item = Item(
-          id: json['item']['id'] ?? 'unknown',
-          name: json['item']['name'] ?? 'Unknown Item',
+          id: json['item']['id'] as String ?? 'unknown',
+          name: json['item']['name'] as String ?? 'Unknown Item',
           description: 'Error loading item details',
+          servingSize: json['item']['servingSize'] as String ?? 'Not Defined' ,
         );
       }
 
@@ -138,13 +227,13 @@ class CartRepository {
       ItemPrice? selectedPrice;
       if (json['selectedPrice'] != null) {
         try {
-          selectedPrice = ItemPrice.fromJson(json['selectedPrice']);
+          selectedPrice = ItemPrice.fromJson(json['selectedPrice'] as Map<String, dynamic>);
         } catch (e) {
           print('Error parsing selected price in cart: $e');
           // Create a minimal valid price to prevent crashes
           selectedPrice = ItemPrice(
-            id: json['selectedPrice']['id'] ?? 'unknown',
-            name: json['selectedPrice']['name'] ?? 'Regular',
+            id: json['selectedPrice']['id'] as String ?? 'unknown',
+            name: json['selectedPrice']['name'] as String ?? 'Regular',
             price: json['selectedPrice']['price'] is num
                 ? (json['selectedPrice']['price'] as num).toDouble()
                 : 0.0,
@@ -156,7 +245,7 @@ class CartRepository {
       Map<String, dynamic>? customizations;
       if (json['customizations'] != null) {
         try {
-          customizations = Map<String, dynamic>.from(json['customizations']);
+          customizations = Map<String, dynamic>.from(json['customizations'] as Map<String, dynamic>);
         } catch (e) {
           print('Error parsing customizations in cart: $e');
           customizations = null;
@@ -165,9 +254,9 @@ class CartRepository {
 
       return CartItem(
         item: item,
-        quantity: json['quantity'] is int ? json['quantity'] : 1,
+        quantity: json['quantity'] as int ?? 1,
         selectedSize:
-            json['selectedSize'] is String ? json['selectedSize'] : null,
+            json['selectedSize'] as  String ?? 'Not Defined',
         customizations: customizations,
         selectedPrice: selectedPrice,
       );
@@ -176,10 +265,10 @@ class CartRepository {
       // Return a minimal valid cart item to prevent crashes
       return CartItem(
         item: Item(
-          id: 'error',
-          name: 'Error Item',
-          description: 'There was an error loading this item',
-        ),
+            id: 'error',
+            name: 'Error Item',
+            description: 'There was an error loading this item',
+            servingSize: "Not Defined"),
         quantity: 1,
       );
     }

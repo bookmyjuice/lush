@@ -2,14 +2,28 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:hexcolor/hexcolor.dart' as hex;
+import 'package:lush/UserRepository/userRepository.dart';
+import 'package:lush/getIt.dart';
+
 import '../../bloc/CartBloc/CartBloc.dart';
 import '../../bloc/CartBloc/cartEvent.dart';
 import '../../bloc/CartBloc/cartState.dart';
 import '../../theme.dart';
 import '../models/CartItem.dart';
 
+/// Cart Screen - FR-CART-001 to FR-CART-004
+/// - FR-CART-001: View cart items with quantity
+/// - FR-CART-002: Increment/Decrement quantity
+/// - FR-CART-003: Remove items from cart
+/// - FR-CART-004: Show subtotal, tax, and total
 class CartScreen extends StatelessWidget {
   const CartScreen({super.key});
+
+  // Tax rate (5% GST)
+  static const double _taxRate = 0.05;
+  // Delivery fee (free above ₹500)
+  static const double _deliveryFee = 50.0;
+  static const double _freeDeliveryThreshold = 500.0;
 
   @override
   Widget build(BuildContext context) {
@@ -342,10 +356,20 @@ class CartScreen extends StatelessWidget {
   }
 
   Widget _buildCheckoutSection(BuildContext context, List<CartItem> items) {
-    final totalAmount = items.fold<double>(
+    // Calculate totals
+    final subtotal = items.fold<double>(
       0,
       (sum, item) => sum + item.totalPrice,
     );
+    
+    // Tax calculation (5% GST)
+    final tax = subtotal * _taxRate;
+    
+    // Delivery fee (free above ₹500)
+    final deliveryFee = subtotal >= _freeDeliveryThreshold ? 0.0 : _deliveryFee;
+    
+    // Final total
+    final total = subtotal + tax + deliveryFee;
 
     return Container(
       padding: EdgeInsets.all(16.r),
@@ -362,45 +386,112 @@ class CartScreen extends StatelessWidget {
       ),
       child: Column(
         children: [
+          // Price Breakdown
+          _buildPriceRow(
+            context,
+            label: 'Subtotal',
+            amount: subtotal,
+          ),
+          SizedBox(height: 8.h),
+          _buildPriceRow(
+            context,
+            label: 'Tax (5% GST)',
+            amount: tax,
+          ),
+          SizedBox(height: 8.h),
+          _buildPriceRow(
+            context,
+            label: 'Delivery Fee',
+            amount: deliveryFee,
+            isFree: deliveryFee == 0,
+          ),
+          if (subtotal < _freeDeliveryThreshold)
+            Padding(
+              padding: EdgeInsets.only(bottom: 8.h),
+              child: Text(
+                'Add ₹${(_freeDeliveryThreshold - subtotal).toStringAsFixed(0)} more for FREE delivery',
+                style: TextStyle(
+                  fontSize: 12.sp,
+                  color: Colors.orange[700],
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+            ),
+          Divider(height: 24.h, color: Colors.grey[300]),
+          // Total Amount
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Text(
                 'Total Amount',
                 style: TextStyle(
-                  fontSize: 16.sp,
-                  fontWeight: FontWeight.w500,
+                  fontSize: 18.sp,
+                  fontWeight: FontWeight.bold,
                   color: LushTheme.darkerText,
                 ),
               ),
               Text(
-                '₹${totalAmount.toStringAsFixed(0)}',
+                '₹${total.toStringAsFixed(0)}',
                 style: TextStyle(
-                  fontSize: 20.sp,
+                  fontSize: 22.sp,
                   fontWeight: FontWeight.bold,
-                  color: LushTheme.darkerText,
+                  color: const Color(0xFFFF8C42),
                 ),
               ),
             ],
           ),
           SizedBox(height: 16.h),
+          // Checkout Button
           SizedBox(
             width: double.infinity,
             height: 50.h,
             child: ElevatedButton(
-              onPressed: () {
-                // Navigate to checkout
-                Navigator.of(context).pushNamed('/checkout');
-              },
+              onPressed: items.isNotEmpty
+                  ? () async {
+                      final userRepository = getIt.get<UserRepository>();
+                      final cartItems = items
+                          .map((cartItem) => {
+                                "itemPriceId": cartItem.selectedPrice?.id ?? '',
+                                "quantity": cartItem.quantity,
+                              })
+                          .toList();
+                      try {
+                        final checkoutUrl =
+                            await userRepository.getCartCheckoutUrl(cartItems);
+                        if (checkoutUrl.isNotEmpty) {
+                          Navigator.of(context)
+                              .pushNamed('/checkout', arguments: checkoutUrl);
+                        } else {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              content: Text('Failed to get checkout URL'),
+                              backgroundColor: Colors.red,
+                            ),
+                          );
+                        }
+                      } catch (e) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            content: Text('Checkout error: $e'),
+                            backgroundColor: Colors.red,
+                          ),
+                        );
+                      }
+                    }
+                  : null,
               style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.orange,
+                backgroundColor: const Color(0xFFFF8C42),
                 foregroundColor: Colors.white,
+                disabledBackgroundColor: Colors.grey[300],
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(15.r),
                 ),
+                padding: EdgeInsets.symmetric(vertical: 16.h),
               ),
               child: Text(
-                'Proceed to Checkout',
+                items.isNotEmpty
+                    ? 'Proceed to Checkout'
+                    : 'Add items to checkout',
                 style: TextStyle(
                   fontSize: 16.sp,
                   fontWeight: FontWeight.bold,
@@ -410,6 +501,43 @@ class CartScreen extends StatelessWidget {
           ),
         ],
       ),
+    );
+  }
+
+  Widget _buildPriceRow(
+    BuildContext context, {
+    required String label,
+    required double amount,
+    bool isFree = false,
+  }) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        Text(
+          label,
+          style: TextStyle(
+            fontSize: 14.sp,
+            color: LushTheme.lightText,
+          ),
+        ),
+        isFree
+            ? Text(
+                'FREE',
+                style: TextStyle(
+                  fontSize: 14.sp,
+                  color: Colors.green[700],
+                  fontWeight: FontWeight.bold,
+                ),
+              )
+            : Text(
+                '₹${amount.toStringAsFixed(2)}',
+                style: TextStyle(
+                  fontSize: 14.sp,
+                  color: LushTheme.darkerText,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+      ],
     );
   }
 

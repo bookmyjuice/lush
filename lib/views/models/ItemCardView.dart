@@ -167,6 +167,7 @@ class ItemCardView extends StatelessWidget {
             'endColor': item.endColor,
             'calories': (item.kacl ?? 0).toString(),
           },
+      servingSize: item.servingSize,
       imagePath: item.imagePath,
       titleTxt: item.titleTxt,
       startColor: item.startColor,
@@ -195,18 +196,20 @@ class ItemCardView extends StatelessWidget {
               builder: (context, constraints) {
                 // Responsive width calculation
                 final double cardWidth = constraints.maxWidth;
+                final double cardHeight = constraints.maxHeight;
 
                 return Container(
                   width: cardWidth,
+                  height: cardHeight,
                   margin:
-                      const EdgeInsets.symmetric(horizontal: 4, vertical: 4),
+                      const EdgeInsets.symmetric(horizontal: 1, vertical: 1),
                   child: Stack(
                     clipBehavior: Clip.none, // Allow image to overflow
                     children: <Widget>[
                       // Card background
                       Padding(
                         padding: const EdgeInsets.only(
-                            top: 42, left: 1, right: 1, bottom: 1),
+                            top: 33, left: 1, right: 1, bottom: 1),
                         child: Container(
                           decoration: BoxDecoration(
                             boxShadow: <BoxShadow>[
@@ -234,7 +237,7 @@ class ItemCardView extends StatelessWidget {
                           ),
                           child: Padding(
                             padding: const EdgeInsets.only(
-                                top: 50, left: 8, right: 8, bottom: 8),
+                                top: 44, left: 8, right: 8, bottom: 8),
                             child: Column(
                               mainAxisSize: MainAxisSize.min,
                               mainAxisAlignment: MainAxisAlignment.start,
@@ -264,13 +267,9 @@ class ItemCardView extends StatelessWidget {
                                     borderRadius: BorderRadius.circular(10),
                                   ),
                                   child: Text(
-                                    item.type == 'PLAN'
-                                        ? 'Subscription'
-                                        : item.type == 'ADDON'
-                                            ? 'Add-on'
-                                            : 'One-time',
+                                    "Size: ${item.servingSize}",
                                     style: const TextStyle(
-                                      fontSize: 8,
+                                      fontSize: 9,
                                       fontWeight: FontWeight.w500,
                                       color: Colors.white,
                                     ),
@@ -280,23 +279,23 @@ class ItemCardView extends StatelessWidget {
                                 const SizedBox(height: 4),
 
                                 // Calories info (if available)
-                                if (item.kacl != null)
-                                  Text(
-                                    'Calories: ${item.kacl ?? 0}',
-                                    style: const TextStyle(
-                                      fontFamily: LushTheme.fontName,
-                                      fontWeight: FontWeight.w500,
-                                      fontSize: 10,
-                                      letterSpacing: 0.2,
-                                      color: LushTheme.white,
-                                    ),
-                                  ),
+                                // if (item.kacl != null)
+                                //   Text(
+                                //     'Calories: ${item.kacl ?? 0}',
+                                //     style: const TextStyle(
+                                //       fontFamily: LushTheme.fontName,
+                                //       fontWeight: FontWeight.w500,
+                                //       fontSize: 10,
+                                //       letterSpacing: 0.2,
+                                //       color: LushTheme.white,
+                                //     ),
+                                //   ),
 
-                                const SizedBox(height: 4),
+                                // const SizedBox(height: 4),
 
                                 // Price display
                                 Text(
-                                  'From ₹${(item.itemPrices?.isNotEmpty ?? false) ? (item.itemPrices![0].price?.toStringAsFixed(0) ?? '0') : (item.price?.toStringAsFixed(0) ?? '0')}',
+                                  'MRP: ₹${(item.itemPrices?.isNotEmpty ?? false) ? (item.itemPrices![0].price?.toStringAsFixed(0) ?? '0') : (item.price?.toStringAsFixed(0) ?? '0')}',
                                   style: const TextStyle(
                                     fontFamily: LushTheme.fontName,
                                     fontWeight: FontWeight.bold,
@@ -305,7 +304,7 @@ class ItemCardView extends StatelessWidget {
                                   ),
                                 ),
 
-                                const SizedBox(height: 8),
+                                // const SizedBox(height: 29),
 
                                 // Add to cart button
                                 SizedBox(

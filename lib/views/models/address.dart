@@ -26,45 +26,45 @@ class Address {
 
   String get getFirstName => firstName;
 
-  set setFirstName(firstName) => this.firstName = firstName;
+  set setFirstName(String firstName) => this.firstName = firstName;
 
   String get getLastName => lastName;
 
-  set setLastName(lastName) => this.lastName = lastName;
+  set setLastName(String lastName) => this.lastName = lastName;
 
   String get getPhone => phone;
 
-  set setPhone(phone) => this.phone = phone;
+  set setPhone(String phone) => this.phone = phone;
 
   String get getAddr => addr;
 
-  set setAddr(addr) => this.addr = addr;
+  set setAddr(String addr) => this.addr = addr;
 
   String get extendedaddr => extended_addr;
 
-  set extendedaddr(value) => extended_addr = value;
+  set extendedaddr(String value) => extended_addr = value;
 
   String get extendedaddr2 => extended_addr2;
 
-  set extendedaddr2(value) => extended_addr2 = value;
+  set extendedaddr2(String value) => extended_addr2 = value;
 
   String get getCity => city;
 
-  set setCity(city) => this.city = city;
+  set setCity(String city) => this.city = city;
 
   String get statecode => state_code;
 
-  set statecode(value) => state_code = value;
+  set statecode(String value) => state_code = value;
 
   String get getZip => zip;
 
-  set setZip(zip) => this.zip = zip;
+  set setZip(String zip) => this.zip = zip;
 
   bool get validationstatus => validation_status;
 
-  set validationstatus(value) => validation_status = value;
+  set validationstatus(bool value) => validation_status = value;
 
   String get subscriptionid => subscription_id;
 
-  set subscriptionid(value) => subscription_id = value;
+  set subscriptionid(String value) => subscription_id = value;
 }

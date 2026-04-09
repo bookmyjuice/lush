@@ -20,7 +20,6 @@ class AutoLoginFailed extends AuthenticationState {
 
   const AutoLoginFailed({super.key, required this.toast_message, required this.toast_heading});
   @override
-  
   List<Object?> get props => [toast_heading, toast_message];
 }
 
@@ -28,22 +27,19 @@ class LogInFailed extends AuthenticationState {
   final String toast_message, toast_heading;
 
   const LogInFailed({super.key, required this.toast_message, required this.toast_heading});
-  
+
   @override
-  List<Object?> get props => [toast_heading,toast_message];
+  List<Object?> get props => [toast_heading, toast_message];
 }
 
 class AuthenticationSuccess extends AuthenticationState {
   final User user;
   const AuthenticationSuccess(this.user);
-  // UserRepository
   @override
   List<Object?> get props => [user];
 }
 
-
 class AuthError extends AuthenticationState {
-  // final Key key;
   final String error;
   const AuthError({required this.error});
   @override
@@ -62,6 +58,7 @@ class InternetIssue extends AuthenticationState {
   @override
   List<Object?> get props => [toast_heading, toast_message];
 }
+
 class SignUpFailed extends AuthenticationState {
   final String error_heading, error;
 
@@ -72,10 +69,10 @@ class SignUpFailed extends AuthenticationState {
 }
 
 class SignUpStarted extends AuthenticationState {
-  // final User user;
-  const SignUpStarted();
+  final User user;
+  const SignUpStarted({required this.user});
   @override
-  List<Object?> get props => [];
+  List<Object?> get props => [user];
 }
 
 class TokenReceived extends AuthenticationState {}
@@ -88,4 +85,234 @@ class SignUpSuccessful extends AuthenticationState {
 class LoggedOut extends AuthenticationState {
   @override
   List<Object?> get props => [];
+}
+
+class OTPSent extends AuthenticationState {
+  @override
+  List<Object?> get props => [];
+}
+
+class OTPVerificationSuccess extends AuthenticationState {
+  @override
+  List<Object?> get props => [];
+}
+
+class OTPVerificationFailed extends AuthenticationState {
+  final String error;
+
+  const OTPVerificationFailed({required this.error});
+
+  @override
+  List<Object?> get props => [error];
+}
+
+class OTPSendFailed extends AuthenticationState {
+  final String error;
+
+  const OTPSendFailed({required this.error});
+
+  @override
+  List<Object?> get props => [error];
+}
+
+// ============================================================
+// NEW: Unified Signup Flow States
+// ============================================================
+
+// Step 1: Choose method
+class SignupMethodSelected extends AuthenticationState {
+  final String method; // 'email', 'phone', 'google'
+
+  const SignupMethodSelected({required this.method});
+
+  @override
+  List<Object?> get props => [method];
+}
+
+// Step 2a: Email-first flow states
+class EmailEntered extends AuthenticationState {
+  final String email;
+
+  const EmailEntered({required this.email});
+
+  @override
+  List<Object?> get props => [email];
+}
+
+class EmailVerificationSent extends AuthenticationState {
+  final String email;
+
+  const EmailVerificationSent({required this.email});
+
+  @override
+  List<Object?> get props => [email];
+}
+
+class EmailVerified extends AuthenticationState {
+  final String email;
+
+  const EmailVerified({required this.email});
+
+  @override
+  List<Object?> get props => [email];
+}
+
+// Step 2b: Phone-first flow states
+class PhoneEntered extends AuthenticationState {
+  final String phone;
+
+  const PhoneEntered({required this.phone});
+
+  @override
+  List<Object?> get props => [phone];
+}
+
+class PhoneVerified extends AuthenticationState {
+  final String phone;
+
+  const PhoneVerified({required this.phone});
+
+  @override
+  List<Object?> get props => [phone];
+}
+
+// Step 2c: Google signup state
+class GoogleSignupEmailVerified extends AuthenticationState {
+  final String email;
+  final String firstName;
+  final String lastName;
+
+  const GoogleSignupEmailVerified({
+    required this.email,
+    required this.firstName,
+    required this.lastName,
+  });
+
+  @override
+  List<Object?> get props => [email, firstName, lastName];
+}
+
+// Common state: Both email and phone verified
+class EmailAndPhoneVerified extends AuthenticationState {
+  final String email;
+  final String phone;
+  final String firstName;
+  final String lastName;
+
+  const EmailAndPhoneVerified({
+    required this.email,
+    required this.phone,
+    required this.firstName,
+    required this.lastName,
+  });
+
+  @override
+  List<Object?> get props => [email, phone, firstName, lastName];
+}
+
+// Step 3: Address entry state
+class AddressEntered extends AuthenticationState {
+  final String firstName;
+  final String lastName;
+  final String email;
+  final String phone;
+  final String address;
+  final String extendedAddr;
+  final String extendedAddr2;
+  final String city;
+  final String state;
+  final String zip;
+  final String country;
+
+  const AddressEntered({
+    required this.firstName,
+    required this.lastName,
+    required this.email,
+    required this.phone,
+    required this.address,
+    required this.extendedAddr,
+    required this.extendedAddr2,
+    required this.city,
+    required this.state,
+    required this.zip,
+    required this.country,
+  });
+
+  @override
+  List<Object?> get props => [
+        firstName,
+        lastName,
+        email,
+        phone,
+        address,
+        extendedAddr,
+        extendedAddr2,
+        city,
+        state,
+        zip,
+        country,
+      ];
+}
+
+// Step 4: Ready for final signup (password entry)
+class ReadyForFinalSignup extends AuthenticationState {
+  final String email;
+  final String phone;
+  final String firstName;
+  final String lastName;
+  final String address;
+  final String extendedAddr;
+  final String extendedAddr2;
+  final String city;
+  final String state;
+  final String zip;
+  final String country;
+
+  const ReadyForFinalSignup({
+    required this.email,
+    required this.phone,
+    required this.firstName,
+    required this.lastName,
+    required this.address,
+    required this.extendedAddr,
+    required this.extendedAddr2,
+    required this.city,
+    required this.state,
+    required this.zip,
+    required this.country,
+  });
+
+  @override
+  List<Object?> get props => [
+        email,
+        phone,
+        firstName,
+        lastName,
+        address,
+        extendedAddr,
+        extendedAddr2,
+        city,
+        state,
+        zip,
+        country,
+      ];
+}
+
+// Verification states
+class EmailVerificationFailed extends AuthenticationState {
+  final String error;
+
+  const EmailVerificationFailed({required this.error});
+
+  @override
+  List<Object?> get props => [error];
+}
+
+class EmailVerificationCodeSent extends AuthenticationState {
+  final String email;
+
+  const EmailVerificationCodeSent({required this.email});
+
+  @override
+  List<Object?> get props => [email];
 }

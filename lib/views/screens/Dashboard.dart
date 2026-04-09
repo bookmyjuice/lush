@@ -1,3 +1,4 @@
+import 'package:carousel_slider/carousel_slider.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -9,12 +10,15 @@ import 'package:lush/bloc/CartBloc/CartBloc.dart';
 import 'package:lush/bloc/CartBloc/cartEvent.dart';
 import 'package:lush/getIt.dart';
 import 'package:lush/main.dart';
+import 'package:lush/services/SubscriptionService.dart';
+import 'package:lush/views/models/Subscription.dart';
 import 'package:lush/views/models/user.dart';
-import '../widgets/dashboard_components.dart';
-import '../widgets/cart_icon.dart';
-import '../../theme.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:url_launcher/url_launcher.dart';
-import 'package:carousel_slider/carousel_slider.dart';
+
+import '../../theme.dart';
+import '../widgets/cart_icon.dart';
+import '../widgets/subscription_info_card.dart';
 
 class Dashboard extends StatefulWidget {
   final UserRepository userRepository = getIt.get();
@@ -33,6 +37,11 @@ class HomePage2State extends State<Dashboard> with TickerProviderStateMixin {
   List<Widget> listViews = <Widget>[];
   final ScrollController scrollController = ScrollController();
   double topBarOpacity = 0.1;
+  
+  // Subscription data
+  final SubscriptionService _subscriptionService = SubscriptionService();
+  Subscription? _subscription;
+  bool _isLoadingSubscription = false;
 
   @override
   void initState() {
@@ -47,6 +56,9 @@ class HomePage2State extends State<Dashboard> with TickerProviderStateMixin {
 
     // Load cart data
     context.read<CartBloc>().add(LoadCart());
+    
+    // Load subscription data
+    _loadSubscriptionData();
 
     scrollController.addListener(() {
       if (scrollController.offset >= 24) {
@@ -75,6 +87,38 @@ class HomePage2State extends State<Dashboard> with TickerProviderStateMixin {
 
   // Track current carousel index
   int _currentCarouselIndex = 0;
+
+  // Load subscription data from backend
+  Future<void> _loadSubscriptionData() async {
+    setState(() {
+      _isLoadingSubscription = true;
+    });
+
+    try {
+      // Get token from SharedPreferences
+      final prefs = await SharedPreferences.getInstance();
+      final token = prefs.getString('token');
+
+      if (token != null && token.isNotEmpty) {
+        final subscriptions = await _subscriptionService.getMySubscriptions(token);
+        setState(() {
+          _subscription = subscriptions.isNotEmpty ? subscriptions.first : null;
+          _isLoadingSubscription = false;
+        });
+      } else {
+        setState(() {
+          _subscription = null;
+          _isLoadingSubscription = false;
+        });
+      }
+    } catch (e) {
+      print('Error loading subscription data: $e');
+      setState(() {
+        _subscription = null;
+        _isLoadingSubscription = false;
+      });
+    }
+  }
 
   void _navigateToSubscriptions() async {
     try {
@@ -252,24 +296,43 @@ class HomePage2State extends State<Dashboard> with TickerProviderStateMixin {
                     curve: const Interval(0.2, 0.4, curve: Curves.easeOutCubic),
                   ),
                 ),
-                child: SubscriptionCard(
-                  title: 'Premium Plan',
-                  subtitle: 'Daily fresh juice delivery',
-                  status: 'Active',
-                  nextDelivery: DateTime.now().add(Duration(days: 1)),
-                  deliveriesLeft: 12,
-                  onTap: () async {
-                    Map<String, String> urls =
-                        await widget.userRepository.getSubscriptionPageUrl();
-                    mounted
-                        ? Navigator.pushNamed(context, '/subscriptions',
-                            arguments: SubscriptionPageUrlArgument(
-                                premium_page_url: urls["premium"]!,
-                                signature_page_url: urls["signature"]!,
-                                delight_page_url: urls["delight"]!))
-                        : Future.delayed(Duration(seconds: 1));
-                  },
-                ),
+                child: _isLoadingSubscription
+                    ? Center(
+                        child: Padding(
+                          padding: EdgeInsets.all(32.h),
+                          child: CircularProgressIndicator(
+                            valueColor: AlwaysStoppedAnimation<Color>(
+                              LushTheme.nearlyBlue,
+                            ),
+                          ),
+                        ),
+                      )
+                    : SubscriptionInfoCard(
+                        subscription: _subscription,
+                        onTap: () {
+                          // Navigate to subscription details if exists
+                          if (_subscription != null) {
+                            // Navigate to details
+                          }
+                        },
+                        onManageTap: () async {
+                          if (_subscription != null) {
+                            // Navigate to manage subscription
+                            Map<String, String> urls =
+                                await widget.userRepository.getSubscriptionPageUrl();
+                            if (mounted) {
+                              Navigator.pushNamed(context, '/subscriptions',
+                                  arguments: SubscriptionPageUrlArgument(
+                                      premium_page_url: urls["premium"]!,
+                                      signature_page_url: urls["signature"]!,
+                                      delight_page_url: urls["delight"]!));
+                            }
+                          } else {
+                            // No subscription, navigate to subscribe
+                            _navigateToSubscriptions();
+                          }
+                        },
+                      ),
               ),
             );
           },
@@ -648,6 +711,38 @@ class HomePage2State extends State<Dashboard> with TickerProviderStateMixin {
                 onTap: () => _handleCartTap(context),
                 iconColor: LushTheme.nearlyBlue,
                 backgroundColor: LushTheme.nearlyBlue.withOpacity(0.1),
+              ),
+              SizedBox(width: 8.w),
+              PopupMenuButton<String>(
+                icon: Icon(Icons.more_vert,
+                    color: LushTheme.nearlyBlue, size: 22.sp),
+                onSelected: (value) {
+                  switch (value) {
+                    case 'subscriptions':
+                      Navigator.pushNamed(context, '/manage-subscriptions');
+                      break;
+                    case 'orders':
+                      Navigator.pushNamed(context, '/order-history');
+                      break;
+                    case 'invoices':
+                      Navigator.pushNamed(context, '/invoices');
+                      break;
+                  }
+                },
+                itemBuilder: (context) => [
+                  const PopupMenuItem(
+                    value: 'subscriptions',
+                    child: Text('Manage Subscriptions'),
+                  ),
+                  const PopupMenuItem(
+                    value: 'orders',
+                    child: Text('Order History'),
+                  ),
+                  const PopupMenuItem(
+                    value: 'invoices',
+                    child: Text('View Invoices'),
+                  ),
+                ],
               ),
             ],
           ),

@@ -1,10 +1,12 @@
-import 'package:flutter_bloc/flutter_bloc.dart';
+import 'dart:convert';
+
 import 'package:equatable/equatable.dart';
-import '../../views/models/subscriptionPlan.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+
 import '../../UserRepository/userRepository.dart';
 import '../../getIt.dart';
-import 'package:shared_preferences/shared_preferences.dart';
-import 'dart:convert';
+import '../../views/models/subscriptionPlan.dart';
 
 // Events
 abstract class SubscriptionEvent extends Equatable {
@@ -181,8 +183,8 @@ class ActiveSubscription extends Equatable {
     // Create a default plan
     final plan = SubscriptionPlan(
       id: json['planId']?.toString() ?? '',
-      name: json['planName'] ?? 'Unknown Plan',
-      description: json['planDescription'] ?? '',
+      name: json['planName'] as String ?? 'Unknown Plan',
+      description: json['planDescription'] as String ?? '',
       pricingPageUrl: '',
       startColor: '#FF9800',
       endColor: '#FF5722',

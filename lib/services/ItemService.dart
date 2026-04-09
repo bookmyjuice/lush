@@ -1,8 +1,8 @@
 import 'package:lush/UserRepository/userRepository.dart';
 import 'package:lush/getIt.dart';
 import 'package:lush/views/models/DynamicItem.dart';
-import 'package:lush/views/models/ItemData.dart';
 import 'package:lush/views/models/Item.dart';
+import 'package:lush/views/models/ItemData.dart';
 
 class ItemService {
   final UserRepository _userRepository = getIt.get<UserRepository>();
@@ -105,12 +105,12 @@ class ItemService {
     if (dynamicItem.itemPrices.isNotEmpty) {
       itemPrices = dynamicItem.itemPrices.map((priceData) {
         return ItemPrice(
-          id: priceData['id'] ?? '',
-          name: priceData['name'] ?? '',
-          description: priceData['description'] ?? '',
+          id: (priceData['id'] as String?) ?? '',
+          name: (priceData['name'] as String?) ?? '',
+          description: (priceData['description'] as String?) ?? '',
           price:
-              priceData['price'] is num ? priceData['price'].toDouble() : 0.0,
-          currencyCode: priceData['currencyCode'] ?? 'INR',
+              priceData['price'] is num ? (priceData['price'] as num).toDouble() : 0.0,
+          currencyCode: (priceData['currencyCode'] as String?) ?? 'INR',
         );
       }).toList();
     } else {
@@ -148,6 +148,7 @@ class ItemService {
       imagePath: dynamicItem.imagePath,
       titleTxt: dynamicItem.displayName, // For backward compatibility
       startColor: dynamicItem.startColor,
+      servingSize: dynamicItem.servingSize,
       endColor: dynamicItem.endColor,
       meals: dynamicItem.meals,
       kacl: dynamicItem.kacl,
@@ -156,6 +157,7 @@ class ItemService {
       itemPrices: itemPrices,
       type: dynamicItem.type,
       status: dynamicItem.status,
+      itemFamilyId: dynamicItem.itemFamilyId,
       metaData: dynamicItem.metaData,
     );
   }

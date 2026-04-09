@@ -1,0 +1,35 @@
+{
+  "name": "bookmyjuice-e2e",
+  "version": "1.0.0",
+  "description": "BookMyJuice E2E Testing with Flutter Integration Test",
+  "scripts": {
+    "e2e": "flutter test integration_test/e2e_suite_test.dart --dart-define=E2E=true",
+    "e2e:full": "flutter test integration_test/ --dart-define=E2E=true",
+    "e2e:physical": "flutter test integration_test/e2e_suite_test.dart --device-id=RF8M70647YD --dart-define=E2E=true",
+    "e2e:emulator": "flutter test integration_test/e2e_suite_test.dart --device-id=emulator-5554 --dart-define=E2E=true",
+    "e2e:ci": "flutter test integration_test/e2e_suite_test.dart --dart-define=E2E=true --machine > ../.e2e-reports/results.json",
+    "e2e:report": "flutter test integration_test/e2e_suite_test.dart --dart-define=E2E=true --file-reporter=json:../.e2e-reports/results.json",
+    "e2e:clean": "rimraf ../.e2e-reports/*",
+    "e2e:all": "npm run e2e:clean && npm run e2e:report",
+    "e2e:simple": "flutter test integration_test/simple_e2e_test.dart --dart-define=E2E=true"
+  },
+  "keywords": [
+    "bookmyjuice",
+    "e2e",
+    "testing",
+    "flutter",
+    "integration_test"
+  ],
+  "author": "BookMyJuice Team",
+  "license": "MIT",
+  "devDependencies": {
+    "rimraf": "^5.0.5"
+  },
+  "engines": {
+    "node": ">=18.0.0",
+    "npm": ">=9.0.0"
+  },
+  "config": {
+    "device": "RF8M70647YD"
+  }
+}

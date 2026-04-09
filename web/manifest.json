@@ -1,11 +1,11 @@
 {
-    "name": "lush",
-    "short_name": "lush",
+    "name": "BookMyJuice",
+    "short_name": "BookMyJuice",
     "start_url": ".",
     "display": "standalone",
-    "background_color": "#0175C2",
-    "theme_color": "#0175C2",
-    "description": "A new Flutter project.",
+    "background_color": "#FF8C42",
+    "theme_color": "#FF8C42",
+    "description": "BookMyJuice - Cold-pressed juice subscription and ordering platform",
     "orientation": "portrait-primary",
     "prefer_related_applications": false,
     "icons": [

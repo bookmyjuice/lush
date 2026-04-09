@@ -1,3 +1,5 @@
+import 'dart:ffi';
+
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:equatable/equatable.dart';
 import '../../views/models/ItemData.dart';
@@ -163,13 +165,11 @@ class Product extends Equatable {
     if (json.containsKey('itemPrices') && json['itemPrices'] is List) {
       parsedItemPrices = (json['itemPrices'] as List)
           .map((priceJson) => ItemPrice(
-                id: priceJson['id'] ?? '',
-                name: priceJson['name'] ?? '',
-                description: priceJson['description'] ?? '',
-                price: priceJson['price'] is num
-                    ? priceJson['price'].toDouble()
-                    : 0.0,
-                currencyCode: priceJson['currencyCode'] ?? 'INR',
+                id: priceJson['id'] as String? ?? '',
+                name: priceJson['name'] as String? ?? '',
+                description: priceJson['description'] as String? ?? '',
+                price: priceJson['price'] as double? ?? 0.0,
+                currencyCode: priceJson['currencyCode'] as String? ?? 'INR',
               ))
           .toList();
     }

@@ -4,6 +4,60 @@
 
 **BookMyJuice** is a Flutter mobile application that provides customers with a seamless experience to order fresh cold-pressed juices on both **subscription** and **one-time order** basis. The app features a modern UI with subscription management, cart functionality, and integrated payment processing.
 
+### API Base URL configuration
+
+- The app reads the backend base URL from a compile-time define: `API_BASE_URL`.
+- Default (when not provided):
+  - Web: `http://127.0.0.1:8080`
+  - Mobile/desktop: `http://10.0.2.2:8080` (Android emulator loopback)
+
+Run examples:
+
+```bash
+# Debug run pointing to local backend
+flutter run --dart-define=API_BASE_URL=http://localhost:8080
+
+# Widget tests with a specific backend
+flutter test --dart-define=API_BASE_URL=http://localhost:8080
+
+# Release build with staging backend
+flutter build apk \
+  --dart-define=API_BASE_URL=https://staging.api.bookmyjuice.co.in
+```
+
+Note on webhooks
+
+- Chargebee webhooks cannot target `localhost`. To test webhook flows in dev, expose your backend over a public HTTPS URL (production/staging) or use a secure tunnel (e.g., ngrok/Cloudflare Tunnel) and configure Chargebee to call the tunnel URL under `/api/webhooks/**`.
+- Chargebee test-hosted pages use `https://bookmyjuice-test.chargebee.com`.
+
+### Integration tests
+
+- Gated by a compile-time flag to avoid accidental execution.
+- Example runs:
+
+```bash
+# Run integration tests on a connected device/emulator
+flutter test integration_test \
+  --dart-define=API_BASE_URL=http://localhost:8080 \
+  --dart-define=E2E=true \
+  --dart-define=E2E_USER=9876543210 \
+  --dart-define=E2E_PASS=SecurePass123!
+
+# Run in Chrome (web)
+flutter test -d chrome integration_test \
+  --dart-define=API_BASE_URL=http://127.0.0.1:8080 \
+  --dart-define=E2E=true \
+  --dart-define=E2E_USER=9876543210 \
+  --dart-define=E2E_PASS=SecurePass123!
+```
+
+Validates:
+- Sign-in (`/api/auth/signin`) and profile (`/api/test/user`)
+- Pricing session URLs (`/api/test/generate_pricing_page_session_url`)
+- One-time checkout (`/api/test/oneTimeCheckoutPageUrl`)
+- Cart checkout (`/api/test/cartCheckout`)
+- Self-serve portal session (`/api/test/portal`)
+
 ## 🏗️ Architecture
 
 ### App Architecture
@@ -394,6 +448,538 @@ test/
 - **Integration Testing**: End-to-end testing
 - **Mock Testing**: Mockito for mocking dependencies
 
+## 📡 API Integration
+
+### Backend Communication
+The Flutter app communicates with the Spring Boot backend through RESTful APIs. All API calls are handled through repository classes that manage HTTP requests and responses.
+
+### Base Configuration
+```dart
+class ApiConfig {
+  static const String baseUrl = 'http://api.bookmyjuice.co.in:8080';
+  static const Duration timeout = Duration(seconds: 30);
+  
+  // API Endpoints
+  static const String authSignIn = '/api/auth/signin';
+  static const String authSignUp = '/api/auth/signup';
+  static const String authAutoLogin = '/api/auth/autologin';
+  static const String authResetPassword = '/api/auth/resetpassword';
+  static const String userProfile = '/api/test/user';
+  static const String chargeItems = '/api/test/charge-items';
+  static const String pricingPage = '/api/test/generate_pricing_page_session_url';
+  static const String selfServePortal = '/api/test/portal';
+  static const String oneTimeCheckout = '/api/test/oneTimeCheckoutPageUrl';
+  static const String cartCheckout = '/api/test/cartCheckout';
+}
+```
+
+---
+
+## 🔐 Authentication API Integration
+
+### UserRepository Authentication Methods
+
+#### 1. User Login
+```dart
+Future<bool> login(String username, String password, bool remember) async {
+  final response = await http.post(
+    Uri.parse('${ApiConfig.baseUrl}${ApiConfig.authSignIn}'),
+    body: jsonEncode({
+      "username": username,
+      "password": password
+    }),
+    headers: {
+      "Accept": "application/json",
+      "Content-Type": "application/json",
+    }
+  );
+  
+  if (response.statusCode == 200) {
+    final responseData = json.decode(response.body);
+    final token = responseData['accessToken'];
+    
+    // Store token for future requests
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    await prefs.setString("token", token);
+    
+    if (remember) {
+      await prefs.setString("username", username);
+      await prefs.setString("password", password);
+    }
+    
+    return true;
+  }
+  return false;
+}
+```
+
+#### 2. User Registration
+```dart
+Future<bool> signUp(SignUpRequest signUpRequest) async {
+  final response = await http.post(
+    Uri.parse('${ApiConfig.baseUrl}${ApiConfig.authSignUp}'),
+    body: jsonEncode(signUpRequest.toJson()),
+    headers: {
+      "Accept": "application/json",
+      "Content-Type": "application/json",
+    }
+  );
+  
+  if (response.statusCode == 200) {
+    final responseData = json.decode(response.body);
+    // User ID returned as message
+    final userId = responseData['message'];
+    return true;
+  }
+  return false;
+}
+```
+
+#### 3. Auto Login
+```dart
+Future<bool> autoLogin() async {
+  SharedPreferences prefs = await SharedPreferences.getInstance();
+  final token = prefs.getString("token");
+  
+  if (token == null) return false;
+  
+  final response = await http.get(
+    Uri.parse('${ApiConfig.baseUrl}${ApiConfig.authAutoLogin}'),
+    headers: {
+      "Authorization": "Bearer $token",
+      "Accept": "application/json",
+      "Content-Type": "application/json",
+    }
+  );
+  
+  if (response.statusCode == 200) {
+    final responseData = json.decode(response.body);
+    return responseData['message'] == 'ok';
+  }
+  return false;
+}
+```
+
+---
+
+## 🛒 Product & Menu API Integration
+
+### Get Available Products
+```dart
+Future<List<Product>> getChargeItems() async {
+  final response = await http.get(
+    Uri.parse('${ApiConfig.baseUrl}${ApiConfig.chargeItems}'),
+    headers: {
+      "Accept": "application/json",
+      "Content-Type": "application/json",
+    }
+  );
+  
+  if (response.statusCode == 200) {
+    final List<dynamic> data = json.decode(response.body);
+    return data.map((item) => Product.fromJson(item)).toList();
+  }
+  throw Exception('Failed to load products');
+}
+```
+
+### Product Model
+```dart
+class Product {
+  final String id;
+  final String name;
+  final String description;
+  final String type;
+  final String status;
+  final String unit;
+  final String itemFamilyId;
+  final bool enabledInPortal;
+  final bool enabledForCheckout;
+  final Map<String, dynamic>? metadata;
+  final List<ItemPrice> itemPrices;
+
+  Product({
+    required this.id,
+    required this.name,
+    required this.description,
+    required this.type,
+    required this.status,
+    required this.unit,
+    required this.itemFamilyId,
+    required this.enabledInPortal,
+    required this.enabledForCheckout,
+    this.metadata,
+    required this.itemPrices,
+  });
+
+  factory Product.fromJson(Map<String, dynamic> json) {
+    return Product(
+      id: json['id'],
+      name: json['name'],
+      description: json['description'] ?? '',
+      type: json['type'],
+      status: json['status'],
+      unit: json['unit'] ?? '',
+      itemFamilyId: json['itemFamilyId'] ?? '',
+      enabledInPortal: json['enabledInPortal'] ?? true,
+      enabledForCheckout: json['enabledForCheckout'] ?? true,
+      metadata: json['metadata'],
+      itemPrices: (json['itemPrices'] as List?)
+          ?.map((price) => ItemPrice.fromJson(price))
+          .toList() ?? [],
+    );
+  }
+}
+
+class ItemPrice {
+  final String id;
+  final String name;
+  final String currencyCode;
+  final double price;
+  final int? period;
+  final String? periodUnit;
+  final String status;
+
+  ItemPrice({
+    required this.id,
+    required this.name,
+    required this.currencyCode,
+    required this.price,
+    this.period,
+    this.periodUnit,
+    required this.status,
+  });
+
+  factory ItemPrice.fromJson(Map<String, dynamic> json) {
+    return ItemPrice(
+      id: json['id'],
+      name: json['name'],
+      currencyCode: json['currencyCode'],
+      price: (json['price'] as num).toDouble(),
+      period: json['period'],
+      periodUnit: json['periodUnit'],
+      status: json['status'],
+    );
+  }
+}
+```
+
+---
+
+## 💳 Subscription API Integration
+
+### Get Subscription Page URLs
+```dart
+Future<Map<String, String>> getSubscriptionPageUrl() async {
+  SharedPreferences prefs = await SharedPreferences.getInstance();
+  final token = prefs.getString("token");
+  
+  final response = await http.get(
+    Uri.parse('${ApiConfig.baseUrl}${ApiConfig.pricingPage}'),
+    headers: {
+      "Authorization": "Bearer $token",
+      "Accept": "application/json",
+      "Content-Type": "application/json",
+    }
+  );
+  
+  if (response.statusCode == 200) {
+    final Map<String, dynamic> data = json.decode(response.body);
+    return {
+      "premium": data['premium']['url'],
+      "signature": data['signature']['url'],
+      "delight": data['delight']['url'],
+    };
+  }
+  throw Exception('Failed to load subscription URLs');
+}
+```
+
+### Self-Serve Portal Integration
+```dart
+Future<String> getSelfServePortalUrl() async {
+  SharedPreferences prefs = await SharedPreferences.getInstance();
+  final token = prefs.getString("token");
+  
+  final response = await http.get(
+    Uri.parse('${ApiConfig.baseUrl}${ApiConfig.selfServePortal}'),
+    headers: {
+      "Authorization": "Bearer $token",
+      "Accept": "application/json",
+      "Content-Type": "application/json",
+    }
+  );
+  
+  if (response.statusCode == 200) {
+    final Map<String, dynamic> data = json.decode(response.body);
+    return data['access_url'];
+  }
+  throw Exception('Failed to load portal URL');
+}
+```
+
+---
+
+## 🛍️ Checkout API Integration
+
+### One-Time Checkout
+```dart
+Future<String> getOneTimeCheckoutUrl() async {
+  SharedPreferences prefs = await SharedPreferences.getInstance();
+  final token = prefs.getString("token");
+  
+  final response = await http.get(
+    Uri.parse('${ApiConfig.baseUrl}${ApiConfig.oneTimeCheckout}'),
+    headers: {
+      "Authorization": "Bearer $token",
+      "Accept": "application/json",
+      "Content-Type": "application/json",
+    }
+  );
+  
+  if (response.statusCode == 200) {
+    final Map<String, dynamic> data = json.decode(response.body);
+    return data['url'];
+  }
+  throw Exception('Failed to load checkout URL');
+}
+```
+
+### Cart Checkout
+```dart
+Future<String> getCartCheckoutUrl() async {
+  SharedPreferences prefs = await SharedPreferences.getInstance();
+  final token = prefs.getString("token");
+  
+  final response = await http.get(
+    Uri.parse('${ApiConfig.baseUrl}${ApiConfig.cartCheckout}'),
+    headers: {
+      "Authorization": "Bearer $token",
+      "Accept": "application/json",
+      "Content-Type": "application/json",
+    }
+  );
+  
+  if (response.statusCode == 200) {
+    final Map<String, dynamic> data = json.decode(response.body);
+    return data['url'];
+  }
+  throw Exception('Failed to load cart checkout URL');
+}
+```
+
+---
+
+## 👤 User Profile API Integration
+
+### Get User Profile
+```dart
+Future<User> getUserProfile() async {
+  SharedPreferences prefs = await SharedPreferences.getInstance();
+  final token = prefs.getString("token");
+  
+  final response = await http.get(
+    Uri.parse('${ApiConfig.baseUrl}${ApiConfig.userProfile}'),
+    headers: {
+      "Authorization": "Bearer $token",
+      "Accept": "application/json",
+      "Content-Type": "application/json",
+    }
+  );
+  
+  if (response.statusCode == 200) {
+    final Map<String, dynamic> data = json.decode(response.body);
+    return User.fromJson(data);
+  }
+  throw Exception('Failed to load user profile');
+}
+```
+
+---
+
+## 🔄 BLoC State Management with API Integration
+
+### AuthBloc with API Integration
+```dart
+class AuthBloc extends Bloc<AuthenticationEvent, AuthenticationState> {
+  final UserRepository userRepository;
+
+  AuthBloc({required this.userRepository}) : super(AuthenticationInitial()) {
+    on<LogInUser>(_onLogInUser);
+    on<SignUpUser>(_onSignUpUser);
+    on<AutoLogIn>(_onAutoLogIn);
+    on<LogOutUser>(_onLogOutUser);
+  }
+
+  Future<void> _onLogInUser(
+    LogInUser event,
+    Emitter<AuthenticationState> emit,
+  ) async {
+    emit(AuthenticationInProgress());
+    
+    try {
+      final success = await userRepository.login(
+        event.username,
+        event.password,
+        event.remember,
+      );
+      
+      if (success) {
+        emit(AuthenticationSuccess());
+      } else {
+        emit(AuthenticationFailure(error: 'Invalid credentials'));
+      }
+    } catch (e) {
+      emit(AuthenticationFailure(error: e.toString()));
+    }
+  }
+
+  Future<void> _onAutoLogIn(
+    AutoLogIn event,
+    Emitter<AuthenticationState> emit,
+  ) async {
+    emit(AuthenticationInProgress());
+    
+    try {
+      final success = await userRepository.autoLogin();
+      
+      if (success) {
+        emit(AuthenticationSuccess());
+      } else {
+        emit(AutoLoginFailed());
+      }
+    } catch (e) {
+      emit(AuthenticationFailure(error: e.toString()));
+    }
+  }
+}
+```
+
+### CartBloc with API Integration
+```dart
+class CartBloc extends Bloc<CartEvent, CartState> {
+  final CartRepository cartRepository;
+  final UserRepository userRepository;
+
+  CartBloc({
+    required this.cartRepository,
+    required this.userRepository,
+  }) : super(CartInitial()) {
+    on<LoadCart>(_onLoadCart);
+    on<AddToCart>(_onAddToCart);
+    on<RemoveFromCart>(_onRemoveFromCart);
+    on<CheckoutCart>(_onCheckoutCart);
+  }
+
+  Future<void> _onCheckoutCart(
+    CheckoutCart event,
+    Emitter<CartState> emit,
+  ) async {
+    emit(CartLoading());
+    
+    try {
+      final checkoutUrl = await userRepository.getCartCheckoutUrl();
+      emit(CartCheckoutReady(checkoutUrl: checkoutUrl));
+    } catch (e) {
+      emit(CartError(error: e.toString()));
+    }
+  }
+}
+```
+
+---
+
+## 🔒 Security Implementation
+
+### JWT Token Management
+```dart
+class TokenManager {
+  static const String _tokenKey = 'jwt_token';
+  static const String _refreshTokenKey = 'refresh_token';
+  
+  static Future<void> saveToken(String token) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString(_tokenKey, token);
+  }
+  
+  static Future<String?> getToken() async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getString(_tokenKey);
+  }
+  
+  static Future<void> clearTokens() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.remove(_tokenKey);
+    await prefs.remove(_refreshTokenKey);
+  }
+  
+  static Future<bool> isTokenValid() async {
+    final token = await getToken();
+    if (token == null) return false;
+    
+    try {
+      // Decode JWT and check expiry
+      final parts = token.split('.');
+      if (parts.length != 3) return false;
+      
+      final payload = json.decode(
+        utf8.decode(base64Url.decode(base64Url.normalize(parts[1])))
+      );
+      
+      final exp = payload['exp'] as int;
+      final now = DateTime.now().millisecondsSinceEpoch ~/ 1000;
+      
+      return exp > now;
+    } catch (e) {
+      return false;
+    }
+  }
+}
+```
+
+### HTTP Interceptor for Authentication
+```dart
+class AuthenticatedHttpClient {
+  static final HttpClient _httpClient = HttpClient();
+  static late IOClient _ioClient;
+  
+  static void initialize() {
+    _httpClient.badCertificateCallback = 
+        (X509Certificate cert, String host, int port) => true;
+    _ioClient = IOClient(_httpClient);
+  }
+  
+  static Future<http.Response> get(String url) async {
+    final token = await TokenManager.getToken();
+    
+    return await _ioClient.get(
+      Uri.parse(url),
+      headers: {
+        'Authorization': 'Bearer $token',
+        'Accept': 'application/json',
+        'Content-Type': 'application/json',
+      },
+    );
+  }
+  
+  static Future<http.Response> post(String url, {Object? body}) async {
+    final token = await TokenManager.getToken();
+    
+    return await _ioClient.post(
+      Uri.parse(url),
+      body: body,
+      headers: {
+        'Authorization': 'Bearer $token',
+        'Accept': 'application/json',
+        'Content-Type': 'application/json',
+      },
+    );
+  }
+}
+```
+
+---
+
 ## 📦 Dependencies
 
 ### Core Dependencies
@@ -406,6 +992,7 @@ dependencies:
   http: ^1.2.1                   # HTTP client
   shared_preferences: ^2.0.17    # Local storage
   flutter_screenutil: ^5.9.3     # Screen adaptation
+  get_it: ^8.0.0                 # Dependency injection
 ```
 
 ### UI Dependencies
@@ -416,6 +1003,7 @@ dependencies:
   shimmer: ^3.0.0                # Loading animations
   carousel_slider: ^5.0.0        # Image carousels
   toggle_switch: ^2.3.0          # Switch controls
+  url_launcher: ^6.2.5           # External URL launching
 ```
 
 ### Authentication Dependencies

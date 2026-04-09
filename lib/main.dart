@@ -2,28 +2,49 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:toastification/toastification.dart';
-import 'package:no_context_navigation/no_context_navigation.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:lush/views/models/googleSignIn.dart';
+import 'package:lush/views/screens/CheckoutScreen.dart';
+import 'package:lush/views/screens/GoogleSignupScreen.dart';
+import 'package:no_context_navigation/no_context_navigation.dart';
+import 'package:rive/rive.dart';
+import 'package:toastification/toastification.dart';
 
+import 'CartRepository/cartRepository.dart';
 import 'bloc/AuthBloc/AuthBloc.dart';
 import 'bloc/AuthBloc/AuthEvents.dart';
 import 'bloc/AuthBloc/AuthState.dart';
 import 'bloc/CartBloc/CartBloc.dart';
-import 'CartRepository/cartRepository.dart';
 import 'bloc/CartBloc/cartEvent.dart';
+// Product Catalog BLoC
+import 'bloc/ProductCatalogBloc/ProductCatalogBloc.dart';
+import 'bloc/ProductsBloc/ProductsBloc.dart' as ProductsBloc;
+import 'bloc/SubscriptionBloc/subscription_bloc.dart';
+// Enhanced BLoCs for additional functionality
+import 'bloc/UserBloc/UserBloc.dart';
 import 'getIt.dart';
 import 'views/all_Screens.dart';
 import 'views/models/model.dart';
+import 'views/screens/AddressEntryScreen.dart';
+import 'views/screens/CreatePasswordScreen.dart';
+import 'views/screens/EmailEntryAfterPhoneScreen.dart';
+import 'views/screens/EmailSignupScreen.dart';
+import 'views/screens/EmailVerificationAfterPhoneScreen.dart';
+import 'views/screens/EmailVerificationScreen.dart';
 import 'views/screens/ForgotPasswordPage.dart';
+import 'views/screens/GooglePhoneEntryScreen.dart';
+import 'views/screens/InvoiceViewScreen.dart';
 import 'views/screens/MyAccountPage.dart';
+import 'views/screens/OrderHistoryScreen.dart';
+import 'views/screens/PhoneEntryAfterEmailScreen.dart';
+import 'views/screens/PhoneOtpVerificationScreen.dart';
+import 'views/screens/PhoneSignupScreen.dart';
+import 'views/screens/ProductCatalogScreen.dart';
+// New unified signup flow screens
+import 'views/screens/SignupMethodSelectionScreen.dart';
+import 'views/screens/SubscriptionManagementScreen.dart';
 import 'views/screens/notifications.dart';
-
-// Enhanced BLoCs for additional functionality
-import 'bloc/UserBloc/UserBloc.dart';
-import 'bloc/SubscriptionBloc/subscription_bloc.dart';
-import 'bloc/ProductsBloc/ProductsBloc.dart' as ProductsBloc;
 
 void main() async {
   await _initializeApp();
@@ -35,11 +56,16 @@ Future<void> _initializeApp() async {
     // Ensure Flutter bindings are initialized
     WidgetsFlutterBinding.ensureInitialized();
 
+    // Initialize Google Sign-In
+    await GoogleSignInHelper.instance.initialize();
+
     // Initialize error handling
     _initializeErrorHandling();
 
     // Register dependencies
     registerRepositories();
+
+    await RiveNative.init(); // Required for 0.14.x
 
     // Set preferred orientations
     await SystemChrome.setPreferredOrientations([
@@ -115,6 +141,11 @@ class BookMyJuiceApp extends StatelessWidget {
               create: (_) =>
                   CartBloc(getIt.get<CartRepository>())..add(LoadCart()),
             ),
+            // Product Catalog BLoC (NEW)
+            BlocProvider<ProductCatalogBloc>(
+              lazy: false,
+              create: (_) => ProductCatalogBloc(),
+            ),
             // Enhanced BLoCs for additional functionality
             BlocProvider<UserBloc>(
               create: (context) => UserBloc(),
@@ -167,7 +198,36 @@ class BookMyJuiceApp extends StatelessWidget {
                 '/': (_) => const AuthWrapper(),
                 '/mobileNumberPage': (_) => MobileNumberPage(),
                 '/otp': (_) => OTPLoginPage(),
+                // '/otpSignUpScreen': (_) => OTPSignUpScreen(),
                 '/forgotPasswordPage': (_) => ForgotPasswordPage(),
+                '/orders': (_) => const OrderHistoryPage(),
+                // New routes for enhanced navigation
+                '/manage-subscriptions': (_) =>
+                    const SubscriptionManagementScreen(),
+                '/order-history': (_) => const OrderHistoryScreen(),
+                '/invoices': (_) => const InvoiceViewScreen(),
+                // New unified signup flow routes
+                '/signup-method-selection': (_) =>
+                    const SignupMethodSelectionScreen(),
+                '/email-signup': (_) => const EmailSignupScreen(),
+                '/email-verification': (_) => const EmailVerificationScreen(),
+                '/phone-entry-after-email': (_) =>
+                    const PhoneEntryAfterEmailScreen(),
+                '/phone-signup': (_) => const PhoneSignupScreen(),
+                '/phone-otp-verification': (_) =>
+                    const PhoneOtpVerificationScreen(),
+                '/email-entry-after-phone': (_) =>
+                    const EmailEntryAfterPhoneScreen(),
+                '/email-verification-after-phone': (_) =>
+                    const EmailVerificationAfterPhoneScreen(),
+                '/google-signup': (_) => const GoogleSignupScreen(),
+                '/google-phone-entry': (_) => const GooglePhoneEntryScreen(),
+                '/address-entry': (_) => const AddressEntryScreen(),
+                '/create-password': (_) => const CreatePasswordScreen(),
+                '/login': (_) => const LoginPage(
+                    toast_message: '', toast_heading: ''),
+                '/dashboard': (_) => Dashboard(),
+                '/product-catalog': (_) => ProductCatalogScreen(),
               },
               onGenerateRoute: (settings) {
                 if (settings.name == '/myaccount') {
@@ -201,7 +261,8 @@ class BookMyJuiceApp extends StatelessWidget {
                   );
                 } else if (settings.name == '/checkout') {
                   return MaterialPageRoute(
-                    builder: (_) => const PaymentScreen(),
+                    builder: (_) => CheckoutScreen(
+                        checkoutUrl: settings.arguments as String),
                   );
                 } else if (settings.name == '/menu') {
                   return MaterialPageRoute(
@@ -255,7 +316,7 @@ class AuthWrapper extends StatelessWidget {
           return LoginPage(
               toast_message: state.error, toast_heading: "SignUp Failed!");
         } else if (state is SignUpStarted) {
-          return SignUpScreen();
+          return SignUpScreen(user: state.user);
         } else if (state is SignUpSuccessful) {
           return LoginPage(
               toast_heading: "Signup Successfull!",

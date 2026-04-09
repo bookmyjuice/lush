@@ -33,38 +33,39 @@ class Item {
   int? kacl;
   double? price;
   double? rating;
+  String servingSize;
 
   List<ItemPrice>? itemPrices; // List of associated ItemPrice objects
 
-  Item({
-    this.id,
-    this.description,
-    this.enabledForCheckout,
-    this.enabledInPortal,
-    this.externalName,
-    this.giftable,
-    this.itemFamilyId,
-    this.jsonObject,
-    this.metaData,
-    this.name,
-    this.shippable,
-    this.status,
-    this.type,
-    this.unit,
-    this.subscriptionId,
-    this.archived,
-    this.deleted,
-    this.itemPrices,
-    // JuiceItem properties
-    this.imagePath,
-    this.titleTxt,
-    this.startColor,
-    this.endColor,
-    this.meals,
-    this.kacl,
-    this.price,
-    this.rating,
-  });
+  Item(
+      {this.id,
+      this.description,
+      this.enabledForCheckout,
+      this.enabledInPortal,
+      this.externalName,
+      this.giftable,
+      this.itemFamilyId,
+      this.jsonObject,
+      this.metaData,
+      this.name,
+      this.shippable,
+      this.status,
+      this.type,
+      this.unit,
+      this.subscriptionId,
+      this.archived,
+      this.deleted,
+      this.itemPrices,
+      // JuiceItem properties
+      this.imagePath,
+      this.titleTxt,
+      this.startColor,
+      this.endColor,
+      this.meals,
+      this.kacl,
+      this.price,
+      this.rating,
+      required this.servingSize});
 
   factory Item.fromJson(Map<String, dynamic> json) {
     // Handle item_prices field which could be in different formats
@@ -80,30 +81,31 @@ class Item {
     }
 
     return Item(
-      id: json['id'],
-      description: json['description'],
-      enabledForCheckout: json['enabled_for_checkout'],
-      enabledInPortal: json['enabled_in_portal'],
-      externalName: json['external_name'],
-      giftable: json['giftable'],
-      itemFamilyId: json['item_family_id'],
-      jsonObject: json['json_object'],
-      metaData: json['meta_data'],
-      name: json['name'],
-      shippable: json['shippable'],
-      status: json['status'],
-      type: json['type'],
-      unit: json['unit'],
-      subscriptionId: json['subscription_id'],
-      archived: json['archived'],
-      deleted: json['deleted'],
+      id: json['id'] as String?,
+      description: json['description'] as String?,
+      enabledForCheckout: json['enabled_for_checkout'] as bool?,
+      enabledInPortal: json['enabled_in_portal'] as bool?,
+      externalName: json['external_name'] as String?,
+      giftable: json['giftable'] as bool?,
+      itemFamilyId: json['item_family_id'] as String?,
+      jsonObject: json['json_object'] as String?,
+      metaData: json['meta_data'] as Map<String, dynamic>?,
+      name: json['name'] as String?,
+      shippable: json['shippable'] as bool?,
+      status: json['status'] as String?,
+      type: json['type'] as String?,
+      unit: json['unit'] as String?,
+      subscriptionId: json['subscription_id'] as String?,
+      archived: json['archived'] as bool?,
+      deleted: json['deleted'] as bool?,
       itemPrices: itemPrices,
+      servingSize: json['servingSize'] as String? ?? '', // Default serving size
       // JuiceItem properties
-      imagePath: json['imagePath'],
-      titleTxt: json['titleTxt'],
-      startColor: json['startColor'],
-      endColor: json['endColor'],
-      meals: json['meals'] != null ? List<String>.from(json['meals']) : null,
+      imagePath: json['imagePath'] as String?,
+      titleTxt: json['titleTxt'] as String?,
+      startColor: json['startColor'] as String?,
+      endColor: json['endColor'] as String?,
+      meals: json['meals'] != null ? List<String>.from(json['meals'] as Iterable) : null,
       kacl: json['kacl'] != null
           ? (json['kacl'] is num
               ? (json['kacl'] as num).toInt()
@@ -221,42 +223,42 @@ class ItemPrice {
   factory ItemPrice.fromJson(Map<String, dynamic> json) {
     // Handle different key formats (snake_case vs camelCase)
     return ItemPrice(
-      id: json['id'] ?? json['id'],
+      id: (json['id'] ?? json['id']) as String?,
       accountingCategory1:
-          json['accounting_category1'] ?? json['accountingCategory1'],
+          (json['accounting_category1'] ?? json['accountingCategory1']) as String?,
       accountingCategory2:
-          json['accounting_category2'] ?? json['accountingCategory2'],
+          (json['accounting_category2'] ?? json['accountingCategory2']) as String?,
       accountingCategory3:
-          json['accounting_category3'] ?? json['accountingCategory3'],
+          (json['accounting_category3'] ?? json['accountingCategory3']) as String?,
       accountingCategory4:
-          json['accounting_category4'] ?? json['accountingCategory4'],
-      accountingCode: json['accounting_code'] ?? json['accountingCode'],
-      createdAt: json['created_at'] ?? json['createdAt'],
-      currencyCode: json['currency_code'] ?? json['currencyCode'],
-      description: json['description'],
-      externalName: json['external_name'] ?? json['externalName'],
+          (json['accounting_category4'] ?? json['accountingCategory4']) as String?,
+      accountingCode: (json['accounting_code'] ?? json['accountingCode']) as String?,
+      createdAt: (json['created_at'] ?? json['createdAt']) as int?,
+      currencyCode: (json['currency_code'] ?? json['currencyCode']) as String?,
+      description: json['description'] as String?,
+      externalName: (json['external_name'] ?? json['externalName']) as String?,
       freeQuantityInDecimal:
-          json['free_quantity_in_decimal'] ?? json['freeQuantityInDecimal'],
-      invoiceNotes: json['invoice_notes'] ?? json['invoiceNotes'],
-      metadata: json['metadata'] ?? json['metaData'],
-      name: json['name'],
-      period: json['period'],
-      periodUnit: json['period_unit'] ?? json['periodUnit'],
+          (json['free_quantity_in_decimal'] ?? json['freeQuantityInDecimal']) as String?,
+      invoiceNotes: (json['invoice_notes'] ?? json['invoiceNotes']) as String?,
+      metadata: (json['metadata'] ?? json['metaData']) as Map<String, dynamic>?,
+      name: json['name'] as String?,
+      period: json['period'] as int?,
+      periodUnit: (json['period_unit'] ?? json['periodUnit']) as String?,
       price: json['price'] != null
           ? (json['price'] is num
               ? (json['price'] as num).toDouble()
               : double.tryParse(json['price'].toString()) ?? 0.0)
           : null,
-      pricingModel: json['pricing_model'] ?? json['pricingModel'],
-      status: json['status'],
-      taxProfileId: json['tax_profile_id'] ?? json['taxProfileId'],
-      taxProfileName: json['tax_profile_name'] ?? json['taxProfileName'],
-      taxProfileType: json['tax_profile_type'] ?? json['taxProfileType'],
-      trialAvailable: json['trial_available'] ?? json['trialAvailable'],
-      trialPeriod: json['trial_period'] ?? json['trialPeriod'],
-      trialPeriodUnit: json['trial_period_unit'] ?? json['trialPeriodUnit'],
-      updatedAt: json['updated_at'] ?? json['updatedAt'],
-      itemId: json['item_id'] ?? json['itemId'],
+      pricingModel: (json['pricing_model'] ?? json['pricingModel']) as String?,
+      status: json['status'] as String?,
+      taxProfileId: (json['tax_profile_id'] ?? json['taxProfileId']) as String?,
+      taxProfileName: (json['tax_profile_name'] ?? json['taxProfileName']) as String?,
+      taxProfileType: (json['tax_profile_type'] ?? json['taxProfileType']) as String?,
+      trialAvailable: (json['trial_available'] ?? json['trialAvailable']) as bool?,
+      trialPeriod: (json['trial_period'] ?? json['trialPeriod']) as int?,
+      trialPeriodUnit: (json['trial_period_unit'] ?? json['trialPeriodUnit']) as String?,
+      updatedAt: (json['updated_at'] ?? json['updatedAt']) as int?,
+      itemId: (json['item_id'] ?? json['itemId']) as String?,
     );
   }
 

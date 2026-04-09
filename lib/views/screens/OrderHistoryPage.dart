@@ -1,10 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import '../../UserRepository/userRepository.dart';
 import '../widgets/app_card.dart';
 import '../../theme.dart';
+import '../models/Order.dart';
 
 class OrderHistoryPage extends StatefulWidget {
   const OrderHistoryPage({super.key});
+  static const routeName = '/orders';
 
   @override
   State<OrderHistoryPage> createState() => _OrderHistoryPageState();
@@ -12,6 +15,35 @@ class OrderHistoryPage extends StatefulWidget {
 
 class _OrderHistoryPageState extends State<OrderHistoryPage> {
   int _selectedTab = 0;
+  List<Order> _orders = [];
+  bool _loading = true;
+  String? _error;
+  final UserRepository _userRepository = UserRepository();
+
+  @override
+  void initState() {
+    super.initState();
+    fetchOrders();
+  }
+
+  Future<void> fetchOrders() async {
+    setState(() {
+      _loading = true;
+      _error = null;
+    });
+    try {
+      final data = await _userRepository.fetchOrders();
+      setState(() {
+        _orders = data.map((e) => Order.fromJson(e)).toList();
+        _loading = false;
+      });
+    } catch (e) {
+      setState(() {
+        _error = 'Error: $e';
+        _loading = false;
+      });
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -21,7 +53,7 @@ class _OrderHistoryPageState extends State<OrderHistoryPage> {
         backgroundColor: LushTheme.white,
         elevation: 0,
         title: Text(
-          'Order History',
+          'Orders',
           style: TextStyle(
             fontSize: 20.sp,
             fontWeight: FontWeight.bold,
@@ -57,15 +89,58 @@ class _OrderHistoryPageState extends State<OrderHistoryPage> {
 
           // Content
           Expanded(
-            child: _selectedTab == 0
-                ? _buildAllOrders()
-                : _selectedTab == 1
-                    ? _buildDeliveredOrders()
-                    : _buildPendingOrders(),
+            child: _loading
+                ? Center(child: CircularProgressIndicator())
+                : _error != null
+                    ? Center(child: Text(_error!))
+                    : _buildOrdersList(),
           ),
         ],
       ),
     );
+  }
+
+  Widget _buildOrdersList() {
+    List<Order> filtered = _orders;
+    if (_selectedTab == 1) {
+      filtered = _orders.where((o) => o.status == 'DELIVERED').toList();
+    } else if (_selectedTab == 2) {
+      filtered = _orders
+          .where((o) => o.status == 'QUEUED' || o.status == 'PROCESSING')
+          .toList();
+    }
+    if (filtered.isEmpty) {
+      return Center(child: Text('No orders found.'));
+    }
+    return ListView(
+      padding: EdgeInsets.symmetric(horizontal: 20.w),
+      children: filtered
+          .map((order) => _buildOrderCard(
+                orderId: order.documentNumber.isNotEmpty
+                    ? order.documentNumber
+                    : '#${order.id}',
+                date: order.createdAt,
+                status: order.status,
+                items: order.items.isNotEmpty ? order.items : ['No items'],
+                total: '₹${order.total}',
+                statusColor: _getStatusColor(order.status),
+              ))
+          .toList(),
+    );
+  }
+
+  Color _getStatusColor(String status) {
+    switch (status) {
+      case 'DELIVERED':
+        return Colors.green;
+      case 'QUEUED':
+      case 'PROCESSING':
+        return Colors.orange;
+      case 'CANCELLED':
+        return Colors.red;
+      default:
+        return Colors.grey;
+    }
   }
 
   Widget _buildTab(String title, int index) {
@@ -105,85 +180,7 @@ class _OrderHistoryPageState extends State<OrderHistoryPage> {
     );
   }
 
-  Widget _buildAllOrders() {
-    return ListView(
-      padding: EdgeInsets.symmetric(horizontal: 20.w),
-      children: [
-        _buildOrderCard(
-          orderId: '#BMJ001',
-          date: 'Today, 10:30 AM',
-          status: 'Delivered',
-          items: ['ABC Juice', 'Pineapple Juice'],
-          total: '₹258',
-          statusColor: Colors.green,
-        ),
-        _buildOrderCard(
-          orderId: '#BMJ002',
-          date: 'Yesterday, 2:15 PM',
-          status: 'Processing',
-          items: ['Watermelon Juice', 'Vitamin C'],
-          total: '₹320',
-          statusColor: Colors.orange,
-        ),
-        _buildOrderCard(
-          orderId: '#BMJ003',
-          date: '2 days ago, 9:45 AM',
-          status: 'Delivered',
-          items: ['ABC Juice', 'Pineapple Juice', 'Detox Green'],
-          total: '₹445',
-          statusColor: Colors.green,
-        ),
-        _buildOrderCard(
-          orderId: '#BMJ004',
-          date: '5 days ago, 11:20 AM',
-          status: 'Cancelled',
-          items: ['Orange Juice'],
-          total: '₹129',
-          statusColor: Colors.red,
-        ),
-      ],
-    );
-  }
-
-  Widget _buildDeliveredOrders() {
-    return ListView(
-      padding: EdgeInsets.symmetric(horizontal: 20.w),
-      children: [
-        _buildOrderCard(
-          orderId: '#BMJ001',
-          date: 'Today, 10:30 AM',
-          status: 'Delivered',
-          items: ['ABC Juice', 'Pineapple Juice'],
-          total: '₹258',
-          statusColor: Colors.green,
-        ),
-        _buildOrderCard(
-          orderId: '#BMJ003',
-          date: '2 days ago, 9:45 AM',
-          status: 'Delivered',
-          items: ['ABC Juice', 'Pineapple Juice', 'Detox Green'],
-          total: '₹445',
-          statusColor: Colors.green,
-        ),
-      ],
-    );
-  }
-
-  Widget _buildPendingOrders() {
-    return ListView(
-      padding: EdgeInsets.symmetric(horizontal: 20.w),
-      children: [
-        _buildOrderCard(
-          orderId: '#BMJ002',
-          date: 'Yesterday, 2:15 PM',
-          status: 'Processing',
-          items: ['Watermelon Juice', 'Vitamin C'],
-          total: '₹320',
-          statusColor: Colors.orange,
-        ),
-      ],
-    );
-  }
+  // Removed static order lists, now using fetched orders
 
   Widget _buildOrderCard({
     required String orderId,
@@ -256,31 +253,29 @@ class _OrderHistoryPageState extends State<OrderHistoryPage> {
                 ),
               ),
               SizedBox(height: 8.h),
-              ...items
-                  .map((item) => Padding(
-                        padding: EdgeInsets.only(bottom: 4.h),
-                        child: Row(
-                          children: [
-                            Container(
-                              width: 4.w,
-                              height: 4.w,
-                              decoration: BoxDecoration(
-                                color: LushTheme.lightText,
-                                shape: BoxShape.circle,
-                              ),
-                            ),
-                            SizedBox(width: 8.w),
-                            Text(
-                              item,
-                              style: TextStyle(
-                                fontSize: 14.sp,
-                                color: LushTheme.lightText,
-                              ),
-                            ),
-                          ],
+              ...items.map((item) => Padding(
+                    padding: EdgeInsets.only(bottom: 4.h),
+                    child: Row(
+                      children: [
+                        Container(
+                          width: 4.w,
+                          height: 4.w,
+                          decoration: BoxDecoration(
+                            color: LushTheme.lightText,
+                            shape: BoxShape.circle,
+                          ),
                         ),
-                      ))
-                  ,
+                        SizedBox(width: 8.w),
+                        Text(
+                          item,
+                          style: TextStyle(
+                            fontSize: 14.sp,
+                            color: LushTheme.lightText,
+                          ),
+                        ),
+                      ],
+                    ),
+                  )),
             ],
           ),
 

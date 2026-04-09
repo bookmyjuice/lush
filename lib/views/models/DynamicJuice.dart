@@ -69,7 +69,7 @@ class DynamicJuice {
   factory DynamicJuice.fromApiResponse(Map<String, dynamic> json) {
     // Extract metadata if it exists
     Map<String, dynamic> metaData = json['metaData'] is Map<String, dynamic>
-        ? json['metaData']
+        ? json['metaData'] as Map<String, dynamic>
         : <String, dynamic>{};
 
     return DynamicJuice(
@@ -83,16 +83,16 @@ class DynamicJuice {
       startColor: metaData['startColor']?.toString() ?? '#FF6B6B',
       endColor: metaData['endColor']?.toString() ?? '#4ECDC4',
       meals: _parseStringList(metaData['meals']),
-      kacl: metaData['calories'] ?? json['calories'] ?? json['kacl'] ?? 0,
+      kacl: (metaData['calories'] ?? json['calories'] ?? json['kacl'] ?? 0) as int,
       type: json['type']?.toString() ?? 'CHARGE',
       status: json['status']?.toString() ?? 'ACTIVE',
       unit: json['unit']?.toString() ?? '',
       itemFamilyId: json['itemFamilyId']?.toString() ?? '',
-      enabledInPortal: json['enabledInPortal'] ?? false,
-      enabledForCheckout: json['enabledForCheckout'] ?? true,
-      isGiftable: json['isGiftable'] ?? false,
-      isShippable: json['isShippable'] ?? false,
-      deleted: json['deleted'] ?? false,
+      enabledInPortal: (json['enabledInPortal'] as bool?) ?? false,
+      enabledForCheckout: (json['enabledForCheckout'] as bool?) ?? true,
+      isGiftable: (json['isGiftable'] as bool?) ?? false,
+      isShippable: (json['isShippable'] as bool?) ?? false,
+      deleted: (json['deleted'] as bool?) ?? false,
       category: metaData['category']?.toString() ?? 'juice',
       subcategory: metaData['subcategory']?.toString() ?? '',
       benefits: _parseStringList(metaData['benefits']),
@@ -102,13 +102,13 @@ class DynamicJuice {
       shelfLife: metaData['shelfLife']?.toString() ?? '24 hours',
       preparationTime: metaData['preparationTime']?.toString() ?? '5 minutes',
       temperature: metaData['temperature']?.toString() ?? 'Cold',
-      popularity: metaData['popularity'] ?? 0,
-      seasonal: metaData['seasonal'] ?? false,
+      popularity: (metaData['popularity'] as int?) ?? 0,
+      seasonal: (metaData['seasonal'] as bool?) ?? false,
       nutritionalInfo: metaData['nutritionalInfo'] is Map<String, dynamic>
-          ? metaData['nutritionalInfo']
+          ? metaData['nutritionalInfo'] as Map<String, dynamic>
           : {},
       customization: metaData['customization'] is Map<String, dynamic>
-          ? metaData['customization']
+          ? metaData['customization'] as Map<String, dynamic>
           : {},
     );
   }

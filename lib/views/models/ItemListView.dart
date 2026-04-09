@@ -21,7 +21,8 @@ class ItemListView extends StatefulWidget {
   final String? category;
   final String? size; // Selected size filter
   final String? type; // Selected type filter (CHARGE, PLAN, ADDON)
-  final bool useFallbackItems; // Flag to determine whether to use fallback items or fetch from server
+  final bool
+      useFallbackItems; // Flag to determine whether to use fallback items or fetch from server
 
   @override
   ItemListViewState createState() => ItemListViewState();
@@ -94,35 +95,34 @@ class ItemListViewState extends State<ItemListView>
 
           // Apply all filters: category, type, and size
           final String category = widget.category ?? 'Premium';
-          final String type = widget.type ?? 'CHARGE'; // Default to one-time purchases
+          final String type =
+              widget.type ?? 'CHARGE'; // Default to one-time purchases
           final String? size = widget.size; // Size filter is optional
-          
-          final filteredItems = items
-              .where((item) {
-                // Basic filters: active and not deleted
-                bool isActive = item.status == 'ACTIVE' && !(item.deleted ?? false);
-                
-                // Type filter
-                bool matchesType = item.type == type;
-                
-                // Category filter
-                bool matchesCategory = 
-                    item.itemFamilyId?.toLowerCase() == category.toLowerCase() ||
-                    item.metaData?['category']?.toString().toLowerCase() == category.toLowerCase();
-                
-                // Size filter (if specified)
-                bool matchesSize = true; // Default to true if no size filter
-                if (size != null && size.isNotEmpty) {
-                  // Check if any of the item prices match the selected size
-                  if (item.itemPrices != null && item.itemPrices!.isNotEmpty) {
-                    matchesSize = item.itemPrices!.any((price) => 
-                        price.name?.toLowerCase() == size.toLowerCase());
-                  }
-                }
-                
-                return isActive && matchesType && matchesCategory && matchesSize;
-              })
-              .toList();
+
+          final filteredItems = items.where((item) {
+            // Basic filters: active and not deleted
+            bool isActive = item.status == 'ACTIVE' && !(item.deleted ?? false);
+            // Type filter
+            bool matchesType = item.type == type;
+            // Category filter: itemFamilyId contains selected category (case-insensitive)
+            bool matchesCategory = true;
+            if (category.isNotEmpty) {
+              final familyId = item.itemFamilyId ?? '';
+              matchesCategory = familyId.toLowerCase().contains(category.toLowerCase());
+              if(familyId =='Juices' && category == 'Premium') {
+                // Special case for 'Juices' family when category is 'Premium'
+                matchesCategory = true; // Always match
+              }
+            }
+            // Size filter (if specified)
+            bool matchesSize = true;
+            if (size != null && size.isNotEmpty) {
+              // Match item's servingSize to selected size
+              matchesSize = item.servingSize.toString().toLowerCase() ==
+                  size.toLowerCase();
+            }
+            return isActive && matchesType && matchesSize && matchesCategory;
+          }).toList();
 
           if (filteredItems.isEmpty) {
             return _buildFallbackItems();
@@ -167,7 +167,7 @@ class ItemListViewState extends State<ItemListView>
   }
 
   List<Item> _getFallbackItems() {
-    final ItemService itemService = getIt.get<ItemService>();
+    final ItemService itemService= getIt.get<ItemService>();
     final dynamicItems = itemService.getFallbackItems();
 
     // Convert DynamicItem objects to Item objects
@@ -184,32 +184,32 @@ class ItemListViewState extends State<ItemListView>
 
   Widget _buildItemGrid(List<Item> items) {
     // Responsive grid layout
-    return LayoutBuilder(
-      builder: (context, constraints) {
-        // Calculate how many items can fit in a row based on screen width
-        final double screenWidth = constraints.maxWidth;
-        int crossAxisCount;
-        double childAspectRatio;
-        
-        // Responsive grid based on screen width
-        if (screenWidth > 600) {
-          crossAxisCount = 3;
-          childAspectRatio = 0.75;
-        } else if (screenWidth > 400) {
-          crossAxisCount = 2;
-          childAspectRatio = 0.7;
-        } else {
-          // For very small screens, show one item per row
-          crossAxisCount = 2;
-          childAspectRatio = 0.65; // Taller cards for small screens
-        }
-        
-        return Container(
-          color: Colors.transparent,
-          child: items.isEmpty 
+    return LayoutBuilder(builder: (context, constraints) {
+      // Calculate how many items can fit in a row based on screen width
+      final double screenWidth = constraints.maxWidth;
+      int crossAxisCount;
+      double childAspectRatio;
+
+      // Responsive grid based on screen width
+      if (screenWidth > 600) {
+        crossAxisCount = 3;
+        childAspectRatio = 0.75;
+      } else if (screenWidth > 400) {
+        crossAxisCount = 2;
+        childAspectRatio = 0.7;
+      } else {
+        // For very small screens, show one item per row
+        crossAxisCount = 2;
+        childAspectRatio = 0.65; // Taller cards for small screens
+      }
+
+      return Container(
+        color: Colors.transparent,
+        child: items.isEmpty
             ? _buildEmptyState()
             : GridView.builder(
-                padding: const EdgeInsets.symmetric(horizontal: 12.0, vertical: 8.0),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 12.0, vertical: 8.0),
                 itemCount: items.length,
                 gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
                   crossAxisCount: crossAxisCount,
@@ -228,7 +228,7 @@ class ItemListViewState extends State<ItemListView>
                     ),
                   );
                   animationController?.forward();
-        
+
                   return ItemCardView(
                     item: items[index],
                     animation: animation,
@@ -236,11 +236,10 @@ class ItemListViewState extends State<ItemListView>
                   );
                 },
               ),
-        );
-      }
-    );
+      );
+    });
   }
-  
+
   // Empty state widget when no items match the filters
   Widget _buildEmptyState() {
     return Center(

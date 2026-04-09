@@ -1,5 +1,9 @@
 import 'package:flutter/material.dart';
-import '../models/model.dart';
+import 'package:lush/UserRepository/userRepository.dart';
+import 'package:lush/getIt.dart';
+import 'package:lush/main.dart';
+import 'package:lush/views/models/model.dart';
+import 'package:toastification/toastification.dart';
 
 //detail class
 class DetailPage extends StatefulWidget {
@@ -211,7 +215,15 @@ class _DetailPageState extends State<DetailPage> {
             ),
             Align(
               child: InkWell(
-                onTap: () {},
+                onTap: () {
+                  // Buy Now - Add to cart (MVP - simplified)
+                  // Show success message for now
+                  toastification.show(
+                    type: ToastificationType.success,
+                    title: Text('${widget.product.name} - Feature coming soon!'),
+                    alignment: Alignment.topCenter,
+                  );
+                },
                 child: Container(
                   margin: const EdgeInsets.only(top: 20),
                   alignment: Alignment.center,
@@ -242,7 +254,30 @@ class _DetailPageState extends State<DetailPage> {
             ),
             Align(
               child: InkWell(
-                onTap: () {},
+                onTap: () async {
+                  // Subscribe - Navigate to subscription plans
+                  try {
+                    final userRepository = getIt.get<UserRepository>();
+                    final urls = await userRepository.getSubscriptionPageUrl();
+
+                    if (mounted) {
+                      Navigator.pushNamed(context, '/subscriptions',
+                        arguments: SubscriptionPageUrlArgument(
+                          premium_page_url: urls['premium'] ?? '',
+                          signature_page_url: urls['signature'] ?? '',
+                          delight_page_url: urls['delight'] ?? '',
+                        ),
+                      );
+                    }
+                  } catch (e) {
+                    toastification.show(
+                      type: ToastificationType.error,
+                      title: const Text('Unable to load subscriptions'),
+                      description: Text('Error: $e'),
+                      alignment: Alignment.topCenter,
+                    );
+                  }
+                },
                 child: Container(
                   margin: const EdgeInsets.only(top: 20),
                   alignment: Alignment.center,

@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'package:lush/bloc/AuthBloc/AuthBloc.dart';
 import 'package:lush/bloc/AuthBloc/AuthEvents.dart';
 import 'package:lush/bloc/AuthBloc/AuthState.dart';
@@ -355,7 +354,6 @@ class LoginPageState extends State<LoginPage> {
       key: UniqueKey(),
       style: ButtonStyle(
           backgroundColor: WidgetStateProperty.resolveWith((states) {
-        // If the button is pressed, return green, otherwise blue
         if (states.contains(WidgetState.pressed)) {
           return const Color(0xFFFF8228);
         } else {
@@ -364,22 +362,14 @@ class LoginPageState extends State<LoginPage> {
       })),
       icon: const FaIcon(FontAwesomeIcons.mobileScreen),
       label: Text(
-        'Continue with Mobile Number',
+        'Sign Up with Phone Number',
         style: FontUtils.buttonText(
           color: Colors.white,
           fontSize: 14,
           fontWeight: FontWeight.w700,
         ),
       ),
-      onPressed: () => {
-        // BlocProvider.of<AuthenticationBloc>(context).add(SignUpStart(User(
-        //     userid: '',
-        //     name: '',
-        //     password: '',
-        //     flatOrVillaNumber: '',
-        //     phoneNo: ''))),
-        Navigator.of(context).pushNamed("/mobileNumberPage")
-      },
+      onPressed: () => {Navigator.of(context).pushNamed("/mobileNumberPage")},
     );
   }
 
@@ -410,7 +400,7 @@ class LoginPageState extends State<LoginPage> {
           // value?.id != null
           // ? {
 
-          BlocProvider.of<AuthenticationBloc>(context).add(GoogleSignIn());
+          BlocProvider.of<AuthenticationBloc>(context).add(const GoogleSignIn());
         },
         backgroundColor: LushTheme.white,
         child: const FaIcon(
