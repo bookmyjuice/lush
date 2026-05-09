@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:lush/UserRepository/userRepository.dart';
-import 'package:lush/getIt.dart';
+import 'package:lush/UserRepository/user_repository.dart';
+import 'package:lush/get_it.dart';
 import 'package:lush/main.dart';
 import 'package:lush/views/models/model.dart';
 import 'package:toastification/toastification.dart';

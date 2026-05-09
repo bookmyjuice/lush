@@ -4,46 +4,54 @@ import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:lush/views/models/googleSignIn.dart';
-import 'package:lush/views/screens/CheckoutScreen.dart';
-import 'package:lush/views/screens/GoogleSignupScreen.dart';
+import 'package:lush/theme/theme_cubit.dart';
+import 'package:lush/views/models/google_sign_in.dart';
+import 'package:lush/views/screens/checkout_screen.dart';
+import 'package:lush/views/screens/google_signup_screen.dart';
 import 'package:no_context_navigation/no_context_navigation.dart';
 import 'package:rive/rive.dart';
 import 'package:toastification/toastification.dart';
 
-import 'CartRepository/cartRepository.dart';
-import 'bloc/AuthBloc/AuthBloc.dart';
-import 'bloc/AuthBloc/AuthEvents.dart';
-import 'bloc/AuthBloc/AuthState.dart';
-import 'bloc/CartBloc/CartBloc.dart';
-import 'bloc/CartBloc/cartEvent.dart';
+import 'CartRepository/cart_repository.dart';
+import 'bloc/AuthBloc/auth_bloc.dart';
+import 'bloc/AuthBloc/auth_events.dart';
+import 'bloc/AuthBloc/auth_state.dart';
+import 'bloc/CartBloc/cart_bloc.dart';
+import 'bloc/CartBloc/cart_event.dart';
 // Product Catalog BLoC
-import 'bloc/ProductCatalogBloc/ProductCatalogBloc.dart';
-import 'bloc/ProductsBloc/ProductsBloc.dart' as ProductsBloc;
+import 'bloc/ProductCatalogBloc/product_catalog_bloc.dart';
+import 'bloc/ProductsBloc/products_bloc.dart' as ProductsBloc;
 import 'bloc/SubscriptionBloc/subscription_bloc.dart';
 // Enhanced BLoCs for additional functionality
-import 'bloc/UserBloc/UserBloc.dart';
-import 'getIt.dart';
-import 'views/all_Screens.dart';
+import 'bloc/UserBloc/user_bloc.dart';
+import 'get_it.dart';
+import 'views/all_screens.dart';
 import 'views/models/model.dart';
-import 'views/screens/AddressEntryScreen.dart';
-import 'views/screens/CreatePasswordScreen.dart';
-import 'views/screens/EmailEntryAfterPhoneScreen.dart';
-import 'views/screens/EmailSignupScreen.dart';
-import 'views/screens/EmailVerificationAfterPhoneScreen.dart';
-import 'views/screens/EmailVerificationScreen.dart';
-import 'views/screens/ForgotPasswordPage.dart';
-import 'views/screens/GooglePhoneEntryScreen.dart';
-import 'views/screens/InvoiceViewScreen.dart';
-import 'views/screens/MyAccountPage.dart';
-import 'views/screens/OrderHistoryScreen.dart';
-import 'views/screens/PhoneEntryAfterEmailScreen.dart';
-import 'views/screens/PhoneOtpVerificationScreen.dart';
-import 'views/screens/PhoneSignupScreen.dart';
-import 'views/screens/ProductCatalogScreen.dart';
+import 'views/screens/address_entry_screen.dart';
+import 'views/screens/create_password_screen.dart';
+import 'views/screens/day_wise_schedule_screen.dart';
+import 'views/screens/delete_account_screen.dart';
+import 'views/screens/email_entry_after_phone_screen.dart';
+import 'views/screens/email_signup_screen.dart';
+import 'views/screens/email_verification_after_phone_screen.dart';
+import 'views/screens/email_verification_screen.dart';
+import 'views/screens/forgot_password_page.dart';
+import 'views/screens/forgot_password_screen.dart';
+import 'views/screens/google_phone_entry_screen.dart';
+import 'views/screens/invoice_view_screen.dart';
+import 'views/screens/link_google_account_screen.dart';
+import 'views/screens/my_account_page.dart';
+import 'views/screens/order_history_screen.dart';
+import 'views/screens/phone_entry_after_email_screen.dart';
+import 'views/screens/phone_login_screen.dart';
+import 'views/screens/phone_otp_verification_screen.dart';
+import 'views/screens/phone_signup_screen.dart';
+import 'views/screens/product_catalog_screen.dart';
+import 'views/screens/reset_password_email_screen.dart';
+import 'views/screens/reset_password_mobile_screen.dart';
 // New unified signup flow screens
-import 'views/screens/SignupMethodSelectionScreen.dart';
-import 'views/screens/SubscriptionManagementScreen.dart';
+import 'views/screens/signup_method_selection_screen.dart';
+import 'views/screens/subscription_management_screen.dart';
 import 'views/screens/notifications.dart';
 
 void main() async {
@@ -157,49 +165,52 @@ class BookMyJuiceApp extends StatelessWidget {
               create: (context) => ProductsBloc.ProductsBloc()
                 ..add(const ProductsBloc.LoadProducts()),
             ),
+            // Theme management
+            BlocProvider<ThemeCubit>(
+              lazy: false,
+              create: (context) {
+                final cubit = ThemeCubit();
+                cubit.loadPreference();
+                return cubit;
+              },
+            ),
           ],
           child: ToastificationWrapper(
-            child: MaterialApp(
-              title: 'BookMyJuice',
-              debugShowCheckedModeBanner: false,
-              navigatorKey: NavigationService.navigationKey,
-              locale: const Locale('en', 'US'),
-              supportedLocales: const [
-                Locale('en', 'US'),
-                Locale('en', 'GB'),
-              ],
-              localizationsDelegates: const [
-                GlobalMaterialLocalizations.delegate,
-                GlobalWidgetsLocalizations.delegate,
-                GlobalCupertinoLocalizations.delegate,
-              ],
-              theme: ThemeData(
-                fontFamily: 'Roboto',
-                primarySwatch: Colors.blue,
-                textTheme: const TextTheme(
-                  bodyLarge: TextStyle(fontFamily: 'Roboto'),
-                  bodyMedium: TextStyle(fontFamily: 'Roboto'),
-                  displayLarge: TextStyle(fontFamily: 'Roboto'),
-                  displayMedium: TextStyle(fontFamily: 'Roboto'),
-                  displaySmall: TextStyle(fontFamily: 'Roboto'),
-                  headlineLarge: TextStyle(fontFamily: 'Roboto'),
-                  headlineMedium: TextStyle(fontFamily: 'Roboto'),
-                  headlineSmall: TextStyle(fontFamily: 'Roboto'),
-                  titleLarge: TextStyle(fontFamily: 'Roboto'),
-                  titleMedium: TextStyle(fontFamily: 'Roboto'),
-                  titleSmall: TextStyle(fontFamily: 'Roboto'),
-                  labelLarge: TextStyle(fontFamily: 'Roboto'),
-                  labelMedium: TextStyle(fontFamily: 'Roboto'),
-                  labelSmall: TextStyle(fontFamily: 'Roboto'),
-                ),
-              ),
+            child: BlocBuilder<ThemeCubit, ThemeState>(
+              builder: (context, themeState) {
+                return MaterialApp(
+                  title: 'BookMyJuice',
+                  debugShowCheckedModeBanner: false,
+                  navigatorKey: NavigationService.navigationKey,
+                  locale: const Locale('en', 'US'),
+                  supportedLocales: const [
+                    Locale('en', 'US'),
+                    Locale('en', 'GB'),
+                  ],
+                  localizationsDelegates: const [
+                    GlobalMaterialLocalizations.delegate,
+                    GlobalWidgetsLocalizations.delegate,
+                    GlobalCupertinoLocalizations.delegate,
+                  ],
+                  theme: ThemeState.lightTheme,
+                  darkTheme: ThemeState.darkTheme,
+                  themeMode: themeState.resolvedThemeMode,
               initialRoute: '/',
               routes: {
                 '/': (_) => const AuthWrapper(),
                 '/mobileNumberPage': (_) => MobileNumberPage(),
+                '/phone-login': (_) => const PhoneLoginScreen(),
                 '/otp': (_) => OTPLoginPage(),
                 // '/otpSignUpScreen': (_) => OTPSignUpScreen(),
                 '/forgotPasswordPage': (_) => ForgotPasswordPage(),
+                '/forgot-password': (_) => ForgotPasswordScreen(),
+                '/reset-password-mobile-otp': (_) => ResetPasswordMobileScreen(),
+                '/reset-password-email-code': (_) => ResetPasswordEmailScreen(),
+                '/day-wise-schedule': (_) => DayWiseScheduleScreen(
+                      availableJuices: [],
+                      selectedPlan: {},
+                    ),
+                '/delete-account': (_) => const DeleteAccountScreen(),
                 '/orders': (_) => const OrderHistoryPage(),
                 // New routes for enhanced navigation
                 '/manage-subscriptions': (_) =>
@@ -287,11 +298,13 @@ class BookMyJuiceApp extends StatelessWidget {
                   child: child ?? const SizedBox.shrink(),
                 );
               },
-            ),
-          ),
-        );
-      },
+            );
+          },
+        ),
+      ),
     );
+  },
+);
   }
 }
 
@@ -317,6 +330,15 @@ class AuthWrapper extends StatelessWidget {
               toast_message: state.error, toast_heading: "SignUp Failed!");
         } else if (state is SignUpStarted) {
           return SignUpScreen(user: state.user);
+        } else if (state is GoogleLinkRequired) {
+          // #2 UX: No account found with Google - show intermediate screen to link
+          return LinkGoogleAccountScreen(
+            googleEmail: state.googleEmail,
+            googleFirstName: state.googleFirstName,
+            googleLastName: state.googleLastName,
+            googleId: state.googleId,
+            photoUrl: state.photoUrl,
+          );
         } else if (state is SignUpSuccessful) {
           return LoginPage(
               toast_heading: "Signup Successfull!",

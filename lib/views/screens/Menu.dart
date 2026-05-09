@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:lush/theme.dart';
-import 'package:lush/UserRepository/userRepository.dart';
-import 'package:lush/getIt.dart';
+import 'package:lush/UserRepository/user_repository.dart';
+import 'package:lush/get_it.dart';
 import 'package:lush/views/widgets/cart_icon.dart';
-import 'package:lush/views/models/ItemListView.dart';
-import 'package:lush/services/ItemService.dart';
+import 'package:lush/views/models/item_list_view.dart';
+import 'package:lush/services/item_service.dart';
 import 'package:lush/views/widgets/filter_options.dart';
 
 class Menu extends StatefulWidget {
@@ -212,7 +212,7 @@ class MenuState extends State<Menu> with TickerProviderStateMixin {
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
                                   Text(
-                                    'Menu',
+                                    'menu',
                                     style: TextStyle(
                                       fontFamily: LushTheme.fontName,
                                       fontWeight: FontWeight.bold,

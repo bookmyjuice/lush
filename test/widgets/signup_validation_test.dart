@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:lush/widgets/AppTextField.dart';
+import 'package:lush/widgets/app_text_field.dart';
 
 /// Widget Tests for AppTextField and validation helpers
 /// 

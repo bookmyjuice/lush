@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import '../../theme.dart';
 
@@ -30,7 +30,7 @@ class FilterOptions extends StatelessWidget {
         borderRadius: BorderRadius.circular(16.r),
         boxShadow: [
           BoxShadow(
-            color: Colors.grey.withOpacity(0.1),
+            color: Colors.grey.withValues(alpha: 0.1),
             spreadRadius: 1,
             blurRadius: 3,
             offset: const Offset(0, 1),
@@ -136,12 +136,12 @@ class FilterOptions extends StatelessWidget {
       child: Container(
         padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 8.h),
         decoration: BoxDecoration(
-          color: color.withOpacity(0.1),
+          color: color.withValues(alpha: 0.1),
           borderRadius: BorderRadius.circular(20.r),
-          border: Border.all(color: color.withOpacity(0.3)),
+          border: Border.all(color: color.withValues(alpha: 0.3)),
           boxShadow: [
             BoxShadow(
-              color: color.withOpacity(0.05),
+              color: color.withValues(alpha: 0.05),
               blurRadius: 2,
               spreadRadius: 0,
               offset: const Offset(0, 1),
@@ -231,8 +231,8 @@ class FilterOptions extends StatelessWidget {
                             });
                           }
                         },
-                        selectedColor: LushTheme.orangeAccent.withOpacity(0.2),
-                        backgroundColor: Colors.grey.withOpacity(0.1),
+                        selectedColor: LushTheme.orangeAccent.withValues(alpha: 0.2),
+                        backgroundColor: Colors.grey.withValues(alpha: 0.1),
                         labelStyle: TextStyle(
                           color: isSelected
                               ? LushTheme.orangeAccent
@@ -281,8 +281,8 @@ class FilterOptions extends StatelessWidget {
                             });
                           }
                         },
-                        selectedColor: Colors.green.withOpacity(0.2),
-                        backgroundColor: Colors.grey.withOpacity(0.1),
+                        selectedColor: Colors.green.withValues(alpha: 0.2),
+                        backgroundColor: Colors.grey.withValues(alpha: 0.1),
                         labelStyle: TextStyle(
                           color:
                               isSelected ? Colors.green : LushTheme.darkerText,
@@ -362,8 +362,8 @@ class FilterOptions extends StatelessWidget {
                   height: 40.w,
                   decoration: BoxDecoration(
                     color: isSelected
-                        ? LushTheme.orangeAccent.withOpacity(0.1)
-                        : Colors.grey.withOpacity(0.1),
+                        ? LushTheme.orangeAccent.withValues(alpha: 0.1)
+                        : Colors.grey.withValues(alpha: 0.1),
                     shape: BoxShape.circle,
                   ),
                   child: Icon(
@@ -398,7 +398,7 @@ class FilterOptions extends StatelessWidget {
                   borderRadius: BorderRadius.circular(8.r),
                 ),
                 tileColor: isSelected
-                    ? LushTheme.orangeAccent.withOpacity(0.05)
+                    ? LushTheme.orangeAccent.withValues(alpha: 0.05)
                     : null,
               );
             }).toList(),
@@ -454,8 +454,8 @@ class FilterOptions extends StatelessWidget {
                   height: 40.w,
                   decoration: BoxDecoration(
                     color: isSelected
-                        ? Colors.green.withOpacity(0.1)
-                        : Colors.grey.withOpacity(0.1),
+                        ? Colors.green.withValues(alpha: 0.1)
+                        : Colors.grey.withValues(alpha: 0.1),
                     shape: BoxShape.circle,
                   ),
                   child: Icon(
@@ -486,7 +486,7 @@ class FilterOptions extends StatelessWidget {
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(8.r),
                 ),
-                tileColor: isSelected ? Colors.green.withOpacity(0.05) : null,
+                tileColor: isSelected ? Colors.green.withValues(alpha: 0.05) : null,
               );
             }).toList(),
           ),

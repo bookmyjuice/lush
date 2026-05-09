@@ -1,8 +1,8 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 
 import '../../theme.dart';
-import '../models/Subscription.dart';
+import '../models/subscription.dart';
 import 'app_card.dart';
 
 /// Enhanced subscription card that displays real subscription data
@@ -75,7 +75,7 @@ class SubscriptionInfoCard extends StatelessWidget {
               Container(
                 padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 6.h),
                 decoration: BoxDecoration(
-                  color: _getStatusColor().withOpacity(0.1),
+                  color: _getStatusColor().withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(12.r),
                   border: Border.all(
                     color: _getStatusColor(),
@@ -126,7 +126,7 @@ class SubscriptionInfoCard extends StatelessWidget {
                   Icon(
                     Icons.shopping_bag_outlined,
                     size: 48.sp,
-                    color: LushTheme.grey.withOpacity(0.5),
+                    color: LushTheme.grey.withValues(alpha: 0.5),
                   ),
                   SizedBox(height: 12.h),
                   Text(
@@ -141,7 +141,7 @@ class SubscriptionInfoCard extends StatelessWidget {
                     'Subscribe for regular deliveries',
                     style: TextStyle(
                       fontSize: 12.sp,
-                      color: LushTheme.lightText.withOpacity(0.7),
+                      color: LushTheme.lightText.withValues(alpha: 0.7),
                     ),
                   ),
                 ],
@@ -189,7 +189,7 @@ class SubscriptionInfoCard extends StatelessWidget {
           width: 32.w,
           height: 32.w,
           decoration: BoxDecoration(
-            color: LushTheme.nearlyBlue.withOpacity(0.1),
+            color: LushTheme.nearlyBlue.withValues(alpha: 0.1),
             borderRadius: BorderRadius.circular(8.r),
           ),
           child: Icon(

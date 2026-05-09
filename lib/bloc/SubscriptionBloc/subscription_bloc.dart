@@ -4,9 +4,9 @@ import 'package:equatable/equatable.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-import '../../UserRepository/userRepository.dart';
-import '../../getIt.dart';
-import '../../views/models/subscriptionPlan.dart';
+import '../../UserRepository/user_repository.dart';
+import '../../get_it.dart';
+import '../../views/models/subscription_plan.dart';
 
 // Events
 abstract class SubscriptionEvent extends Equatable {

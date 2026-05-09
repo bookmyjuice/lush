@@ -2,14 +2,14 @@ import 'dart:convert';
 
 import 'package:http/http.dart' as http;
 import 'package:lush/config/api_config.dart';
-import 'package:shared_preferences/shared_preferences.dart';
+import 'package:lush/services/secure_storage_service.dart';
 
 class OrderService {
   static String get baseUrl => ApiConfig.baseUrl;
+  final SecureStorageService _secureStorage = SecureStorageService();
 
   Future<String?> _getToken() async {
-    final prefs = await SharedPreferences.getInstance();
-    return prefs.getString('token');
+    return await _secureStorage.getAuthToken();
   }
 
   Future<Map<String, String>> _getHeaders() async {

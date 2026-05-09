@@ -2,14 +2,14 @@ import 'dart:convert';
 
 import 'package:http/http.dart' as http;
 import 'package:lush/config/api_config.dart';
-import 'package:shared_preferences/shared_preferences.dart';
+import 'package:lush/services/secure_storage_service.dart';
 
 class SubscriptionService {
   static String get baseUrl => ApiConfig.baseUrl;
+  final SecureStorageService _secureStorage = SecureStorageService();
 
   Future<String?> _getToken() async {
-    final prefs = await SharedPreferences.getInstance();
-    return prefs.getString('token');
+    return await _secureStorage.getAuthToken();
   }
 
   Future<Map<String, String>> _getHeaders() async {
@@ -111,8 +111,9 @@ class SubscriptionService {
     }
   }
 
-  /// Pause a subscription
-  Future<bool> pauseSubscription(String subscriptionId) async {
+  /// Pause a subscription. Returns {success, message}.
+  /// Backend returns 202 Accepted — caller must refetch to confirm state.
+  Future<Map<String, dynamic>> pauseSubscription(String subscriptionId) async {
     try {
       final headers = await _getHeaders();
       final response = await http.put(
@@ -120,10 +121,11 @@ class SubscriptionService {
         headers: headers,
       );
 
-      if (response.statusCode == 200) {
-        return true;
+      final body = json.decode(response.body);
+      if (response.statusCode == 200 || response.statusCode == 202) {
+        return {'success': true, 'message': body['message'] ?? 'Subscription paused'};
       } else {
-        throw Exception('Failed to pause subscription: ${response.statusCode}');
+        throw Exception(body['message'] ?? 'Failed to pause subscription: ${response.statusCode}');
       }
     } catch (e) {
       print('Error pausing subscription: $e');
@@ -131,8 +133,9 @@ class SubscriptionService {
     }
   }
 
-  /// Resume a paused subscription
-  Future<bool> resumeSubscription(String subscriptionId) async {
+  /// Resume a paused subscription. Returns {success, message}.
+  /// Backend returns 202 Accepted — caller must refetch to confirm state.
+  Future<Map<String, dynamic>> resumeSubscription(String subscriptionId) async {
     try {
       final headers = await _getHeaders();
       final response = await http.put(
@@ -140,11 +143,11 @@ class SubscriptionService {
         headers: headers,
       );
 
-      if (response.statusCode == 200) {
-        return true;
+      final body = json.decode(response.body);
+      if (response.statusCode == 200 || response.statusCode == 202) {
+        return {'success': true, 'message': body['message'] ?? 'Subscription resumed'};
       } else {
-        throw Exception(
-            'Failed to resume subscription: ${response.statusCode}');
+        throw Exception(body['message'] ?? 'Failed to resume subscription: ${response.statusCode}');
       }
     } catch (e) {
       print('Error resuming subscription: $e');
@@ -152,8 +155,9 @@ class SubscriptionService {
     }
   }
 
-  /// Cancel a subscription
-  Future<bool> cancelSubscription(String subscriptionId) async {
+  /// Cancel a subscription. Returns {success, message}.
+  /// Backend returns 202 Accepted — caller must refetch to confirm state.
+  Future<Map<String, dynamic>> cancelSubscription(String subscriptionId) async {
     try {
       final headers = await _getHeaders();
       final response = await http.delete(
@@ -161,11 +165,11 @@ class SubscriptionService {
         headers: headers,
       );
 
-      if (response.statusCode == 200) {
-        return true;
+      final body = json.decode(response.body);
+      if (response.statusCode == 200 || response.statusCode == 202) {
+        return {'success': true, 'message': body['message'] ?? 'Subscription canceled'};
       } else {
-        throw Exception(
-            'Failed to cancel subscription: ${response.statusCode}');
+        throw Exception(body['message'] ?? 'Failed to cancel subscription: ${response.statusCode}');
       }
     } catch (e) {
       print('Error canceling subscription: $e');

@@ -1,19 +1,20 @@
-import 'package:carousel_slider/carousel_slider.dart';
+﻿import 'package:carousel_slider/carousel_slider.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:lush/UserRepository/userRepository.dart';
-import 'package:lush/bloc/AuthBloc/AuthBloc.dart';
-import 'package:lush/bloc/AuthBloc/AuthEvents.dart';
-import 'package:lush/bloc/AuthBloc/AuthState.dart';
-import 'package:lush/bloc/CartBloc/CartBloc.dart';
-import 'package:lush/bloc/CartBloc/cartEvent.dart';
-import 'package:lush/getIt.dart';
+import 'package:lush/UserRepository/user_repository.dart';
+import 'package:lush/bloc/AuthBloc/auth_bloc.dart';
+import 'package:lush/bloc/AuthBloc/auth_events.dart';
+import 'package:lush/bloc/AuthBloc/auth_state.dart';
+import 'package:lush/bloc/CartBloc/cart_bloc.dart';
+import 'package:lush/bloc/CartBloc/cart_event.dart';
+import 'package:lush/get_it.dart';
 import 'package:lush/main.dart';
-import 'package:lush/services/SubscriptionService.dart';
-import 'package:lush/views/models/Subscription.dart';
+import 'package:lush/services/secure_storage_service.dart';
+import 'package:lush/services/subscription_service_v2.dart';
+import 'package:lush/views/models/subscription.dart';
 import 'package:lush/views/models/user.dart';
-import 'package:shared_preferences/shared_preferences.dart';
+import 'package:lush/views/widgets/shimmer_subscription_card.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import '../../theme.dart';
@@ -95,10 +96,9 @@ class HomePage2State extends State<Dashboard> with TickerProviderStateMixin {
     });
 
     try {
-      // Get token from SharedPreferences
-      final prefs = await SharedPreferences.getInstance();
-      final token = prefs.getString('token');
-
+      final secureStorage = SecureStorageService();
+      final token = await secureStorage.getAuthToken();
+      
       if (token != null && token.isNotEmpty) {
         final subscriptions = await _subscriptionService.getMySubscriptions(token);
         setState(() {
@@ -217,7 +217,7 @@ class HomePage2State extends State<Dashboard> with TickerProviderStateMixin {
                                       shape: BoxShape.circle,
                                       color: _currentCarouselIndex == index
                                           ? LushTheme.orangeAccent
-                                          : LushTheme.grey.withOpacity(0.3),
+                                          : LushTheme.grey.withValues(alpha: 0.3),
                                     ),
                                   )),
                         ),
@@ -297,16 +297,7 @@ class HomePage2State extends State<Dashboard> with TickerProviderStateMixin {
                   ),
                 ),
                 child: _isLoadingSubscription
-                    ? Center(
-                        child: Padding(
-                          padding: EdgeInsets.all(32.h),
-                          child: CircularProgressIndicator(
-                            valueColor: AlwaysStoppedAnimation<Color>(
-                              LushTheme.nearlyBlue,
-                            ),
-                          ),
-                        ),
-                      )
+                    ? const ShimmerSubscriptionCard()
                     : SubscriptionInfoCard(
                         subscription: _subscription,
                         onTap: () {
@@ -430,7 +421,7 @@ class HomePage2State extends State<Dashboard> with TickerProviderStateMixin {
                               borderRadius: BorderRadius.circular(20.r),
                               boxShadow: [
                                 BoxShadow(
-                                  color: Color(0xFF667eea).withOpacity(0.4),
+                                  color: Color(0xFF667eea).withValues(alpha: 0.4),
                                   blurRadius: 12,
                                   offset: Offset(0, 8),
                                 ),
@@ -442,7 +433,7 @@ class HomePage2State extends State<Dashboard> with TickerProviderStateMixin {
                                 Container(
                                   padding: EdgeInsets.all(12.w),
                                   decoration: BoxDecoration(
-                                    color: Colors.white.withOpacity(0.2),
+                                    color: Colors.white.withValues(alpha: 0.2),
                                     borderRadius: BorderRadius.circular(12.r),
                                   ),
                                   child: Icon(
@@ -462,7 +453,7 @@ class HomePage2State extends State<Dashboard> with TickerProviderStateMixin {
                                 ),
                                 SizedBox(height: 4.h),
                                 Text(
-                                  'Order',
+                                  'order',
                                   style: TextStyle(
                                     fontSize: 16.sp,
                                     fontWeight: FontWeight.bold,
@@ -475,7 +466,7 @@ class HomePage2State extends State<Dashboard> with TickerProviderStateMixin {
                                   textAlign: TextAlign.center,
                                   style: TextStyle(
                                     fontSize: 11.sp,
-                                    color: Colors.white.withOpacity(0.9),
+                                    color: Colors.white.withValues(alpha: 0.9),
                                   ),
                                 ),
                               ],
@@ -507,7 +498,7 @@ class HomePage2State extends State<Dashboard> with TickerProviderStateMixin {
                               borderRadius: BorderRadius.circular(20.r),
                               boxShadow: [
                                 BoxShadow(
-                                  color: Color(0xFF11998e).withOpacity(0.4),
+                                  color: Color(0xFF11998e).withValues(alpha: 0.4),
                                   blurRadius: 12,
                                   offset: Offset(0, 8),
                                 ),
@@ -519,7 +510,7 @@ class HomePage2State extends State<Dashboard> with TickerProviderStateMixin {
                                 Container(
                                   padding: EdgeInsets.all(12.w),
                                   decoration: BoxDecoration(
-                                    color: Colors.white.withOpacity(0.2),
+                                    color: Colors.white.withValues(alpha: 0.2),
                                     borderRadius: BorderRadius.circular(12.r),
                                   ),
                                   child: Icon(
@@ -530,7 +521,7 @@ class HomePage2State extends State<Dashboard> with TickerProviderStateMixin {
                                 ),
                                 SizedBox(height: 12.h),
                                 Text(
-                                  'Subscription',
+                                  'subscription',
                                   style: TextStyle(
                                     fontSize: 16.sp,
                                     fontWeight: FontWeight.bold,
@@ -552,7 +543,7 @@ class HomePage2State extends State<Dashboard> with TickerProviderStateMixin {
                                   textAlign: TextAlign.center,
                                   style: TextStyle(
                                     fontSize: 11.sp,
-                                    color: Colors.white.withOpacity(0.9),
+                                    color: Colors.white.withValues(alpha: 0.9),
                                   ),
                                 ),
                               ],
@@ -664,7 +655,7 @@ class HomePage2State extends State<Dashboard> with TickerProviderStateMixin {
     return AppBar(
       backgroundColor: LushTheme.white,
       elevation: topBarOpacity * 4.0,
-      shadowColor: LushTheme.grey.withOpacity(0.2),
+      shadowColor: LushTheme.grey.withValues(alpha: 0.2),
       titleSpacing: 0,
       title: AnimatedOpacity(
         duration: const Duration(milliseconds: 200),
@@ -684,7 +675,7 @@ class HomePage2State extends State<Dashboard> with TickerProviderStateMixin {
         builder: (context) => Container(
           margin: EdgeInsets.all(8.w),
           decoration: BoxDecoration(
-            color: LushTheme.nearlyBlue.withOpacity(0.1),
+            color: LushTheme.nearlyBlue.withValues(alpha: 0.1),
             borderRadius: BorderRadius.circular(12.r),
           ),
           child: IconButton(
@@ -710,7 +701,7 @@ class HomePage2State extends State<Dashboard> with TickerProviderStateMixin {
               CartIcon(
                 onTap: () => _handleCartTap(context),
                 iconColor: LushTheme.nearlyBlue,
-                backgroundColor: LushTheme.nearlyBlue.withOpacity(0.1),
+                backgroundColor: LushTheme.nearlyBlue.withValues(alpha: 0.1),
               ),
               SizedBox(width: 8.w),
               PopupMenuButton<String>(
@@ -753,7 +744,7 @@ class HomePage2State extends State<Dashboard> with TickerProviderStateMixin {
         child: topBarOpacity > 0.6
             ? Container(
                 height: 1.0,
-                color: LushTheme.grey.withOpacity(0.2),
+                color: LushTheme.grey.withValues(alpha: 0.2),
               )
             : Container(),
       ),
@@ -783,7 +774,7 @@ class HomePage2State extends State<Dashboard> with TickerProviderStateMixin {
               ),
               boxShadow: [
                 BoxShadow(
-                  color: LushTheme.nearlyBlue.withOpacity(0.3),
+                  color: LushTheme.nearlyBlue.withValues(alpha: 0.3),
                   blurRadius: 10,
                   offset: const Offset(0, 4),
                 ),
@@ -799,7 +790,7 @@ class HomePage2State extends State<Dashboard> with TickerProviderStateMixin {
                     shape: BoxShape.circle,
                     boxShadow: [
                       BoxShadow(
-                        color: Colors.black.withOpacity(0.2),
+                        color: Colors.black.withValues(alpha: 0.2),
                         blurRadius: 10,
                         offset: const Offset(0, 4),
                       ),
@@ -835,11 +826,21 @@ class HomePage2State extends State<Dashboard> with TickerProviderStateMixin {
                     fontFamily: LushTheme.fontName,
                     shadows: [
                       Shadow(
-                        color: Colors.black.withOpacity(0.3),
+                        color: Colors.black.withValues(alpha: 0.3),
                         blurRadius: 2,
                         offset: const Offset(0, 1),
                       ),
                     ],
+                  ),
+                ),
+                SizedBox(height: 4.h),
+                // #6 UX: Logged in as indicator
+                Text(
+                  "Logged in as ${user.getEmail}",
+                  style: TextStyle(
+                    fontSize: 12.sp,
+                    color: Colors.white.withValues(alpha: 0.8),
+                    fontFamily: LushTheme.fontName,
                   ),
                 ),
                 SizedBox(height: 8.h),
@@ -849,14 +850,14 @@ class HomePage2State extends State<Dashboard> with TickerProviderStateMixin {
                     Icon(
                       Icons.phone_android,
                       size: 16.sp,
-                      color: Colors.white.withOpacity(0.8),
+                      color: Colors.white.withValues(alpha: 0.8),
                     ),
                     SizedBox(width: 8.w),
                     Text(
                       user.getPhone,
                       style: TextStyle(
                         fontSize: 16.sp,
-                        color: Colors.white.withOpacity(0.9),
+                        color: Colors.white.withValues(alpha: 0.9),
                         fontFamily: LushTheme.fontName,
                       ),
                     ),
@@ -868,10 +869,10 @@ class HomePage2State extends State<Dashboard> with TickerProviderStateMixin {
                   padding:
                       EdgeInsets.symmetric(horizontal: 12.w, vertical: 6.h),
                   decoration: BoxDecoration(
-                    color: Colors.white.withOpacity(0.2),
+                    color: Colors.white.withValues(alpha: 0.2),
                     borderRadius: BorderRadius.circular(20.r),
                     border: Border.all(
-                      color: Colors.white.withOpacity(0.3),
+                      color: Colors.white.withValues(alpha: 0.3),
                       width: 1,
                     ),
                   ),
@@ -971,7 +972,7 @@ class HomePage2State extends State<Dashboard> with TickerProviderStateMixin {
 
           _buildDrawerItem(
             icon: Icons.restaurant_menu_outlined,
-            title: "Menu",
+            title: "menu",
             subtitle: "Browse juices",
             onTap: () {
               Navigator.pushNamed(context, '/menu');
@@ -1021,7 +1022,7 @@ class HomePage2State extends State<Dashboard> with TickerProviderStateMixin {
 
           Padding(
             padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 16.h),
-            child: Divider(color: LushTheme.grey.withOpacity(0.3)),
+            child: Divider(color: LushTheme.grey.withValues(alpha: 0.3)),
           ),
 
           _buildDrawerItem(
@@ -1090,8 +1091,8 @@ class HomePage2State extends State<Dashboard> with TickerProviderStateMixin {
                   height: 40.w,
                   decoration: BoxDecoration(
                     color: isDestructive
-                        ? Colors.red.withOpacity(0.1)
-                        : LushTheme.nearlyBlue.withOpacity(0.1),
+                        ? Colors.red.withValues(alpha: 0.1)
+                        : LushTheme.nearlyBlue.withValues(alpha: 0.1),
                     borderRadius: BorderRadius.circular(10.r),
                   ),
                   child: Icon(
@@ -1152,8 +1153,8 @@ class HomePage2State extends State<Dashboard> with TickerProviderStateMixin {
       decoration: BoxDecoration(
         gradient: LinearGradient(
           colors: [
-            color.withOpacity(0.8),
-            color.withOpacity(0.6),
+            color.withValues(alpha: 0.8),
+            color.withValues(alpha: 0.6),
           ],
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
@@ -1161,7 +1162,7 @@ class HomePage2State extends State<Dashboard> with TickerProviderStateMixin {
         borderRadius: BorderRadius.circular(16.r),
         boxShadow: [
           BoxShadow(
-            color: color.withOpacity(0.3),
+            color: color.withValues(alpha: 0.3),
             blurRadius: 8,
             offset: const Offset(0, 4),
           ),
@@ -1175,7 +1176,7 @@ class HomePage2State extends State<Dashboard> with TickerProviderStateMixin {
             child: Icon(
               icon,
               size: 120.sp,
-              color: Colors.white.withOpacity(0.1),
+              color: Colors.white.withValues(alpha: 0.1),
             ),
           ),
           Padding(
@@ -1188,7 +1189,7 @@ class HomePage2State extends State<Dashboard> with TickerProviderStateMixin {
                   padding:
                       EdgeInsets.symmetric(horizontal: 10.w, vertical: 4.h),
                   decoration: BoxDecoration(
-                    color: Colors.white.withOpacity(0.2),
+                    color: Colors.white.withValues(alpha: 0.2),
                     borderRadius: BorderRadius.circular(16.r),
                   ),
                   child: Text(
@@ -1218,7 +1219,7 @@ class HomePage2State extends State<Dashboard> with TickerProviderStateMixin {
                   overflow: TextOverflow.ellipsis,
                   style: TextStyle(
                     fontSize: 12.sp,
-                    color: Colors.white.withOpacity(0.9),
+                    color: Colors.white.withValues(alpha: 0.9),
                   ),
                 ),
                 SizedBox(height: 12.h),
@@ -1271,7 +1272,7 @@ class HomePage2State extends State<Dashboard> with TickerProviderStateMixin {
         color: Colors.white,
         boxShadow: [
           BoxShadow(
-            color: Colors.grey.withOpacity(0.2),
+            color: Colors.grey.withValues(alpha: 0.2),
             spreadRadius: 1,
             blurRadius: 10,
             offset: const Offset(0, -2),
@@ -1307,7 +1308,7 @@ class HomePage2State extends State<Dashboard> with TickerProviderStateMixin {
                   }),
               _buildNavItem(
                 icon: Icons.menu_book_rounded,
-                label: 'Menu',
+                label: 'menu',
                 isSelected: false,
                 onTap: () => Navigator.pushNamed(context, '/menu'),
               ),
@@ -1358,7 +1359,7 @@ class HomePage2State extends State<Dashboard> with TickerProviderStateMixin {
         padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 8.h),
         decoration: BoxDecoration(
           color: isSelected
-              ? LushTheme.orangeAccent.withOpacity(0.1)
+              ? LushTheme.orangeAccent.withValues(alpha: 0.1)
               : Colors.transparent,
           borderRadius: BorderRadius.circular(12.r),
         ),

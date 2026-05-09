@@ -2,8 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:integration_test/integration_test.dart';
 import 'package:lush/main.dart';
-import 'package:lush/services/SubscriptionService.dart';
-import 'package:lush/views/models/Subscription.dart';
+import 'package:lush/services/subscription_service.dart';
+import 'package:lush/views/models/subscription.dart';
 import 'package:lush/views/widgets/subscription_info_card.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 

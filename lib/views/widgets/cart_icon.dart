@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import '../../bloc/CartBloc/CartBloc.dart';
-import '../../bloc/CartBloc/cartState.dart';
+import '../../bloc/CartBloc/cart_bloc.dart';
+import '../../bloc/CartBloc/cart_state.dart';
 import '../../theme.dart';
 
 class CartIcon extends StatelessWidget {

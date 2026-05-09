@@ -5,7 +5,7 @@ import 'package:webview_flutter/webview_flutter.dart';
 // Import for Android features
 // Import for iOS features
 
-import '../models/subscriptionPlan.dart';
+import '../models/subscription_plan.dart';
 
 class SubscriptionPlanCard extends StatelessWidget {
   final SubscriptionPlan plan;

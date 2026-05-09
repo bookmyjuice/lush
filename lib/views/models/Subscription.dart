@@ -1,4 +1,4 @@
-/// Model class for Subscription data
+﻿/// Model class for Subscription data
 class Subscription {
   final String id;
   final String customerId;

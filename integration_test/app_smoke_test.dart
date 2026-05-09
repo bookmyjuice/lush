@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:integration_test/integration_test.dart';
 
-import 'package:lush/getIt.dart';
+import 'package:lush/get_it.dart';
 import 'package:lush/main.dart';
 
 // Enable with: --dart-define=E2E=true

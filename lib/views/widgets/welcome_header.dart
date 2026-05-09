@@ -1,7 +1,7 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:lush/UserRepository/userRepository.dart';
-import 'package:lush/getIt.dart';
+import 'package:lush/UserRepository/user_repository.dart';
+import 'package:lush/get_it.dart';
 import '../models/user.dart';
 import '../../theme.dart';
 
@@ -85,7 +85,7 @@ class WelcomeHeader extends StatelessWidget {
             Container(
               padding: EdgeInsets.all(8.w),
               decoration: BoxDecoration(
-                color: LushTheme.nearlyBlue.withOpacity(0.1),
+                color: LushTheme.nearlyBlue.withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(12.r),
               ),
               child: Icon(
@@ -144,7 +144,7 @@ class _WelcomeHeaderShimmerState extends State<WelcomeHeaderShimmer>
             children: [
               CircleAvatar(
                 radius: 30.r,
-                backgroundColor: LushTheme.grey.withOpacity(_animation.value),
+                backgroundColor: LushTheme.grey.withValues(alpha: _animation.value),
               ),
               SizedBox(width: 16.w),
               Expanded(
@@ -155,7 +155,7 @@ class _WelcomeHeaderShimmerState extends State<WelcomeHeaderShimmer>
                       height: 14.h,
                       width: 100.w,
                       decoration: BoxDecoration(
-                        color: LushTheme.grey.withOpacity(_animation.value),
+                        color: LushTheme.grey.withValues(alpha: _animation.value),
                         borderRadius: BorderRadius.circular(7.r),
                       ),
                     ),
@@ -164,7 +164,7 @@ class _WelcomeHeaderShimmerState extends State<WelcomeHeaderShimmer>
                       height: 24.h,
                       width: 150.w,
                       decoration: BoxDecoration(
-                        color: LushTheme.grey.withOpacity(_animation.value),
+                        color: LushTheme.grey.withValues(alpha: _animation.value),
                         borderRadius: BorderRadius.circular(12.r),
                       ),
                     ),
@@ -173,7 +173,7 @@ class _WelcomeHeaderShimmerState extends State<WelcomeHeaderShimmer>
                       height: 12.h,
                       width: 200.w,
                       decoration: BoxDecoration(
-                        color: LushTheme.grey.withOpacity(_animation.value),
+                        color: LushTheme.grey.withValues(alpha: _animation.value),
                         borderRadius: BorderRadius.circular(6.r),
                       ),
                     ),

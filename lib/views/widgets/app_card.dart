@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import '../../theme.dart';
 
@@ -41,7 +41,7 @@ class AppCard extends StatelessWidget {
               boxShadow: boxShadow ??
                   [
                     BoxShadow(
-                      color: LushTheme.grey.withOpacity(0.1),
+                      color: LushTheme.grey.withValues(alpha: 0.1),
                       spreadRadius: 1,
                       blurRadius: 10,
                       offset: const Offset(0, 3),
@@ -107,7 +107,7 @@ class AppCardHeader extends StatelessWidget {
             child: Container(
               padding: EdgeInsets.all(8.w),
               decoration: BoxDecoration(
-                color: LushTheme.nearlyBlue.withOpacity(0.1),
+                color: LushTheme.nearlyBlue.withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(8.r),
               ),
               child: Icon(
@@ -174,7 +174,7 @@ class _AppLoadingCardState extends State<AppLoadingCard>
                   height: 20.h,
                   width: 150.w,
                   decoration: BoxDecoration(
-                    color: LushTheme.grey.withOpacity(_animation.value),
+                    color: LushTheme.grey.withValues(alpha: _animation.value),
                     borderRadius: BorderRadius.circular(10.r),
                   ),
                 ),
@@ -183,7 +183,7 @@ class _AppLoadingCardState extends State<AppLoadingCard>
                   height: 16.h,
                   width: 200.w,
                   decoration: BoxDecoration(
-                    color: LushTheme.grey.withOpacity(_animation.value),
+                    color: LushTheme.grey.withValues(alpha: _animation.value),
                     borderRadius: BorderRadius.circular(8.r),
                   ),
                 ),
@@ -192,7 +192,7 @@ class _AppLoadingCardState extends State<AppLoadingCard>
                   height: 16.h,
                   width: 120.w,
                   decoration: BoxDecoration(
-                    color: LushTheme.grey.withOpacity(_animation.value),
+                    color: LushTheme.grey.withValues(alpha: _animation.value),
                     borderRadius: BorderRadius.circular(8.r),
                   ),
                 ),
