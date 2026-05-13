@@ -57,6 +57,8 @@ import 'views/screens/reset_password_mobile_screen.dart';
 import 'views/screens/signup_method_selection_screen.dart';
 import 'views/screens/subscription_management_screen.dart';
 import 'views/screens/dashboard.dart'; // For DashboardMode
+import 'views/screens/address_selection_screen.dart';
+import 'views/screens/delivery_slot_selection_screen.dart';
 
 void main() async {
   // 1. MUST be the first thing called
@@ -296,6 +298,14 @@ class BookMyJuiceApp extends StatelessWidget {
                 } else if (settings.name == '/menu') {
                   return MaterialPageRoute(
                     builder: (_) => const Menu(),
+                  );
+                } else if (settings.name == '/address-selection') {
+                  return MaterialPageRoute(
+                    builder: (_) => const AddressSelectionScreen(),
+                  );
+                } else if (settings.name == '/delivery-slot-selection') {
+                  return MaterialPageRoute(
+                    builder: (_) => const DeliverySlotSelectionScreen(),
                   );
                 } else if (settings.name == '/home') {
                   return MaterialPageRoute(

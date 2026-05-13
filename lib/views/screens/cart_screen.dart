@@ -20,14 +20,48 @@ import '../../utils/haptic_feedback.dart';
 /// - FR-CART-002: Increment/Decrement quantity
 /// - FR-CART-003: Remove items from cart
 /// - FR-CART-004: Show subtotal, tax, and total
-class CartScreen extends StatelessWidget {
+/// - FR-DEL-008: Delivery address and slot selection before checkout
+class CartScreen extends StatefulWidget {
   const CartScreen({super.key});
 
+  @override
+  CartScreenState createState() => CartScreenState();
+}
+
+class CartScreenState extends State<CartScreen> {
   // Tax rate (5% GST)
   static const double _taxRate = 0.05;
   // Delivery fee (free above ₹500)
   static const double _deliveryFee = 50.0;
   static const double _freeDeliveryThreshold = 500.0;
+
+  // Delivery selection state
+  Map<String, dynamic>? _selectedAddress;
+  Map<String, dynamic>? _selectedSlot;
+
+  Future<void> _navigateToAddressSelection() async {
+    final result = await Navigator.pushNamed(
+      context,
+      '/address-selection',
+    );
+    if (result != null && result is Map<String, dynamic>) {
+      setState(() {
+        _selectedAddress = result;
+      });
+    }
+  }
+
+  Future<void> _navigateToSlotSelection() async {
+    final result = await Navigator.pushNamed(
+      context,
+      '/delivery-slot-selection',
+    );
+    if (result != null && result is Map<String, dynamic>) {
+      setState(() {
+        _selectedSlot = result;
+      });
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -410,6 +444,126 @@ class CartScreen extends StatelessWidget {
       ),
       child: Column(
         children: [
+          // Delivery Address Section (FR-DEL-008)
+          InkWell(
+            onTap: _navigateToAddressSelection,
+            child: Container(
+              padding: EdgeInsets.all(12.r),
+              margin: EdgeInsets.only(bottom: 12.h),
+              decoration: BoxDecoration(
+                color: AppColors.lightGrey.withAlpha(80),
+                borderRadius: BorderRadius.circular(12.r),
+                border: Border.all(
+                  color: _selectedAddress != null
+                      ? AppColors.success
+                      : AppColors.lightDivider,
+                ),
+              ),
+              child: Row(
+                children: [
+                  Icon(
+                    _selectedAddress != null
+                        ? Icons.check_circle
+                        : Icons.location_on_outlined,
+                    color: _selectedAddress != null
+                        ? AppColors.success
+                        : AppColors.primaryOrange,
+                    size: 24.r,
+                  ),
+                  SizedBox(width: 12.w),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          _selectedAddress != null
+                              ? 'Deliver to: ${_selectedAddress!['addressLine1'] ?? ''}'
+                              : 'Select Delivery Address',
+                          style: TextStyle(
+                            fontSize: 14.sp,
+                            fontWeight: FontWeight.w600,
+                            color: AppColors.lightTextPrimary,
+                          ),
+                        ),
+                        if (_selectedAddress != null)
+                          Text(
+                            '${_selectedAddress!['city'] ?? ''}, ${_selectedAddress!['state'] ?? ''} - ${_selectedAddress!['pincode'] ?? ''}',
+                            style: TextStyle(
+                              fontSize: 12.sp,
+                              color: AppColors.lightTextSecondary,
+                            ),
+                          ),
+                      ],
+                    ),
+                  ),
+                  const Icon(
+                    Icons.chevron_right,
+                    color: AppColors.lightTextSecondary,
+                  ),
+                ],
+              ),
+            ),
+          ),
+          // Delivery Slot Section (FR-DEL-008)
+          InkWell(
+            onTap: _navigateToSlotSelection,
+            child: Container(
+              padding: EdgeInsets.all(12.r),
+              margin: EdgeInsets.only(bottom: 12.h),
+              decoration: BoxDecoration(
+                color: AppColors.lightGrey.withAlpha(80),
+                borderRadius: BorderRadius.circular(12.r),
+                border: Border.all(
+                  color: _selectedSlot != null
+                      ? AppColors.success
+                      : AppColors.lightDivider,
+                ),
+              ),
+              child: Row(
+                children: [
+                  Icon(
+                    _selectedSlot != null
+                        ? Icons.check_circle
+                        : Icons.schedule_outlined,
+                    color: _selectedSlot != null
+                        ? AppColors.success
+                        : AppColors.primaryOrange,
+                    size: 24.r,
+                  ),
+                  SizedBox(width: 12.w),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          _selectedSlot != null
+                              ? 'Delivery: ${_selectedSlot!['slot']!['startTime'] ?? ''} - ${_selectedSlot!['slot']!['endTime'] ?? ''}'
+                              : 'Select Delivery Slot',
+                          style: TextStyle(
+                            fontSize: 14.sp,
+                            fontWeight: FontWeight.w600,
+                            color: AppColors.lightTextPrimary,
+                          ),
+                        ),
+                        if (_selectedSlot != null)
+                          Text(
+                            'Available delivery time',
+                            style: TextStyle(
+                              fontSize: 12.sp,
+                              color: AppColors.lightTextSecondary,
+                            ),
+                          ),
+                      ],
+                    ),
+                  ),
+                  const Icon(
+                    Icons.chevron_right,
+                    color: AppColors.lightTextSecondary,
+                  ),
+                ],
+              ),
+            ),
+          ),
           // Price Breakdown
           _buildPriceRow(
             context,
@@ -472,6 +626,26 @@ class CartScreen extends StatelessWidget {
             child: ElevatedButton(
               onPressed: items.isNotEmpty
                   ? () async {
+                      // Validate delivery selections
+                      if (_selectedAddress == null) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(
+                            content: Text('Please select a delivery address'),
+                            backgroundColor: AppColors.error,
+                          ),
+                        );
+                        return;
+                      }
+                      if (_selectedSlot == null) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(
+                            content: Text('Please select a delivery slot'),
+                            backgroundColor: AppColors.error,
+                          ),
+                        );
+                        return;
+                      }
+
                       final userRepository = getIt.get<UserRepository>();
                       final cartItems = items
                           .map((cartItem) => {

@@ -1271,6 +1271,218 @@ class UserRepository {
     }
   }
 
-  // Use getCartCheckoutUrl(List<Map<String, dynamic>> cartItems) for cart checkout
+  // ==================== Delivery Domain API Methods ====================
 
+  /// FR-DEL-001: Check if a pincode is serviceable
+  /// GET /api/v1/delivery/service-areas?pincode={pincode}
+  Future<Map<String, dynamic>> checkServiceability(String pincode) async {
+    try {
+      ioc.badCertificateCallback =
+          (X509Certificate cert, String host, int port) => true;
+      final http = IOClient(ioc);
+      final authToken = await _secureStorage.getAuthToken();
+
+      var response = await http.get(
+        Uri.parse('$server/api/v1/delivery/service-areas?pincode=$pincode'),
+        headers: {
+          "Accept": "application/json",
+          "Content-Type": "application/json",
+          "Authorization": "Bearer $authToken",
+        },
+      );
+
+      if (response.statusCode == 200) {
+        var body = const Utf8Decoder().convert(response.bodyBytes);
+        return json.decode(body) as Map<String, dynamic>;
+      } else if (response.statusCode == 404) {
+        return {
+          'status': 'error',
+          'message': 'Pincode not serviceable',
+          'serviced': false
+        };
+      } else {
+        return {
+          'status': 'error',
+          'message': 'Failed to check serviceability: ${response.statusCode}'
+        };
+      }
+    } catch (e) {
+      return {
+        'status': 'error',
+        'message': 'Error checking serviceability: $e'
+      };
+    }
+  }
+
+  /// FR-DEL-002: Get available delivery slots for a service area and date
+  /// GET /api/v1/delivery/slots?serviceAreaId={id}&date={date}
+  Future<Map<String, dynamic>> getAvailableSlots(
+      int serviceAreaId, String date) async {
+    try {
+      ioc.badCertificateCallback =
+          (X509Certificate cert, String host, int port) => true;
+      final http = IOClient(ioc);
+      final authToken = await _secureStorage.getAuthToken();
+
+      var response = await http.get(
+        Uri.parse(
+            '$server/api/v1/delivery/slots?serviceAreaId=$serviceAreaId&date=$date'),
+        headers: {
+          "Accept": "application/json",
+          "Content-Type": "application/json",
+          "Authorization": "Bearer $authToken",
+        },
+      );
+
+      if (response.statusCode == 200) {
+        var body = const Utf8Decoder().convert(response.bodyBytes);
+        return json.decode(body) as Map<String, dynamic>;
+      } else {
+        return {
+          'status': 'error',
+          'message': 'Failed to get slots: ${response.statusCode}'
+        };
+      }
+    } catch (e) {
+      return {'status': 'error', 'message': 'Error getting slots: $e'};
+    }
+  }
+
+  /// FR-DEL-003: Get all addresses for the logged-in user
+  /// GET /api/v1/delivery/addresses
+  Future<Map<String, dynamic>> getUserAddresses() async {
+    try {
+      ioc.badCertificateCallback =
+          (X509Certificate cert, String host, int port) => true;
+      final http = IOClient(ioc);
+      final authToken = await _secureStorage.getAuthToken();
+
+      var response = await http.get(
+        Uri.parse('$server/api/v1/delivery/addresses'),
+        headers: {
+          "Accept": "application/json",
+          "Content-Type": "application/json",
+          "Authorization": "Bearer $authToken",
+        },
+      );
+
+      if (response.statusCode == 200) {
+        var body = const Utf8Decoder().convert(response.bodyBytes);
+        return json.decode(body) as Map<String, dynamic>;
+      } else {
+        return {
+          'status': 'error',
+          'message': 'Failed to get addresses: ${response.statusCode}'
+        };
+      }
+    } catch (e) {
+      return {'status': 'error', 'message': 'Error getting addresses: $e'};
+    }
+  }
+
+  /// FR-DEL-004: Add a new delivery address
+  /// POST /api/v1/delivery/addresses
+  Future<Map<String, dynamic>> addUserAddress(
+      Map<String, dynamic> addressData) async {
+    try {
+      ioc.badCertificateCallback =
+          (X509Certificate cert, String host, int port) => true;
+      final http = IOClient(ioc);
+      final authToken = await _secureStorage.getAuthToken();
+
+      var response = await http.post(
+        Uri.parse('$server/api/v1/delivery/addresses'),
+        body: jsonEncode(addressData),
+        headers: {
+          "Accept": "application/json",
+          "Content-Type": "application/json",
+          "Authorization": "Bearer $authToken",
+        },
+      );
+
+      var body = const Utf8Decoder().convert(response.bodyBytes);
+      return json.decode(body) as Map<String, dynamic>;
+    } catch (e) {
+      return {'status': 'error', 'message': 'Error adding address: $e'};
+    }
+  }
+
+  /// FR-DEL-005: Update an existing delivery address
+  /// PUT /api/v1/delivery/addresses/{id}
+  Future<Map<String, dynamic>> updateUserAddress(
+      int id, Map<String, dynamic> addressData) async {
+    try {
+      ioc.badCertificateCallback =
+          (X509Certificate cert, String host, int port) => true;
+      final http = IOClient(ioc);
+      final authToken = await _secureStorage.getAuthToken();
+
+      var response = await http.put(
+        Uri.parse('$server/api/v1/delivery/addresses/$id'),
+        body: jsonEncode(addressData),
+        headers: {
+          "Accept": "application/json",
+          "Content-Type": "application/json",
+          "Authorization": "Bearer $authToken",
+        },
+      );
+
+      var body = const Utf8Decoder().convert(response.bodyBytes);
+      return json.decode(body) as Map<String, dynamic>;
+    } catch (e) {
+      return {'status': 'error', 'message': 'Error updating address: $e'};
+    }
+  }
+
+  /// FR-DEL-006: Delete a delivery address
+  /// DELETE /api/v1/delivery/addresses/{id}
+  Future<Map<String, dynamic>> deleteUserAddress(int id) async {
+    try {
+      ioc.badCertificateCallback =
+          (X509Certificate cert, String host, int port) => true;
+      final http = IOClient(ioc);
+      final authToken = await _secureStorage.getAuthToken();
+
+      var response = await http.delete(
+        Uri.parse('$server/api/v1/delivery/addresses/$id'),
+        headers: {
+          "Accept": "application/json",
+          "Content-Type": "application/json",
+          "Authorization": "Bearer $authToken",
+        },
+      );
+
+      var body = const Utf8Decoder().convert(response.bodyBytes);
+      return json.decode(body) as Map<String, dynamic>;
+    } catch (e) {
+      return {'status': 'error', 'message': 'Error deleting address: $e'};
+    }
+  }
+
+  /// FR-DEL-007: Set a delivery address as default
+  /// PATCH /api/v1/delivery/addresses/{id}/default
+  Future<Map<String, dynamic>> setDefaultAddress(int id) async {
+    try {
+      ioc.badCertificateCallback =
+          (X509Certificate cert, String host, int port) => true;
+      final http = IOClient(ioc);
+      final authToken = await _secureStorage.getAuthToken();
+
+      var response = await http.patch(
+        Uri.parse('$server/api/v1/delivery/addresses/$id/default'),
+        headers: {
+          "Accept": "application/json",
+          "Content-Type": "application/json",
+          "Authorization": "Bearer $authToken",
+        },
+      );
+
+      var body = const Utf8Decoder().convert(response.bodyBytes);
+      return json.decode(body) as Map<String, dynamic>;
+    } catch (e) {
+      return {'status': 'error', 'message': 'Error setting default address: $e'};
+    }
+  }
+
+  // Use getCartCheckoutUrl(List<Map<String, dynamic>> cartItems) for cart checkout
 }
