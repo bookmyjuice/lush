@@ -1,12 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:lush/theme.dart';
 import 'package:lush/UserRepository/user_repository.dart';
 import 'package:lush/get_it.dart';
 import 'package:lush/views/widgets/cart_icon.dart';
 import 'package:lush/views/models/item_list_view.dart';
 import 'package:lush/services/item_service.dart';
 import 'package:lush/views/widgets/filter_options.dart';
+import 'package:lush/theme/app_colors.dart';
+import 'package:lush/theme/app_text_styles.dart';
 
 class Menu extends StatefulWidget {
   const Menu({super.key});
@@ -73,9 +74,9 @@ class MenuState extends State<Menu> with TickerProviderStateMixin {
           _selectedSize = _sizes[0];
         }
         return Scaffold(
-          backgroundColor: LushTheme.background,
+          backgroundColor: AppColors.lightBackground,
           body: Container(
-            decoration: const BoxDecoration(color: LushTheme.background),
+            decoration: const BoxDecoration(color: AppColors.lightBackground),
             child: Stack(
               fit: StackFit.passthrough,
               children: [
@@ -165,14 +166,14 @@ class MenuState extends State<Menu> with TickerProviderStateMixin {
                     0.0, 30 * (1.0 - topBarAnimation.value), 0.0),
                 child: Container(
                   decoration: BoxDecoration(
-                    color: LushTheme.white.withAlpha(242),
+                    color: AppColors.white.withAlpha(242),
                     borderRadius: BorderRadius.only(
                       bottomLeft: Radius.circular(32.r),
                       bottomRight: Radius.circular(32.r),
                     ),
                     boxShadow: <BoxShadow>[
                       BoxShadow(
-                          color: LushTheme.grey.withAlpha(76),
+                          color: AppColors.grey.withAlpha(76),
                           offset: const Offset(0, 2),
                           blurRadius: 10.0),
                     ],
@@ -196,12 +197,12 @@ class MenuState extends State<Menu> with TickerProviderStateMixin {
                                 width: 40.w,
                                 height: 40.w,
                                 decoration: BoxDecoration(
-                                  color: LushTheme.nearlyBlue.withAlpha(25),
+                                  color: AppColors.info.withAlpha(25),
                                   borderRadius: BorderRadius.circular(20.r),
                                 ),
                                 child: Icon(
                                   Icons.arrow_back_ios,
-                                  color: LushTheme.nearlyBlue,
+                                  color: AppColors.info,
                                   size: 18.sp,
                                 ),
                               ),
@@ -214,10 +215,9 @@ class MenuState extends State<Menu> with TickerProviderStateMixin {
                                   Text(
                                     'menu',
                                     style: TextStyle(
-                                      fontFamily: LushTheme.fontName,
                                       fontWeight: FontWeight.bold,
                                       fontSize: 24.sp,
-                                      color: LushTheme.darkerText,
+                                      color: AppColors.lightTextPrimary,
                                     ),
                                   ),
                                   SizedBox(height: 4.h),
@@ -225,7 +225,7 @@ class MenuState extends State<Menu> with TickerProviderStateMixin {
                                     'Fresh cold-pressed juices',
                                     style: TextStyle(
                                       fontSize: 14.sp,
-                                      color: LushTheme.lightText,
+                                      color: AppColors.lightTextSecondary,
                                     ),
                                   ),
                                 ],
@@ -240,7 +240,7 @@ class MenuState extends State<Menu> with TickerProviderStateMixin {
                             const SizedBox(width: 8),
                             PopupMenuButton<String>(
                               icon: const Icon(Icons.more_vert,
-                                  color: Colors.white),
+                                  color: AppColors.white),
                               onSelected: (value) {
                                 switch (value) {
                                   case 'subscriptions':

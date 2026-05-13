@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import '../../theme.dart';
-import '../../utils/font_utils.dart';
+import 'package:lush/theme/app_colors.dart';
+import 'package:lush/theme/app_text_styles.dart';
 
 class NotificationsScreen extends StatefulWidget {
   const NotificationsScreen({super.key});
@@ -46,23 +46,19 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: LushTheme.background,
+      backgroundColor: AppColors.lightBackground,
       appBar: AppBar(
-        backgroundColor: LushTheme.white,
+        backgroundColor: AppColors.white,
         elevation: 0,
-        shadowColor: LushTheme.grey.withAlpha(50),
+        shadowColor: AppColors.grey.withAlpha(50),
         title: Text(
           'Notifications',
-          style: FontUtils.heading1(
-            fontSize: 20.sp,
-            fontWeight: FontWeight.bold,
-            color: LushTheme.darkerText,
-          ),
+          style: TextStyle(fontSize: 20.sp, fontWeight: FontWeight.bold, color: AppColors.lightTextPrimary, fontFamily: 'Roboto'),
         ),
         leading: IconButton(
           icon: Icon(
             Icons.arrow_back_ios,
-            color: LushTheme.darkerText,
+            color: AppColors.lightTextPrimary,
             size: 20.sp,
           ),
           onPressed: () => Navigator.pop(context),
@@ -72,11 +68,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
             onPressed: _markAllAsRead,
             child: Text(
               'Mark all read',
-              style: FontUtils.buttonText(
-                color: LushTheme.nearlyBlue,
-                fontSize: 14.sp,
-                fontWeight: FontWeight.w600,
-              ),
+              style: TextStyle(fontSize: 14.sp, fontWeight: FontWeight.w600, color: AppColors.info, fontFamily: 'Roboto'),
             ),
           ),
         ],
@@ -102,7 +94,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
           Icon(
             Icons.notifications_none,
             size: 80.sp,
-            color: LushTheme.grey,
+            color: AppColors.grey,
           ),
           SizedBox(height: 16.h),
           Text(
@@ -110,7 +102,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
             style: TextStyle(
               fontSize: 18.sp,
               fontWeight: FontWeight.w600,
-              color: LushTheme.darkerText,
+              color: AppColors.lightTextPrimary,
             ),
           ),
           SizedBox(height: 8.h),
@@ -119,7 +111,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
             textAlign: TextAlign.center,
             style: TextStyle(
               fontSize: 14.sp,
-              color: LushTheme.grey,
+              color: AppColors.grey,
             ),
           ),
         ],
@@ -132,13 +124,13 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
       margin: EdgeInsets.only(bottom: 12.h),
       decoration: BoxDecoration(
         color: notification.isRead
-            ? LushTheme.white
-            : LushTheme.nearlyBlue.withAlpha(25),
+            ? AppColors.white
+            : AppColors.info.withAlpha(25),
         borderRadius: BorderRadius.circular(12.r),
         border: Border.all(
           color: notification.isRead
-              ? LushTheme.grey.withAlpha(50)
-              : LushTheme.nearlyBlue.withAlpha(50),
+              ? AppColors.grey.withAlpha(50)
+              : AppColors.info.withAlpha(50),
           width: 1,
         ),
       ),
@@ -179,7 +171,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                               style: TextStyle(
                                 fontSize: 16.sp,
                                 fontWeight: FontWeight.w600,
-                                color: LushTheme.darkerText,
+                                color: AppColors.lightTextPrimary,
                               ),
                             ),
                           ),
@@ -188,7 +180,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                               width: 8.w,
                               height: 8.w,
                               decoration: BoxDecoration(
-                                color: LushTheme.nearlyBlue,
+                                color: AppColors.info,
                                 shape: BoxShape.circle,
                               ),
                             ),
@@ -199,7 +191,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                         notification.message,
                         style: TextStyle(
                           fontSize: 14.sp,
-                          color: LushTheme.grey,
+                          color: AppColors.grey,
                           height: 1.4,
                         ),
                       ),
@@ -208,7 +200,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                         _formatTime(notification.time),
                         style: TextStyle(
                           fontSize: 12.sp,
-                          color: LushTheme.lightText,
+                          color: AppColors.lightTextSecondary,
                         ),
                       ),
                     ],
@@ -242,17 +234,17 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
   Color _getNotificationColor(NotificationType type) {
     switch (type) {
       case NotificationType.order:
-        return Colors.green;
+        return AppColors.success;
       case NotificationType.delivery:
-        return Colors.blue;
+        return AppColors.info;
       case NotificationType.promotion:
-        return Colors.orange;
+        return AppColors.primaryOrange;
       case NotificationType.subscription:
-        return LushTheme.nearlyBlue;
+        return AppColors.info;
       case NotificationType.welcome:
         return Colors.purple;
       default:
-        return LushTheme.nearlyBlue;
+        return AppColors.info;
     }
   }
 

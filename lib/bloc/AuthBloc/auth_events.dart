@@ -151,21 +151,21 @@ class GoogleSignUpEnterPhone extends AuthenticationEvent {
 
   @override
   List<Object> get props => [
-        phone?? phone ?? '',
-        email?? email ?? '',
-        firstName?? firstName ?? '',
-        lastName?? lastName ?? '',
-        address?? address ?? '',
-        extendedAddr?? extendedAddr ?? '',
-        extendedAddr2?? extendedAddr2 ?? '',
-        city?? city ?? '',
-        state?? state ?? '',
-        zip?? zip ?? '',
-        country?? country ?? '',
-        password?? password ?? '',
-        confirmPassword?? confirmPassword ?? '',
-        googleId?? googleId ?? '',
-        photoUrl?? photoUrl ?? '',
+        phone,
+        email,
+        firstName,
+        lastName ?? '',
+        address ?? '',
+        extendedAddr ?? '',
+        extendedAddr2 ?? '',
+        city ?? '',
+        state ?? '',
+        zip ?? '',
+        country ?? '',
+        password ?? '',
+        confirmPassword ?? '',
+        googleId ?? '',
+        photoUrl ?? '',
       ];
 }
 
@@ -243,4 +243,53 @@ class SignInFacebook extends AuthenticationEvent {
 class SignUp extends AuthenticationEvent {
   @override
   List<Object> get props => [];
+}
+
+// ============================================================
+// Firebase Phone Auth Events (co-exists as alternative to backend OTP)
+// ============================================================
+
+/// Initiate Firebase Phone Auth verification.
+/// Sends SMS via Firebase (alternative to backend sendOTP).
+class FirebasePhoneSignIn extends AuthenticationEvent {
+  final String phoneNumber;
+
+  const FirebasePhoneSignIn({required this.phoneNumber});
+
+  @override
+  List<Object> get props => [phoneNumber];
+}
+
+/// Confirm that Firebase has sent the SMS code.
+class FirebasePhoneOtpSent extends AuthenticationEvent {
+  final String verificationId;
+
+  const FirebasePhoneOtpSent({required this.verificationId});
+
+  @override
+  List<Object> get props => [verificationId];
+}
+
+/// Verify the SMS code entered by the user via Firebase.
+class VerifyFirebaseOtp extends AuthenticationEvent {
+  final String verificationId;
+  final String smsCode;
+
+  const VerifyFirebaseOtp({
+    required this.verificationId,
+    required this.smsCode,
+  });
+
+  @override
+  List<Object> get props => [verificationId, smsCode];
+}
+
+/// Error during Firebase Phone Auth.
+class FirebasePhoneAuthError extends AuthenticationEvent {
+  final String error;
+
+  const FirebasePhoneAuthError({required this.error});
+
+  @override
+  List<Object> get props => [error];
 }

@@ -1,9 +1,12 @@
+import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:lush/services/firebase_notification_service.dart';
+import 'package:lush/services/firebase_options.dart';
 import 'package:lush/theme/theme_cubit.dart';
 import 'package:lush/views/models/google_sign_in.dart';
 import 'package:lush/views/screens/checkout_screen.dart';
@@ -41,6 +44,7 @@ import 'views/screens/google_phone_entry_screen.dart';
 import 'views/screens/invoice_view_screen.dart';
 import 'views/screens/link_google_account_screen.dart';
 import 'views/screens/my_account_page.dart';
+import 'views/screens/notifications.dart';
 import 'views/screens/order_history_screen.dart';
 import 'views/screens/phone_entry_after_email_screen.dart';
 import 'views/screens/phone_login_screen.dart';
@@ -52,9 +56,15 @@ import 'views/screens/reset_password_mobile_screen.dart';
 // New unified signup flow screens
 import 'views/screens/signup_method_selection_screen.dart';
 import 'views/screens/subscription_management_screen.dart';
-import 'views/screens/notifications.dart';
+import 'views/screens/dashboard.dart'; // For DashboardMode
 
 void main() async {
+  // 1. MUST be the first thing called
+  WidgetsFlutterBinding.ensureInitialized();
+  // 2. Now you can safely call your background setup
+  // Setup FCM background message handler before runApp()
+  FirebaseNotificationService.setupBackgroundHandler();
+
   await _initializeApp();
   runApp(const BookMyJuiceApp());
 }
@@ -64,6 +74,11 @@ Future<void> _initializeApp() async {
     // Ensure Flutter bindings are initialized
     WidgetsFlutterBinding.ensureInitialized();
 
+    // Initialize Firebase (required for FCM and Firebase Phone Auth)
+    await Firebase.initializeApp(
+      options: DefaultFirebaseOptions.currentPlatform,
+    );
+
     // Initialize Google Sign-In
     await GoogleSignInHelper.instance.initialize();
 
@@ -72,6 +87,9 @@ Future<void> _initializeApp() async {
 
     // Register dependencies
     registerRepositories();
+
+    // Initialize FCM push notification service (secondary layer)
+    await FirebaseNotificationService.instance.initialize();
 
     await RiveNative.init(); // Required for 0.14.x
 
@@ -315,23 +333,18 @@ class AuthWrapper extends StatelessWidget {
   Widget build(BuildContext context) {
     return BlocBuilder<AuthenticationBloc, AuthenticationState>(
       builder: (context, state) {
+        // ── Authenticated: Full Dashboard ──
         if (state is AuthenticationSuccess) {
-          return Dashboard();
-        } else if (state is AutoLoginFailed) {
-          return LoginPage(
-              toast_message: state.toast_message,
-              toast_heading: state.toast_heading);
-        } else if (state is LogInFailed) {
-          return LoginPage(
-              toast_message: state.toast_message,
-              toast_heading: state.toast_heading);
-        } else if (state is SignUpFailed) {
-          return LoginPage(
-              toast_message: state.error, toast_heading: "SignUp Failed!");
-        } else if (state is SignUpStarted) {
+          return Dashboard(mode: DashboardMode.full);
+        }
+
+        // ── Signup flow continues ──
+        if (state is SignUpStarted) {
           return SignUpScreen(user: state.user);
-        } else if (state is GoogleLinkRequired) {
-          // #2 UX: No account found with Google - show intermediate screen to link
+        }
+
+        // ── Google linking flow ──
+        if (state is GoogleLinkRequired) {
           return LinkGoogleAccountScreen(
             googleEmail: state.googleEmail,
             googleFirstName: state.googleFirstName,
@@ -339,27 +352,30 @@ class AuthWrapper extends StatelessWidget {
             googleId: state.googleId,
             photoUrl: state.photoUrl,
           );
-        } else if (state is SignUpSuccessful) {
-          return LoginPage(
-              toast_heading: "Signup Successfull!",
-              toast_message: "Please login to continue..");
-        } else if (state is AuthenticationInProgress) {
-          return const SplashScreen();
-        } else if (state is LoggedOut) {
-          return LoginPage(
-              toast_heading: "You've logged out!",
-              toast_message: "Please login to continue..");
-        } else if (state is InternetIssue) {
-          return LoginPage(
-              toast_message: state.toast_message,
-              toast_heading: state.toast_heading);
-        } else {
-          return const SplashScreen();
         }
+
+        // ── Show public dashboard (no login needed) for all other states ──
+        // Users can explore plans and one-time ordering.
+        // Auth-gated actions will show login prompt.
+        //
+        // States handled by this branch:
+        //   AutoLoginFailed, LogInFailed, SignUpFailed, SignUpSuccessful,
+        //   LoggedOut, InternetIssue, AuthenticationInProgress, unknown
+        //
+        // Toasts for transient states are shown via pop-up / snackbar within
+        // the Dashboard itself rather than requiring a LoginPage redirect.
+        if (state is AuthenticationInProgress) {
+          return Dashboard(mode: DashboardMode.public);
+        }
+        if (state is SignUpSuccessful) {
+          return Dashboard(mode: DashboardMode.public);
+        }
+        return Dashboard(mode: DashboardMode.public);
       },
     );
   }
 }
+
 
 class DetailScreenArguments {
   final Product p;

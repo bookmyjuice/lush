@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:lush/utils/font_utils.dart';
 
 /// Utility class to ensure consistent English text rendering
 class TextUtils {
@@ -15,7 +14,7 @@ class TextUtils {
   }) {
     return Text(
       text,
-      style: style ?? FontUtils.bodyText(),
+      style: style ?? TextStyle(fontSize: 16, fontFamily: 'Roboto'),
       textAlign: textAlign,
       maxLines: maxLines,
       overflow: overflow,
@@ -37,11 +36,7 @@ class TextUtils {
   }) {
     return englishText(
       text,
-      style: FontUtils.heading1(
-        fontSize: fontSize,
-        fontWeight: fontWeight,
-        color: color,
-      ),
+      style: TextStyle(fontSize: fontSize, fontWeight: fontWeight, color: color, fontFamily: 'Roboto'),
       textAlign: textAlign,
       maxLines: maxLines,
     );
@@ -59,11 +54,7 @@ class TextUtils {
   }) {
     return englishText(
       text,
-      style: FontUtils.bodyText(
-        fontSize: fontSize,
-        fontWeight: fontWeight,
-        color: color,
-      ),
+      style: TextStyle(fontSize: fontSize, fontWeight: fontWeight, color: color, fontFamily: 'Roboto'),
       textAlign: textAlign,
       maxLines: maxLines,
       overflow: overflow,
@@ -80,11 +71,7 @@ class TextUtils {
   }) {
     return englishText(
       text,
-      style: FontUtils.buttonText(
-        fontSize: fontSize,
-        fontWeight: fontWeight,
-        color: color,
-      ),
+      style: TextStyle(fontSize: fontSize, fontWeight: fontWeight, color: color, fontFamily: 'Roboto'),
       textAlign: textAlign,
     );
   }
@@ -99,10 +86,7 @@ class TextUtils {
   }) {
     return englishText(
       text,
-      style: FontUtils.captionText(
-        fontSize: fontSize,
-        color: color,
-      ),
+      style: TextStyle(fontSize: fontSize, color: color, fontFamily: 'Roboto'),
       textAlign: textAlign,
       maxLines: maxLines,
     );

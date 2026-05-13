@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 // import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:lush/UserRepository/user_repository.dart';
@@ -7,7 +7,7 @@ import 'package:lush/bloc/AuthBloc/auth_events.dart';
 import 'package:lush/get_it.dart';
 // import 'package:lush/bloc/AuthBloc/auth_bloc.dart';
 // import 'package:lush/bloc/AuthBloc/auth_state.dart';
-import 'package:lush/theme.dart';
+import 'package:lush/theme/app_colors.dart';
 
 class AddressScreen extends StatefulWidget {
   // final User user;
@@ -99,14 +99,14 @@ class AddressScreenState extends State<AddressScreen> {
             height: double.infinity,
             width: double.infinity,
             decoration: const BoxDecoration(
-                // color: Colors.white,
+                // color: AppColors.white,
                 //     image: DecorationImage(
                 //   fit: BoxFit.cover,
                 //   opacity: 125.0,
                 //   image: AssetImage("assets/background2.png"),
                 //   // opacity: 5.0
                 // )
-                color: Colors.amber),
+                color: AppColors.primaryOrange),
           ),
           Container(
             alignment: Alignment.topCenter,
@@ -160,14 +160,14 @@ class AddressScreenState extends State<AddressScreen> {
   Widget submitButton() {
     return ElevatedButton(
         style: ElevatedButton.styleFrom(
-          backgroundColor: LushTheme.appbarColor,
+          backgroundColor: AppColors.primaryOrange,
           padding: const EdgeInsets.all(10),
         ),
         child: const Text(
           'Done!',
           style: TextStyle(
               fontFamily: 'Opensans',
-              color: Colors.black,
+              color: AppColors.nearlyBlack,
               fontSize: 15,
               fontWeight: FontWeight.w400),
         ),
@@ -182,7 +182,7 @@ class AddressScreenState extends State<AddressScreen> {
   Widget address() {
     return Container(
       decoration: BoxDecoration(
-          color: Colors.white,
+          color: AppColors.white,
           border: Border.all(),
           borderRadius: BorderRadius.circular(5)),
       child: TextFormField(
@@ -197,12 +197,12 @@ class AddressScreenState extends State<AddressScreen> {
         },
         decoration: const InputDecoration(
           hintStyle: TextStyle(
-              color: LushTheme.appbarColor, fontFamily: 'Opensans', fontSize: 15
+              color: AppColors.primaryOrange, fontFamily: 'Opensans', fontSize: 15
               //fontWeight: FontWeight.bold
               ),
           border: InputBorder.none,
           contentPadding: EdgeInsets.only(top: 10.0),
-          prefixIcon: Icon(Icons.home, color: LushTheme.appbarColor),
+          prefixIcon: Icon(Icons.home, color: AppColors.primaryOrange),
           hintText: 'House/flat No.',
         ),
       ),
@@ -212,7 +212,7 @@ class AddressScreenState extends State<AddressScreen> {
   Widget extendedAddress() {
     return Container(
       decoration: BoxDecoration(
-          color: Colors.white,
+          color: AppColors.white,
           border: Border.all(),
           borderRadius: BorderRadius.circular(5)),
       child: TextFormField(
@@ -230,12 +230,12 @@ class AddressScreenState extends State<AddressScreen> {
 
         decoration: const InputDecoration(
           hintStyle: TextStyle(
-              color: LushTheme.appbarColor, fontFamily: 'Opensans', fontSize: 15
+              color: AppColors.primaryOrange, fontFamily: 'Opensans', fontSize: 15
               //fontWeight: FontWeight.bold
               ),
           border: InputBorder.none,
           contentPadding: EdgeInsets.only(top: 10.0),
-          prefixIcon: Icon(Icons.phone, color: LushTheme.appbarColor),
+          prefixIcon: Icon(Icons.phone, color: AppColors.primaryOrange),
           hintText: 'Phone number ..',
         ),
       ),
@@ -245,7 +245,7 @@ class AddressScreenState extends State<AddressScreen> {
   Widget extendedAddress2() {
     return Container(
       decoration: BoxDecoration(
-          color: Colors.white,
+          color: AppColors.white,
           border: Border.all(),
           borderRadius: BorderRadius.circular(5)),
       child: TextFormField(
@@ -260,12 +260,12 @@ class AddressScreenState extends State<AddressScreen> {
         },
         decoration: const InputDecoration(
           hintStyle: TextStyle(
-              color: LushTheme.appbarColor,
+              color: AppColors.primaryOrange,
               fontFamily: 'Opensans',
               fontSize: 15),
           border: InputBorder.none,
           contentPadding: EdgeInsets.only(top: 10.0),
-          prefixIcon: Icon(Icons.phone, color: LushTheme.appbarColor),
+          prefixIcon: Icon(Icons.phone, color: AppColors.primaryOrange),
           hintText: 'Phone number ..',
         ),
       ),
@@ -275,7 +275,7 @@ class AddressScreenState extends State<AddressScreen> {
   Widget zip() {
     return Container(
       decoration: BoxDecoration(
-          color: Colors.white,
+          color: AppColors.white,
           border: Border.all(),
           borderRadius: BorderRadius.circular(5)),
       child: TextFormField(
@@ -302,12 +302,12 @@ class AddressScreenState extends State<AddressScreen> {
         // },
         decoration: const InputDecoration(
           hintStyle: TextStyle(
-              color: LushTheme.appbarColor, fontFamily: 'Opensans', fontSize: 15
+              color: AppColors.primaryOrange, fontFamily: 'Opensans', fontSize: 15
               //fontWeight: FontWeight.bold
               ),
           border: InputBorder.none,
           contentPadding: EdgeInsets.only(top: 10.0),
-          prefixIcon: Icon(Icons.phone, color: LushTheme.appbarColor),
+          prefixIcon: Icon(Icons.phone, color: AppColors.primaryOrange),
           hintText: 'Phone number ..',
         ),
       ),
@@ -317,7 +317,7 @@ class AddressScreenState extends State<AddressScreen> {
   Container city() {
     return Container(
       decoration: BoxDecoration(
-          color: Colors.white,
+          color: AppColors.white,
           border: Border.all(),
           borderRadius: BorderRadius.circular(5)),
       child: TextFormField(
@@ -344,12 +344,12 @@ class AddressScreenState extends State<AddressScreen> {
         // },
         decoration: const InputDecoration(
           hintStyle: TextStyle(
-              color: LushTheme.appbarColor, fontFamily: 'Opensans', fontSize: 15
+              color: AppColors.primaryOrange, fontFamily: 'Opensans', fontSize: 15
               //fontWeight: FontWeight.bold
               ),
           border: InputBorder.none,
           contentPadding: EdgeInsets.only(top: 10.0),
-          prefixIcon: Icon(Icons.phone, color: LushTheme.appbarColor),
+          prefixIcon: Icon(Icons.phone, color: AppColors.primaryOrange),
           hintText: 'Phone number ..',
         ),
       ),
@@ -359,7 +359,7 @@ class AddressScreenState extends State<AddressScreen> {
   Widget state() {
     return Container(
       decoration: BoxDecoration(
-          color: Colors.white,
+          color: AppColors.white,
           border: Border.all(),
           borderRadius: BorderRadius.circular(5)),
       child: TextFormField(
@@ -386,12 +386,12 @@ class AddressScreenState extends State<AddressScreen> {
         // },
         decoration: const InputDecoration(
           hintStyle: TextStyle(
-              color: LushTheme.appbarColor, fontFamily: 'Opensans', fontSize: 15
+              color: AppColors.primaryOrange, fontFamily: 'Opensans', fontSize: 15
               //fontWeight: FontWeight.bold
               ),
           border: InputBorder.none,
           contentPadding: EdgeInsets.only(top: 10.0),
-          prefixIcon: Icon(Icons.phone, color: LushTheme.appbarColor),
+          prefixIcon: Icon(Icons.phone, color: AppColors.primaryOrange),
           hintText: 'Phone number ..',
         ),
       ),

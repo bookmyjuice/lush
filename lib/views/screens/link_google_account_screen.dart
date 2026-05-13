@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:lush/UserRepository/user_repository.dart';
-import 'package:lush/utils/font_utils.dart';
 import 'package:toastification/toastification.dart';
+import 'package:lush/theme/app_colors.dart';
 
 /// #2 UX: Link Google Account to Existing User
 /// Shown when Google Sign-In doesn't find a matching account.
@@ -163,7 +163,7 @@ class _LinkGoogleAccountScreenState extends State<LinkGoogleAccountScreen> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Link Google Account'),
-        backgroundColor: Colors.amber,
+        backgroundColor: AppColors.primaryOrange,
         centerTitle: true,
       ),
       body: SafeArea(
@@ -175,20 +175,16 @@ class _LinkGoogleAccountScreenState extends State<LinkGoogleAccountScreen> {
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
                 const SizedBox(height: 30),
-                Icon(Icons.link, size: 80, color: Colors.amber[700]),
+                Icon(Icons.link, size: 80, color: AppColors.primaryOrangeDark),
                 const SizedBox(height: 20),
                 Text(
                   'Link Google Account',
-                  style: FontUtils.heading1(
-                    color: Colors.black87,
-                    fontSize: 24,
-                    fontWeight: FontWeight.bold,
-                  ),
+                  style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: AppColors.lightTextPrimary, fontFamily: 'Roboto'),
                 ),
                 const SizedBox(height: 8),
                 Text(
                   'No account found with ${widget.googleEmail}. Enter the phone number of your existing account to link.',
-                  style: FontUtils.bodyText(color: Colors.grey[600], fontSize: 14),
+                  style: TextStyle(fontSize: 14, color: AppColors.lightTextSecondary, fontFamily: 'Roboto'),
                   textAlign: TextAlign.center,
                 ),
                 const SizedBox(height: 30),
@@ -203,17 +199,17 @@ class _LinkGoogleAccountScreenState extends State<LinkGoogleAccountScreen> {
                   decoration: InputDecoration(
                     labelText: 'Phone Number *',
                     hintText: 'Enter your registered phone number',
-                    prefixIcon: Icon(Icons.phone, color: Colors.amber[700]),
+                    prefixIcon: Icon(Icons.phone, color: AppColors.primaryOrangeDark),
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(12),
                     ),
                     enabledBorder: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(12),
-                      borderSide: BorderSide(color: Colors.grey[300]!),
+                      borderSide: BorderSide(color: AppColors.lightDivider!),
                     ),
                     focusedBorder: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(12),
-                      borderSide: BorderSide(color: Colors.amber, width: 2),
+                      borderSide: BorderSide(color: AppColors.primaryOrange, width: 2),
                     ),
                     counterText: '',
                   ),
@@ -233,7 +229,7 @@ class _LinkGoogleAccountScreenState extends State<LinkGoogleAccountScreen> {
                 if (_otpSent) ...[
                   Text(
                     'Enter OTP',
-                    style: FontUtils.bodyText(color: Colors.black87, fontSize: 16, fontWeight: FontWeight.w600),
+                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600, color: AppColors.lightTextPrimary, fontFamily: 'Roboto'),
                   ),
                   const SizedBox(height: 12),
                   TextFormField(
@@ -248,11 +244,11 @@ class _LinkGoogleAccountScreenState extends State<LinkGoogleAccountScreen> {
                       ),
                       enabledBorder: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(12),
-                        borderSide: BorderSide(color: Colors.grey[300]!),
+                        borderSide: BorderSide(color: AppColors.lightDivider!),
                       ),
                       focusedBorder: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(12),
-                        borderSide: BorderSide(color: Colors.amber, width: 2),
+                        borderSide: BorderSide(color: AppColors.primaryOrange, width: 2),
                       ),
                       counterText: '',
                     ),
@@ -261,12 +257,12 @@ class _LinkGoogleAccountScreenState extends State<LinkGoogleAccountScreen> {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      Text("Didn't receive the code? ", style: TextStyle(color: Colors.grey[600])),
+                      Text("Didn't receive the code? ", style: TextStyle(color: AppColors.lightTextSecondary)),
                       _canResend
                           ? GestureDetector(
                               onTap: _resendOTP,
                               child: Text('Resend OTP',
-                                  style: TextStyle(color: Colors.amber[700], fontWeight: FontWeight.bold, decoration: TextDecoration.underline)),
+                                  style: TextStyle(color: AppColors.primaryOrangeDark, fontWeight: FontWeight.bold, decoration: TextDecoration.underline)),
                             )
                           : Text('Resend in ${_resendCountdown}s', style: const TextStyle(color: Colors.grey)),
                     ],
@@ -281,13 +277,13 @@ class _LinkGoogleAccountScreenState extends State<LinkGoogleAccountScreen> {
                   child: ElevatedButton(
                     onPressed: _isLoading ? null : (_otpSent ? _verifyOTP : _sendOTP),
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.amber,
+                      backgroundColor: AppColors.primaryOrange,
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(12),
                       ),
                     ),
                     child: _isLoading
-                        ? const CircularProgressIndicator(color: Colors.white)
+                        ? const CircularProgressIndicator(color: AppColors.white)
                         : Text(
                             _otpSent ? 'Verify & Link Account' : 'Send OTP',
                             style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
@@ -301,11 +297,7 @@ class _LinkGoogleAccountScreenState extends State<LinkGoogleAccountScreen> {
                   onPressed: () => Navigator.of(context).pop(),
                   child: Text(
                     'Cancel',
-                    style: FontUtils.bodyText(
-                      color: Colors.amber[700],
-                      fontSize: 16,
-                      fontWeight: FontWeight.w600,
-                    ),
+                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600, color: AppColors.primaryOrangeDark, fontFamily: 'Roboto'),
                   ),
                 ),
               ],
@@ -316,3 +308,6 @@ class _LinkGoogleAccountScreenState extends State<LinkGoogleAccountScreen> {
     );
   }
 }
+
+
+

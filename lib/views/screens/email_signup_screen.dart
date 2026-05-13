@@ -3,6 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:lush/bloc/AuthBloc/auth_bloc.dart';
 import 'package:lush/bloc/AuthBloc/auth_events.dart';
 import 'package:lush/bloc/AuthBloc/auth_state.dart';
+import 'package:lush/utils/back_button_handler.dart';
 import 'package:toastification/toastification.dart';
 
 /// Step 2a (Email-first): Email Entry Screen
@@ -51,7 +52,21 @@ class EmailSignupScreenState extends State<EmailSignupScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
+    return PopScope(
+      canPop: false,
+      onPopInvokedWithResult: (didPop, result) async {
+        if (didPop) return;
+        final hasText = _emailController.text.isNotEmpty;
+        final shouldPop = await BackButtonHandler.handleBackPress(
+          context: context,
+          hasUnsavedChanges: hasText,
+          message: 'Email entry in progress. Are you sure you want to go back?',
+        );
+        if (shouldPop && context.mounted) {
+          Navigator.of(context).pop();
+        }
+      },
+      child: Scaffold(
       appBar: AppBar(
         title: const Text('Sign up with Email'),
         backgroundColor: Colors.amber,
@@ -161,6 +176,7 @@ class EmailSignupScreenState extends State<EmailSignupScreen> {
             ),
           ),
         ),
+      ),
       ),
     );
   }

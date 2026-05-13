@@ -3,6 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:lush/bloc/AuthBloc/auth_bloc.dart';
 import 'package:lush/bloc/AuthBloc/auth_events.dart';
 import 'package:lush/bloc/AuthBloc/auth_state.dart';
+import 'package:lush/utils/back_button_handler.dart';
 import 'package:pin_input_text_field/pin_input_text_field.dart';
 import 'package:toastification/toastification.dart';
 
@@ -96,7 +97,21 @@ class EmailVerificationScreenState extends State<EmailVerificationScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
+    return PopScope(
+      canPop: false,
+      onPopInvokedWithResult: (didPop, result) async {
+        if (didPop) return;
+        final hasOtp = _otpController.text.isNotEmpty;
+        final shouldPop = await BackButtonHandler.handleBackPress(
+          context: context,
+          hasUnsavedChanges: hasOtp,
+          message: 'Email verification in progress. Are you sure you want to go back?',
+        );
+        if (shouldPop && context.mounted) {
+          Navigator.of(context).pop();
+        }
+      },
+      child: Scaffold(
       appBar: AppBar(
         title: const Text('Verify Email'),
         backgroundColor: Colors.amber,
@@ -232,6 +247,7 @@ class EmailVerificationScreenState extends State<EmailVerificationScreen> {
             ),
           ),
         ),
+      ),
       ),
     );
   }

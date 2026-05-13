@@ -1,4 +1,4 @@
-﻿import 'package:carousel_slider/carousel_slider.dart';
+import 'package:carousel_slider/carousel_slider.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -12,19 +12,30 @@ import 'package:lush/get_it.dart';
 import 'package:lush/main.dart';
 import 'package:lush/services/secure_storage_service.dart';
 import 'package:lush/services/subscription_service_v2.dart';
+import 'package:lush/theme/app_colors.dart';
+import 'package:lush/theme/app_text_styles.dart';
+
+import 'package:lush/utils/back_button_handler.dart';
 import 'package:lush/views/models/subscription.dart';
 import 'package:lush/views/models/user.dart';
 import 'package:lush/views/widgets/shimmer_subscription_card.dart';
 import 'package:url_launcher/url_launcher.dart';
 
-import '../../theme.dart';
 import '../widgets/cart_icon.dart';
 import '../widgets/subscription_info_card.dart';
 
+
+/// Defines the display mode of the Dashboard.
+///
+/// - [full]: Shows all user-specific content (subscriptions, profile drawer, cart).
+/// - [public]: Shows public content only (promotions, plans, login prompts).
+enum DashboardMode { full, public }
+
 class Dashboard extends StatefulWidget {
   final UserRepository userRepository = getIt.get();
+  final DashboardMode mode;
 
-  Dashboard({super.key});
+  Dashboard({super.key, this.mode = DashboardMode.full});
 
   @override
   HomePage2State createState() => HomePage2State();
@@ -201,8 +212,7 @@ class HomePage2State extends State<Dashboard> with TickerProviderStateMixin {
                           style: TextStyle(
                             fontSize: 18.sp,
                             fontWeight: FontWeight.bold,
-                            color: LushTheme.darkerText,
-                            fontFamily: LushTheme.fontName,
+                            color: AppColors.lightTextPrimary,
                           ),
                         ),
                         const Spacer(),
@@ -216,8 +226,8 @@ class HomePage2State extends State<Dashboard> with TickerProviderStateMixin {
                                     decoration: BoxDecoration(
                                       shape: BoxShape.circle,
                                       color: _currentCarouselIndex == index
-                                          ? LushTheme.orangeAccent
-                                          : LushTheme.grey.withValues(alpha: 0.3),
+                                          ? AppColors.primaryOrange
+                                          : AppColors.grey,
                                     ),
                                   )),
                         ),
@@ -247,21 +257,21 @@ class HomePage2State extends State<Dashboard> with TickerProviderStateMixin {
                         'Special Offer',
                         'Get 20% off on your first subscription',
                         'Use code: NEWJUICE20',
-                        Colors.deepPurple,
+                        AppColors.secondaryTeal,
                         Icons.local_offer,
                       ),
                       _buildPromotionCard(
                         'Healthy Combo',
                         'Buy any 3 juices and get 1 free',
                         'Limited time offer',
-                        Colors.green,
+                        AppColors.success,
                         Icons.shopping_basket,
                       ),
                       _buildPromotionCard(
                         'Free Delivery',
                         'On all orders above ₹500',
                         'No coupon needed',
-                        Colors.blue,
+                        AppColors.info,
                         Icons.delivery_dining,
                       ),
                     ],
@@ -360,7 +370,7 @@ class HomePage2State extends State<Dashboard> with TickerProviderStateMixin {
                             gradient: LinearGradient(
                               colors: [
                                 Colors.transparent,
-                                LushTheme.orangeAccent
+                                AppColors.primaryOrange
                               ],
                             ),
                             borderRadius: BorderRadius.circular(2),
@@ -373,8 +383,7 @@ class HomePage2State extends State<Dashboard> with TickerProviderStateMixin {
                             style: TextStyle(
                               fontSize: 18.sp,
                               fontWeight: FontWeight.bold,
-                              color: LushTheme.darkerText,
-                              fontFamily: LushTheme.fontName,
+                              color: AppColors.lightTextPrimary,
                             ),
                           ),
                         ),
@@ -384,7 +393,7 @@ class HomePage2State extends State<Dashboard> with TickerProviderStateMixin {
                           decoration: BoxDecoration(
                             gradient: LinearGradient(
                               colors: [
-                                LushTheme.orangeAccent,
+                                AppColors.primaryOrange,
                                 Colors.transparent
                               ],
                             ),
@@ -438,7 +447,7 @@ class HomePage2State extends State<Dashboard> with TickerProviderStateMixin {
                                   ),
                                   child: Icon(
                                     Icons.shopping_cart_outlined,
-                                    color: Colors.white,
+                                    color: AppColors.white,
                                     size: 28.sp,
                                   ),
                                 ),
@@ -448,7 +457,7 @@ class HomePage2State extends State<Dashboard> with TickerProviderStateMixin {
                                   style: TextStyle(
                                     fontSize: 16.sp,
                                     fontWeight: FontWeight.bold,
-                                    color: Colors.white,
+                                    color: AppColors.white,
                                   ),
                                 ),
                                 SizedBox(height: 4.h),
@@ -457,7 +466,7 @@ class HomePage2State extends State<Dashboard> with TickerProviderStateMixin {
                                   style: TextStyle(
                                     fontSize: 16.sp,
                                     fontWeight: FontWeight.bold,
-                                    color: Colors.white,
+                                    color: AppColors.white,
                                   ),
                                 ),
                                 SizedBox(height: 8.h),
@@ -515,7 +524,7 @@ class HomePage2State extends State<Dashboard> with TickerProviderStateMixin {
                                   ),
                                   child: Icon(
                                     Icons.auto_awesome_outlined,
-                                    color: Colors.white,
+                                    color: AppColors.white,
                                     size: 28.sp,
                                   ),
                                 ),
@@ -525,7 +534,7 @@ class HomePage2State extends State<Dashboard> with TickerProviderStateMixin {
                                   style: TextStyle(
                                     fontSize: 16.sp,
                                     fontWeight: FontWeight.bold,
-                                    color: Colors.white,
+                                    color: AppColors.white,
                                   ),
                                 ),
                                 SizedBox(height: 4.h),
@@ -534,7 +543,7 @@ class HomePage2State extends State<Dashboard> with TickerProviderStateMixin {
                                   style: TextStyle(
                                     fontSize: 16.sp,
                                     fontWeight: FontWeight.bold,
-                                    color: Colors.white,
+                                    color: AppColors.white,
                                   ),
                                 ),
                                 SizedBox(height: 8.h),
@@ -567,13 +576,185 @@ class HomePage2State extends State<Dashboard> with TickerProviderStateMixin {
     return true;
   }
 
+  /// Shows a login prompt bottom sheet for unauthenticated users.
+  void _showLoginPrompt(BuildContext context) {
+    showModalBottomSheet(
+      context: context,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (context) => Padding(
+        padding: EdgeInsets.all(24.w),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Container(
+              width: 40.w,
+              height: 4.h,
+              decoration: BoxDecoration(
+                color: AppColors.grey,
+                borderRadius: BorderRadius.circular(2),
+              ),
+            ),
+            SizedBox(height: 24.h),
+            Icon(
+              Icons.local_cafe_outlined,
+              size: 64.sp,
+              color: AppColors.primaryOrange,
+            ),
+            SizedBox(height: 16.h),
+            Text(
+              'Welcome to BookMyJuice!',
+              style: AppTextStyles.textTheme.titleLarge?.copyWith(
+                color: AppColors.lightTextPrimary,
+              ),
+            ),
+            SizedBox(height: 8.h),
+            Text(
+              'Sign in or create an account to start ordering fresh juices.',
+              textAlign: TextAlign.center,
+              style: AppTextStyles.textTheme.bodyMedium?.copyWith(
+                color: AppColors.lightTextSecondary,
+              ),
+            ),
+            SizedBox(height: 24.h),
+            SizedBox(
+              width: double.infinity,
+              child: ElevatedButton(
+                onPressed: () {
+                  Navigator.pop(context);
+                  Navigator.pushNamed(context, '/login');
+                },
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppColors.primaryOrange,
+                  foregroundColor: AppColors.white,
+                  padding: EdgeInsets.symmetric(vertical: 16.h),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12.r),
+                  ),
+                ),
+                child: Text(
+                  'Sign In / Sign Up',
+                  style: AppTextStyles.textTheme.labelLarge?.copyWith(
+                    color: AppColors.white,
+                  ),
+                ),
+              ),
+            ),
+            SizedBox(height: 12.h),
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: Text(
+                'Continue browsing',
+                style: AppTextStyles.textTheme.bodyMedium?.copyWith(
+                  color: AppColors.lightTextSecondary,
+                ),
+              ),
+            ),
+            SizedBox(height: 8.h),
+          ],
+        ),
+      ),
+    );
+  }
+
+  /// Builds a login/signup card for public mode
+  Widget _buildLoginPromoCard(BuildContext context) {
+    return Padding(
+      padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 12.h),
+      child: Card(
+        elevation: 4,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(16.r),
+        ),
+        child: Container(
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              colors: [AppColors.primaryOrange, AppColors.primaryOrangeDark],
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+            ),
+            borderRadius: BorderRadius.circular(16.r),
+          ),
+          padding: EdgeInsets.all(20.w),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  Icon(Icons.local_fire_department, color: AppColors.white, size: 28.sp),
+                  SizedBox(width: 8.w),
+                  Text(
+                    'Fresh Juice, Daily Delivery!',
+                    style: AppTextStyles.textTheme.titleMedium?.copyWith(
+                      color: AppColors.white,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ],
+              ),
+              SizedBox(height: 12.h),
+              Text(
+                'Sign up today and get 20% off your first subscription order.',
+                style: AppTextStyles.textTheme.bodyMedium?.copyWith(
+                  color: AppColors.white.withValues(alpha: 0.9),
+                ),
+              ),
+              SizedBox(height: 16.h),
+              SizedBox(
+                width: double.infinity,
+                child: OutlinedButton(
+                  onPressed: () {
+                    Navigator.pushNamed(context, '/login');
+                  },
+                  style: OutlinedButton.styleFrom(
+                    foregroundColor: AppColors.white,
+                    side: const BorderSide(color: AppColors.white, width: 1.5),
+                    padding: EdgeInsets.symmetric(vertical: 14.h),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12.r),
+                    ),
+                  ),
+                  child: Text(
+                    'Get Started',
+                    style: AppTextStyles.textTheme.labelLarge?.copyWith(
+                      color: AppColors.white,
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
+    // Public mode: show dashboard without auth check
+    if (widget.mode == DashboardMode.public) {
+      return Container(
+        color: AppColors.lightBackground,
+        child: Scaffold(
+          bottomNavigationBar: buildBottomNavigationBarPublic(),
+          backgroundColor: Colors.transparent,
+          appBar: getAppBarUIPublic(),
+          body: Stack(
+            children: <Widget>[
+              getMainListViewUI(),
+            ],
+          ),
+        ),
+      );
+    }
+
+    // Full mode: authenticate first
     return BlocBuilder<AuthenticationBloc, AuthenticationState>(
       builder: (context, state) {
         if (state is AuthenticationSuccess) {
           return Container(
-            color: LushTheme.background,
+            color: AppColors.lightBackground,
             child: Scaffold(
               bottomNavigationBar: buildBottomNavigationBar(),
               drawer: buildDrawer(widget.userRepository.user),
@@ -587,7 +768,7 @@ class HomePage2State extends State<Dashboard> with TickerProviderStateMixin {
             ),
           );
         } else {
-          return CircularProgressIndicator();
+          return const Center(child: CircularProgressIndicator());
         }
       },
     );
@@ -604,14 +785,14 @@ class HomePage2State extends State<Dashboard> with TickerProviderStateMixin {
               children: [
                 CircularProgressIndicator(
                   valueColor:
-                      AlwaysStoppedAnimation<Color>(LushTheme.nearlyBlue),
+                      AlwaysStoppedAnimation<Color>(AppColors.info),
                 ),
                 SizedBox(height: 16.h),
                 Text(
                   'Loading your fresh juices...',
                   style: TextStyle(
                     fontSize: 16.sp,
-                    color: LushTheme.lightText,
+                    color: AppColors.lightTextSecondary,
                   ),
                 ),
               ],
@@ -628,7 +809,7 @@ class HomePage2State extends State<Dashboard> with TickerProviderStateMixin {
                 animationController.reset();
                 animationController.forward();
               },
-              color: LushTheme.orangeAccent,
+              color: AppColors.primaryOrange,
               child: ListView.builder(
                 controller: scrollController,
                 padding: EdgeInsets.only(
@@ -650,12 +831,106 @@ class HomePage2State extends State<Dashboard> with TickerProviderStateMixin {
     );
   }
 
+  /// Public mode AppBar with login button
+  AppBar getAppBarUIPublic() {
+    return AppBar(
+      backgroundColor: AppColors.white,
+      elevation: topBarOpacity * 4.0,
+      shadowColor: AppColors.grey,
+      centerTitle: true,
+      title: AnimatedOpacity(
+        duration: const Duration(milliseconds: 200),
+        opacity: topBarOpacity,
+        child: Text(
+          'BookMyJuice',
+          style: AppTextStyles.textTheme.titleLarge?.copyWith(
+            color: AppColors.primaryOrange,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+      ),
+      actions: [
+        TextButton.icon(
+          onPressed: () => _showLoginPrompt(context),
+          icon: Icon(Icons.login, color: AppColors.primaryOrange, size: 18.sp),
+          label: Text(
+            'Login',
+            style: AppTextStyles.textTheme.labelLarge?.copyWith(
+              color: AppColors.primaryOrange,
+            ),
+          ),
+        ),
+      ],
+      bottom: PreferredSize(
+        preferredSize: Size.fromHeight(topBarOpacity > 0.6 ? 1.0 : 0.0),
+        child: topBarOpacity > 0.6
+            ? Container(
+                height: 1.0,
+                color: AppColors.grey,
+              )
+            : Container(),
+      ),
+      automaticallyImplyLeading: false,
+    );
+  }
+
+  /// Public mode bottom nav with login prompt on auth-gated tabs
+  Widget buildBottomNavigationBarPublic() {
+    return Container(
+      decoration: BoxDecoration(
+        color: AppColors.white,
+        boxShadow: [
+          BoxShadow(
+            color: AppColors.grey,
+            spreadRadius: 1,
+            blurRadius: 10,
+            offset: const Offset(0, -2),
+          ),
+        ],
+      ),
+      child: SafeArea(
+        child: Padding(
+          padding: EdgeInsets.symmetric(horizontal: 8.w, vertical: 8.h),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceAround,
+            children: [
+              _buildNavItem(
+                icon: Icons.home_rounded,
+                label: 'Home',
+                isSelected: true,
+                onTap: () => Navigator.pushNamed(context, '/home'),
+              ),
+              _buildNavItem(
+                icon: Icons.subscriptions_rounded,
+                label: 'Plans',
+                isSelected: false,
+                onTap: () => _showLoginPrompt(context),
+              ),
+              _buildNavItem(
+                icon: Icons.menu_book_rounded,
+                label: 'menu',
+                isSelected: false,
+                onTap: () => Navigator.pushNamed(context, '/menu'),
+              ),
+              _buildNavItem(
+                icon: Icons.account_circle_rounded,
+                label: 'Account',
+                isSelected: false,
+                onTap: () => _showLoginPrompt(context),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
   // Enhanced AppBar with better visual design and user experience
   AppBar getAppBarUI() {
     return AppBar(
-      backgroundColor: LushTheme.white,
+      backgroundColor: AppColors.white,
       elevation: topBarOpacity * 4.0,
-      shadowColor: LushTheme.grey.withValues(alpha: 0.2),
+      shadowColor: AppColors.grey,
       titleSpacing: 0,
       title: AnimatedOpacity(
         duration: const Duration(milliseconds: 200),
@@ -665,8 +940,7 @@ class HomePage2State extends State<Dashboard> with TickerProviderStateMixin {
           style: TextStyle(
             fontSize: 20.sp,
             fontWeight: FontWeight.bold,
-            color: LushTheme.nearlyBlue,
-            fontFamily: LushTheme.fontName,
+            color: AppColors.info,
           ),
         ),
       ),
@@ -675,13 +949,13 @@ class HomePage2State extends State<Dashboard> with TickerProviderStateMixin {
         builder: (context) => Container(
           margin: EdgeInsets.all(8.w),
           decoration: BoxDecoration(
-            color: LushTheme.nearlyBlue.withValues(alpha: 0.1),
+            color: AppColors.info.withValues(alpha: 0.1),
             borderRadius: BorderRadius.circular(12.r),
           ),
           child: IconButton(
             icon: Icon(
               Icons.menu_rounded,
-              color: LushTheme.nearlyBlue,
+              color: AppColors.info,
               size: 24.sp,
             ),
             onPressed: () {
@@ -700,13 +974,13 @@ class HomePage2State extends State<Dashboard> with TickerProviderStateMixin {
             children: [
               CartIcon(
                 onTap: () => _handleCartTap(context),
-                iconColor: LushTheme.nearlyBlue,
-                backgroundColor: LushTheme.nearlyBlue.withValues(alpha: 0.1),
+                iconColor: AppColors.info,
+                backgroundColor: AppColors.info.withValues(alpha: 0.1),
               ),
               SizedBox(width: 8.w),
               PopupMenuButton<String>(
                 icon: Icon(Icons.more_vert,
-                    color: LushTheme.nearlyBlue, size: 22.sp),
+                    color: AppColors.info, size: 22.sp),
                 onSelected: (value) {
                   switch (value) {
                     case 'subscriptions':
@@ -744,7 +1018,7 @@ class HomePage2State extends State<Dashboard> with TickerProviderStateMixin {
         child: topBarOpacity > 0.6
             ? Container(
                 height: 1.0,
-                color: LushTheme.grey.withValues(alpha: 0.2),
+                color: AppColors.grey,
               )
             : Container(),
       ),
@@ -755,7 +1029,7 @@ class HomePage2State extends State<Dashboard> with TickerProviderStateMixin {
   // Enhanced drawer with better visual design and user experience
   Widget buildDrawer(User user) {
     return Drawer(
-      backgroundColor: LushTheme.white,
+      backgroundColor: AppColors.white,
       child: ListView(
         padding: EdgeInsets.zero,
         children: <Widget>[
@@ -766,7 +1040,7 @@ class HomePage2State extends State<Dashboard> with TickerProviderStateMixin {
             decoration: BoxDecoration(
               gradient: LinearGradient(
                 colors: [
-                  LushTheme.nearlyBlue,
+                  AppColors.info,
                   Color(0xFF3F51B5),
                 ],
                 begin: Alignment.topLeft,
@@ -774,7 +1048,7 @@ class HomePage2State extends State<Dashboard> with TickerProviderStateMixin {
               ),
               boxShadow: [
                 BoxShadow(
-                  color: LushTheme.nearlyBlue.withValues(alpha: 0.3),
+                  color: AppColors.info.withValues(alpha: 0.3),
                   blurRadius: 10,
                   offset: const Offset(0, 4),
                 ),
@@ -790,7 +1064,7 @@ class HomePage2State extends State<Dashboard> with TickerProviderStateMixin {
                     shape: BoxShape.circle,
                     boxShadow: [
                       BoxShadow(
-                        color: Colors.black.withValues(alpha: 0.2),
+                        color: AppColors.nearlyBlack.withValues(alpha: 0.2),
                         blurRadius: 10,
                         offset: const Offset(0, 4),
                       ),
@@ -798,7 +1072,7 @@ class HomePage2State extends State<Dashboard> with TickerProviderStateMixin {
                   ),
                   child: CircleAvatar(
                     radius: 40.r,
-                    backgroundColor: LushTheme.white,
+                    backgroundColor: AppColors.white,
                     child: Text(
                       user.firstName.isNotEmpty
                           ? user.firstName[0].toUpperCase()
@@ -806,7 +1080,7 @@ class HomePage2State extends State<Dashboard> with TickerProviderStateMixin {
                       style: TextStyle(
                         fontSize: 32.sp,
                         fontWeight: FontWeight.bold,
-                        color: LushTheme.nearlyBlue,
+                        color: AppColors.info,
                       ),
                     ),
                   ),
@@ -822,11 +1096,10 @@ class HomePage2State extends State<Dashboard> with TickerProviderStateMixin {
                   style: TextStyle(
                     fontSize: 20.sp,
                     fontWeight: FontWeight.bold,
-                    color: Colors.white,
-                    fontFamily: LushTheme.fontName,
+                    color: AppColors.white,
                     shadows: [
                       Shadow(
-                        color: Colors.black.withValues(alpha: 0.3),
+                        color: AppColors.nearlyBlack.withValues(alpha: 0.3),
                         blurRadius: 2,
                         offset: const Offset(0, 1),
                       ),
@@ -840,7 +1113,6 @@ class HomePage2State extends State<Dashboard> with TickerProviderStateMixin {
                   style: TextStyle(
                     fontSize: 12.sp,
                     color: Colors.white.withValues(alpha: 0.8),
-                    fontFamily: LushTheme.fontName,
                   ),
                 ),
                 SizedBox(height: 8.h),
@@ -858,7 +1130,6 @@ class HomePage2State extends State<Dashboard> with TickerProviderStateMixin {
                       style: TextStyle(
                         fontSize: 16.sp,
                         color: Colors.white.withValues(alpha: 0.9),
-                        fontFamily: LushTheme.fontName,
                       ),
                     ),
                   ],
@@ -882,7 +1153,7 @@ class HomePage2State extends State<Dashboard> with TickerProviderStateMixin {
                       Icon(
                         Icons.star,
                         size: 14.sp,
-                        color: Colors.amber,
+                        color: AppColors.primaryOrange,
                       ),
                       SizedBox(width: 4.w),
                       Text(
@@ -890,8 +1161,7 @@ class HomePage2State extends State<Dashboard> with TickerProviderStateMixin {
                         style: TextStyle(
                           fontSize: 12.sp,
                           fontWeight: FontWeight.w600,
-                          color: Colors.white,
-                          fontFamily: LushTheme.fontName,
+                          color: AppColors.white,
                         ),
                       ),
                     ],
@@ -912,7 +1182,7 @@ class HomePage2State extends State<Dashboard> with TickerProviderStateMixin {
               style: TextStyle(
                 fontSize: 12.sp,
                 fontWeight: FontWeight.w600,
-                color: LushTheme.lightText,
+                color: AppColors.lightTextSecondary,
                 letterSpacing: 1.2,
               ),
             ),
@@ -964,7 +1234,7 @@ class HomePage2State extends State<Dashboard> with TickerProviderStateMixin {
               style: TextStyle(
                 fontSize: 12.sp,
                 fontWeight: FontWeight.w600,
-                color: LushTheme.lightText,
+                color: AppColors.lightTextSecondary,
                 letterSpacing: 1.2,
               ),
             ),
@@ -996,7 +1266,7 @@ class HomePage2State extends State<Dashboard> with TickerProviderStateMixin {
               style: TextStyle(
                 fontSize: 12.sp,
                 fontWeight: FontWeight.w600,
-                color: LushTheme.lightText,
+                color: AppColors.lightTextSecondary,
                 letterSpacing: 1.2,
               ),
             ),
@@ -1022,7 +1292,7 @@ class HomePage2State extends State<Dashboard> with TickerProviderStateMixin {
 
           Padding(
             padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 16.h),
-            child: Divider(color: LushTheme.grey.withValues(alpha: 0.3)),
+            child: Divider(color: AppColors.grey),
           ),
 
           _buildDrawerItem(
@@ -1048,8 +1318,8 @@ class HomePage2State extends State<Dashboard> with TickerProviderStateMixin {
                             .add(LogOut());
                       },
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.red,
-                        foregroundColor: Colors.white,
+                        backgroundColor: AppColors.error,
+                        foregroundColor: AppColors.white,
                       ),
                       child: Text('LOGOUT'),
                     ),
@@ -1057,7 +1327,7 @@ class HomePage2State extends State<Dashboard> with TickerProviderStateMixin {
                 ),
               );
             },
-            iconColor: Colors.red,
+            iconColor: AppColors.error,
             isDestructive: true,
           ),
 
@@ -1091,15 +1361,15 @@ class HomePage2State extends State<Dashboard> with TickerProviderStateMixin {
                   height: 40.w,
                   decoration: BoxDecoration(
                     color: isDestructive
-                        ? Colors.red.withValues(alpha: 0.1)
-                        : LushTheme.nearlyBlue.withValues(alpha: 0.1),
+                        ? AppColors.error.withValues(alpha: 0.1)
+                        : AppColors.info.withValues(alpha: 0.1),
                     borderRadius: BorderRadius.circular(10.r),
                   ),
                   child: Icon(
                     icon,
                     size: 20.sp,
                     color: iconColor ??
-                        (isDestructive ? Colors.red : LushTheme.nearlyBlue),
+                        (isDestructive ? AppColors.error : AppColors.info),
                   ),
                 ),
                 SizedBox(width: 16.w),
@@ -1113,7 +1383,7 @@ class HomePage2State extends State<Dashboard> with TickerProviderStateMixin {
                           fontSize: 16.sp,
                           fontWeight: FontWeight.w600,
                           color:
-                              isDestructive ? Colors.red : LushTheme.darkerText,
+                              isDestructive ? AppColors.error : AppColors.lightTextPrimary,
                         ),
                       ),
                       SizedBox(height: 2.h),
@@ -1121,7 +1391,7 @@ class HomePage2State extends State<Dashboard> with TickerProviderStateMixin {
                         subtitle,
                         style: TextStyle(
                           fontSize: 12.sp,
-                          color: LushTheme.lightText,
+                          color: AppColors.lightTextSecondary,
                         ),
                       ),
                     ],
@@ -1130,7 +1400,7 @@ class HomePage2State extends State<Dashboard> with TickerProviderStateMixin {
                 Icon(
                   Icons.arrow_forward_ios,
                   size: 16.sp,
-                  color: LushTheme.lightText,
+                  color: AppColors.lightTextSecondary,
                 ),
               ],
             ),
@@ -1197,7 +1467,7 @@ class HomePage2State extends State<Dashboard> with TickerProviderStateMixin {
                     style: TextStyle(
                       fontSize: 10.sp,
                       fontWeight: FontWeight.bold,
-                      color: Colors.white,
+                      color: AppColors.white,
                     ),
                   ),
                 ),
@@ -1209,7 +1479,7 @@ class HomePage2State extends State<Dashboard> with TickerProviderStateMixin {
                   style: TextStyle(
                     fontSize: 16.sp,
                     fontWeight: FontWeight.bold,
-                    color: Colors.white,
+                    color: AppColors.white,
                   ),
                 ),
                 SizedBox(height: 4.h),
@@ -1240,7 +1510,7 @@ class HomePage2State extends State<Dashboard> with TickerProviderStateMixin {
                       }
                     },
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.white,
+                      backgroundColor: AppColors.white,
                       foregroundColor: color,
                       padding:
                           EdgeInsets.symmetric(horizontal: 12.w, vertical: 0),
@@ -1269,10 +1539,10 @@ class HomePage2State extends State<Dashboard> with TickerProviderStateMixin {
   Widget buildBottomNavigationBar() {
     return Container(
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: AppColors.white,
         boxShadow: [
           BoxShadow(
-            color: Colors.grey.withValues(alpha: 0.2),
+            color: AppColors.grey,
             spreadRadius: 1,
             blurRadius: 10,
             offset: const Offset(0, -2),
@@ -1359,7 +1629,7 @@ class HomePage2State extends State<Dashboard> with TickerProviderStateMixin {
         padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 8.h),
         decoration: BoxDecoration(
           color: isSelected
-              ? LushTheme.orangeAccent.withValues(alpha: 0.1)
+              ? AppColors.primaryOrange.withValues(alpha: 0.1)
               : Colors.transparent,
           borderRadius: BorderRadius.circular(12.r),
         ),
@@ -1368,14 +1638,14 @@ class HomePage2State extends State<Dashboard> with TickerProviderStateMixin {
           children: [
             Icon(
               icon,
-              color: isSelected ? LushTheme.orangeAccent : Colors.grey,
+              color: isSelected ? AppColors.primaryOrange : Colors.grey,
               size: 24.sp,
             ),
             SizedBox(height: 4.h),
             Text(
               label,
               style: TextStyle(
-                color: isSelected ? LushTheme.orangeAccent : Colors.grey,
+                color: isSelected ? AppColors.primaryOrange : Colors.grey,
                 fontSize: 12.sp,
                 fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
               ),

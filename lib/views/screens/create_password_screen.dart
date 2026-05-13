@@ -4,6 +4,7 @@ import 'package:flutter_pw_validator/flutter_pw_validator.dart';
 import 'package:lush/bloc/AuthBloc/auth_bloc.dart';
 import 'package:lush/bloc/AuthBloc/auth_events.dart';
 import 'package:lush/bloc/AuthBloc/auth_state.dart';
+import 'package:lush/utils/back_button_handler.dart';
 import 'package:toastification/toastification.dart';
 
 /// Step 4: Create Password Screen (Final step before account creation)
@@ -81,7 +82,22 @@ class CreatePasswordScreenState extends State<CreatePasswordScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
+    return PopScope(
+      canPop: false,
+      onPopInvokedWithResult: (didPop, result) async {
+        if (didPop) return;
+        final hasText = _passwordController.text.isNotEmpty ||
+            _confirmPasswordController.text.isNotEmpty;
+        final shouldPop = await BackButtonHandler.handleBackPress(
+          context: context,
+          hasUnsavedChanges: hasText,
+          message: 'Password entry in progress. Are you sure you want to go back?',
+        );
+        if (shouldPop && context.mounted) {
+          Navigator.of(context).pop();
+        }
+      },
+      child: Scaffold(
       appBar: AppBar(
         title: const Text('Create Password'),
         backgroundColor: Colors.amber,
@@ -251,6 +267,7 @@ class CreatePasswordScreenState extends State<CreatePasswordScreen> {
             ),
           ),
         ),
+      ),
       ),
     );
   }

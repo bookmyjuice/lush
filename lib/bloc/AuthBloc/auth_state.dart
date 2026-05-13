@@ -1,16 +1,14 @@
 import 'package:equatable/equatable.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:lush/views/models/user.dart';
 
 abstract class AuthenticationState extends Equatable {
-  const AuthenticationState({Key? key});
+  const AuthenticationState();
   @override
   List<Object?> get props => [];
 }
 
 class AuthenticationInitiated extends AuthenticationState {
-  final Key key;
-  const AuthenticationInitiated(this.key);
+  const AuthenticationInitiated();
   @override
   List<Object?> get props => [];
 }
@@ -18,7 +16,7 @@ class AuthenticationInitiated extends AuthenticationState {
 class AutoLoginFailed extends AuthenticationState {
   final String toast_message, toast_heading;
 
-  const AutoLoginFailed({super.key, required this.toast_message, required this.toast_heading});
+  const AutoLoginFailed({required this.toast_message, required this.toast_heading});
   @override
   List<Object?> get props => [toast_heading, toast_message];
 }
@@ -26,7 +24,7 @@ class AutoLoginFailed extends AuthenticationState {
 class LogInFailed extends AuthenticationState {
   final String toast_message, toast_heading;
 
-  const LogInFailed({super.key, required this.toast_message, required this.toast_heading});
+  const LogInFailed({required this.toast_message, required this.toast_heading});
 
   @override
   List<Object?> get props => [toast_heading, toast_message];
@@ -54,7 +52,7 @@ class AuthenticationInProgress extends AuthenticationState {
 class InternetIssue extends AuthenticationState {
   final String toast_message, toast_heading;
 
-  const InternetIssue({super.key, required this.toast_message, required this.toast_heading});
+  const InternetIssue({required this.toast_message, required this.toast_heading});
   @override
   List<Object?> get props => [toast_heading, toast_message];
 }
@@ -62,7 +60,7 @@ class InternetIssue extends AuthenticationState {
 class SignUpFailed extends AuthenticationState {
   final String error_heading, error;
 
-  const SignUpFailed({super.key, required this.error_heading, required this.error});
+  const SignUpFailed({required this.error_heading, required this.error});
 
   @override
   List<Object?> get props => [error_heading, error];
@@ -335,4 +333,52 @@ class EmailVerificationCodeSent extends AuthenticationState {
 
   @override
   List<Object?> get props => [email];
+}
+
+// ============================================================
+// Firebase Phone Auth States (co-exists as alternative)
+// ============================================================
+
+/// Firebase Phone Auth SMS has been sent to the user's phone.
+class FirebasePhoneOtpSentState extends AuthenticationState {
+  final String phone;
+  final String verificationId;
+
+  const FirebasePhoneOtpSentState({
+    required this.phone,
+    required this.verificationId,
+  });
+
+  @override
+  List<Object?> get props => [phone, verificationId];
+}
+
+/// Firebase Phone Auth verification succeeded.
+class FirebasePhoneVerified extends AuthenticationState {
+  final String phone;
+
+  const FirebasePhoneVerified({required this.phone});
+
+  @override
+  List<Object?> get props => [phone];
+}
+
+/// Firebase Phone Auth verification failed.
+class FirebasePhoneVerificationFailed extends AuthenticationState {
+  final String error;
+
+  const FirebasePhoneVerificationFailed({required this.error});
+
+  @override
+  List<Object?> get props => [error];
+}
+
+/// Firebase Phone Auth is in progress (code sent, waiting for user input).
+class FirebasePhoneAuthInProgress extends AuthenticationState {
+  final String phone;
+
+  const FirebasePhoneAuthInProgress({required this.phone});
+
+  @override
+  List<Object?> get props => [phone];
 }

@@ -1,9 +1,10 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import '../../UserRepository/user_repository.dart';
 import '../widgets/app_card.dart';
-import '../../theme.dart';
 import '../models/order.dart';
+import 'package:lush/theme/app_colors.dart';
+import 'package:lush/theme/app_text_styles.dart';
 
 class OrderHistoryPage extends StatefulWidget {
   const OrderHistoryPage({super.key});
@@ -48,22 +49,22 @@ class _OrderHistoryPageState extends State<OrderHistoryPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: LushTheme.background,
+      backgroundColor: AppColors.lightBackground,
       appBar: AppBar(
-        backgroundColor: LushTheme.white,
+        backgroundColor: AppColors.white,
         elevation: 0,
         title: Text(
           'Orders',
           style: TextStyle(
             fontSize: 20.sp,
             fontWeight: FontWeight.bold,
-            color: LushTheme.darkerText,
+            color: AppColors.lightTextPrimary,
           ),
         ),
         leading: IconButton(
           icon: Icon(
             Icons.arrow_back_ios,
-            color: LushTheme.darkerText,
+            color: AppColors.lightTextPrimary,
             size: 20.sp,
           ),
           onPressed: () => Navigator.pop(context),
@@ -75,7 +76,7 @@ class _OrderHistoryPageState extends State<OrderHistoryPage> {
           Container(
             margin: EdgeInsets.all(20.w),
             decoration: BoxDecoration(
-              color: LushTheme.grey.withValues(alpha: 0.1),
+              color: AppColors.grey,
               borderRadius: BorderRadius.circular(25.r),
             ),
             child: Row(
@@ -122,7 +123,7 @@ class _OrderHistoryPageState extends State<OrderHistoryPage> {
                 date: order.createdAt,
                 status: order.status,
                 items: order.items.isNotEmpty ? order.items : ['No items'],
-                total: '₹${order.total}',
+                total: '?${order.total}',
                 statusColor: _getStatusColor(order.status),
               ))
           .toList(),
@@ -132,12 +133,12 @@ class _OrderHistoryPageState extends State<OrderHistoryPage> {
   Color _getStatusColor(String status) {
     switch (status) {
       case 'DELIVERED':
-        return Colors.green;
+        return AppColors.success;
       case 'QUEUED':
       case 'PROCESSING':
-        return Colors.orange;
+        return AppColors.primaryOrange;
       case 'CANCELLED':
-        return Colors.red;
+        return AppColors.error;
       default:
         return Colors.grey;
     }
@@ -152,12 +153,12 @@ class _OrderHistoryPageState extends State<OrderHistoryPage> {
           padding: EdgeInsets.symmetric(vertical: 12.h),
           margin: EdgeInsets.all(4.w),
           decoration: BoxDecoration(
-            color: isSelected ? LushTheme.white : Colors.transparent,
+            color: isSelected ? AppColors.white : Colors.transparent,
             borderRadius: BorderRadius.circular(20.r),
             boxShadow: isSelected
                 ? [
                     BoxShadow(
-                      color: LushTheme.grey.withValues(alpha: 0.1),
+                      color: AppColors.grey,
                       spreadRadius: 1,
                       blurRadius: 4,
                       offset: const Offset(0, 2),
@@ -171,7 +172,7 @@ class _OrderHistoryPageState extends State<OrderHistoryPage> {
               style: TextStyle(
                 fontSize: 14.sp,
                 fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
-                color: isSelected ? LushTheme.darkerText : LushTheme.lightText,
+                color: isSelected ? AppColors.lightTextPrimary : AppColors.lightTextSecondary,
               ),
             ),
           ),
@@ -206,7 +207,7 @@ class _OrderHistoryPageState extends State<OrderHistoryPage> {
                       style: TextStyle(
                         fontSize: 16.sp,
                         fontWeight: FontWeight.bold,
-                        color: LushTheme.darkerText,
+                        color: AppColors.lightTextPrimary,
                       ),
                     ),
                     SizedBox(height: 4.h),
@@ -214,7 +215,7 @@ class _OrderHistoryPageState extends State<OrderHistoryPage> {
                       date,
                       style: TextStyle(
                         fontSize: 14.sp,
-                        color: LushTheme.lightText,
+                        color: AppColors.lightTextSecondary,
                       ),
                     ),
                   ],
@@ -249,7 +250,7 @@ class _OrderHistoryPageState extends State<OrderHistoryPage> {
                 style: TextStyle(
                   fontSize: 14.sp,
                   fontWeight: FontWeight.w600,
-                  color: LushTheme.darkerText,
+                  color: AppColors.lightTextPrimary,
                 ),
               ),
               SizedBox(height: 8.h),
@@ -261,7 +262,7 @@ class _OrderHistoryPageState extends State<OrderHistoryPage> {
                           width: 4.w,
                           height: 4.w,
                           decoration: BoxDecoration(
-                            color: LushTheme.lightText,
+                            color: AppColors.lightTextSecondary,
                             shape: BoxShape.circle,
                           ),
                         ),
@@ -270,7 +271,7 @@ class _OrderHistoryPageState extends State<OrderHistoryPage> {
                           item,
                           style: TextStyle(
                             fontSize: 14.sp,
-                            color: LushTheme.lightText,
+                            color: AppColors.lightTextSecondary,
                           ),
                         ),
                       ],
@@ -288,7 +289,7 @@ class _OrderHistoryPageState extends State<OrderHistoryPage> {
                 'Total: ',
                 style: TextStyle(
                   fontSize: 14.sp,
-                  color: LushTheme.lightText,
+                  color: AppColors.lightTextSecondary,
                 ),
               ),
               Text(
@@ -296,7 +297,7 @@ class _OrderHistoryPageState extends State<OrderHistoryPage> {
                 style: TextStyle(
                   fontSize: 16.sp,
                   fontWeight: FontWeight.bold,
-                  color: LushTheme.darkerText,
+                  color: AppColors.lightTextPrimary,
                 ),
               ),
               Spacer(),
@@ -310,7 +311,7 @@ class _OrderHistoryPageState extends State<OrderHistoryPage> {
                     style: TextStyle(
                       fontSize: 14.sp,
                       fontWeight: FontWeight.w600,
-                      color: LushTheme.nearlyBlue,
+                      color: AppColors.info,
                     ),
                   ),
                 ),
@@ -324,7 +325,7 @@ class _OrderHistoryPageState extends State<OrderHistoryPage> {
                     style: TextStyle(
                       fontSize: 14.sp,
                       fontWeight: FontWeight.w600,
-                      color: LushTheme.nearlyBlue,
+                      color: AppColors.info,
                     ),
                   ),
                 ),

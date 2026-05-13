@@ -1,7 +1,7 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import '../widgets/app_card.dart';
-import '../../theme.dart';
+import 'package:lush/theme/app_colors.dart';
 
 class SettingsPage extends StatefulWidget {
   const SettingsPage({super.key});
@@ -18,22 +18,22 @@ class _SettingsPageState extends State<SettingsPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: LushTheme.background,
+      backgroundColor: AppColors.lightBackground,
       appBar: AppBar(
-        backgroundColor: LushTheme.white,
+        backgroundColor: AppColors.white,
         elevation: 0,
         title: Text(
           'Settings',
           style: TextStyle(
             fontSize: 20.sp,
             fontWeight: FontWeight.bold,
-            color: LushTheme.darkerText,
+            color: AppColors.lightTextPrimary,
           ),
         ),
         leading: IconButton(
           icon: Icon(
             Icons.arrow_back_ios,
-            color: LushTheme.darkerText,
+            color: AppColors.lightTextPrimary,
             size: 20.sp,
           ),
           onPressed: () => Navigator.pop(context),
@@ -56,14 +56,14 @@ class _SettingsPageState extends State<SettingsPage> {
                     _notificationsEnabled,
                     (value) => setState(() => _notificationsEnabled = value),
                   ),
-                  Divider(color: LushTheme.grey.withValues(alpha: 0.3)),
+                  Divider(color: AppColors.grey.withValues(alpha: 0.3)),
                   _buildSwitchTile(
                     'Email Updates',
                     'Get newsletters and promotions',
                     _emailUpdatesEnabled,
                     (value) => setState(() => _emailUpdatesEnabled = value),
                   ),
-                  Divider(color: LushTheme.grey.withValues(alpha: 0.3)),
+                  Divider(color: AppColors.grey.withValues(alpha: 0.3)),
                   _buildSwitchTile(
                     'SMS Alerts',
                     'Delivery notifications via SMS',
@@ -89,7 +89,7 @@ class _SettingsPageState extends State<SettingsPage> {
                       // Navigate to profile edit
                     },
                   ),
-                  Divider(color: LushTheme.grey.withValues(alpha: 0.3)),
+                  Divider(color: AppColors.grey.withValues(alpha: 0.3)),
                   _buildActionTile(
                     Icons.location_on_outlined,
                     'Delivery Address',
@@ -98,7 +98,7 @@ class _SettingsPageState extends State<SettingsPage> {
                       // Navigate to address management
                     },
                   ),
-                  Divider(color: LushTheme.grey.withValues(alpha: 0.3)),
+                  Divider(color: AppColors.grey.withValues(alpha: 0.3)),
                   _buildActionTile(
                     Icons.payment_outlined,
                     'Payment Methods',
@@ -126,7 +126,7 @@ class _SettingsPageState extends State<SettingsPage> {
                       // Navigate to help center
                     },
                   ),
-                  Divider(color: LushTheme.grey.withValues(alpha: 0.3)),
+                  Divider(color: AppColors.grey.withValues(alpha: 0.3)),
                   _buildActionTile(
                     Icons.chat_outlined,
                     'Contact Us',
@@ -135,7 +135,7 @@ class _SettingsPageState extends State<SettingsPage> {
                       // Navigate to contact
                     },
                   ),
-                  Divider(color: LushTheme.grey.withValues(alpha: 0.3)),
+                  Divider(color: AppColors.grey.withValues(alpha: 0.3)),
                   _buildActionTile(
                     Icons.star_outline,
                     'Rate App',
@@ -163,7 +163,7 @@ class _SettingsPageState extends State<SettingsPage> {
                       // Navigate to terms
                     },
                   ),
-                  Divider(color: LushTheme.grey.withValues(alpha: 0.3)),
+                  Divider(color: AppColors.grey.withValues(alpha: 0.3)),
                   _buildActionTile(
                     Icons.privacy_tip_outlined,
                     'Privacy Policy',
@@ -182,7 +182,7 @@ class _SettingsPageState extends State<SettingsPage> {
                 'Version 1.0.0',
                 style: TextStyle(
                   fontSize: 14.sp,
-                  color: LushTheme.lightText,
+                  color: AppColors.lightTextSecondary,
                 ),
               ),
             ),
@@ -199,7 +199,7 @@ class _SettingsPageState extends State<SettingsPage> {
       style: TextStyle(
         fontSize: 18.sp,
         fontWeight: FontWeight.bold,
-        color: LushTheme.darkerText,
+        color: AppColors.lightTextPrimary,
       ),
     );
   }
@@ -223,7 +223,7 @@ class _SettingsPageState extends State<SettingsPage> {
                   style: TextStyle(
                     fontSize: 16.sp,
                     fontWeight: FontWeight.w600,
-                    color: LushTheme.darkerText,
+                    color: AppColors.lightTextPrimary,
                   ),
                 ),
                 SizedBox(height: 4.h),
@@ -231,7 +231,7 @@ class _SettingsPageState extends State<SettingsPage> {
                   subtitle,
                   style: TextStyle(
                     fontSize: 14.sp,
-                    color: LushTheme.lightText,
+                    color: AppColors.lightTextSecondary,
                   ),
                 ),
               ],
@@ -240,8 +240,8 @@ class _SettingsPageState extends State<SettingsPage> {
           Switch(
             value: value,
             onChanged: onChanged,
-            activeThumbColor: LushTheme.nearlyBlue,
-            activeTrackColor: LushTheme.nearlyBlue.withValues(alpha: 0.3),
+            activeThumbColor: AppColors.info,
+            activeTrackColor: AppColors.info.withValues(alpha: 0.3),
           ),
         ],
       ),
@@ -265,13 +265,13 @@ class _SettingsPageState extends State<SettingsPage> {
               width: 40.w,
               height: 40.w,
               decoration: BoxDecoration(
-                color: LushTheme.nearlyBlue.withValues(alpha: 0.1),
+                color: AppColors.info.withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(10.r),
               ),
               child: Icon(
                 icon,
                 size: 20.sp,
-                color: LushTheme.nearlyBlue,
+                color: AppColors.info,
               ),
             ),
             SizedBox(width: 16.w),
@@ -284,7 +284,7 @@ class _SettingsPageState extends State<SettingsPage> {
                     style: TextStyle(
                       fontSize: 16.sp,
                       fontWeight: FontWeight.w600,
-                      color: LushTheme.darkerText,
+                      color: AppColors.lightTextPrimary,
                     ),
                   ),
                   SizedBox(height: 4.h),
@@ -292,7 +292,7 @@ class _SettingsPageState extends State<SettingsPage> {
                     subtitle,
                     style: TextStyle(
                       fontSize: 14.sp,
-                      color: LushTheme.lightText,
+                      color: AppColors.lightTextSecondary,
                     ),
                   ),
                 ],
@@ -301,7 +301,7 @@ class _SettingsPageState extends State<SettingsPage> {
             Icon(
               Icons.arrow_forward_ios,
               size: 16.sp,
-              color: LushTheme.lightText,
+              color: AppColors.lightTextSecondary,
             ),
           ],
         ),

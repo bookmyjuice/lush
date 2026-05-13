@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_pw_validator/flutter_pw_validator.dart';
 import 'package:lush/UserRepository/user_repository.dart';
-import 'package:lush/utils/font_utils.dart';
+
 import 'package:pin_input_text_field/pin_input_text_field.dart';
 import 'package:toastification/toastification.dart';
+import 'package:lush/theme/app_colors.dart';
 
 /// BR-009 Method 1: Reset password via mobile OTP
 /// Flow: Enter OTP → Verify → Enter new password → Submit
@@ -135,7 +136,7 @@ class _ResetPasswordMobileScreenState extends State<ResetPasswordMobileScreen> {
     return Scaffold(
       appBar: AppBar(
         title: Text(_isOtpVerified ? 'Set New Password' : 'Verify OTP'),
-        backgroundColor: Colors.amber,
+        backgroundColor: AppColors.primaryOrange,
         centerTitle: true,
       ),
       body: SafeArea(
@@ -152,30 +153,26 @@ class _ResetPasswordMobileScreenState extends State<ResetPasswordMobileScreen> {
       crossAxisAlignment: CrossAxisAlignment.center,
       children: [
         SizedBox(height: 30),
-        Icon(Icons.phone_android, size: 80, color: Colors.amber),
+        Icon(Icons.phone_android, size: 80, color: AppColors.primaryOrange),
         SizedBox(height: 20),
         Text(
           'Verify Your Phone',
-          style: FontUtils.heading1(
-            color: Colors.black87,
-            fontSize: 24,
-            fontWeight: FontWeight.bold,
-          ),
+          style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: AppColors.lightTextPrimary, fontFamily: 'Roboto'),
         ),
         SizedBox(height: 8),
         Text(
           _phone.isNotEmpty ? 'Code sent to $_phone' : 'Enter the 6-digit code',
-          style: FontUtils.bodyText(color: Colors.grey[600], fontSize: 14),
+          style: TextStyle(fontSize: 14, color: AppColors.lightTextSecondary, fontFamily: 'Roboto'),
           textAlign: TextAlign.center,
         ),
         SizedBox(height: 30),
-        Text('Enter OTP', style: FontUtils.bodyText(color: Colors.black87, fontSize: 16, fontWeight: FontWeight.w600)),
+        Text('Enter OTP', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600, color: AppColors.lightTextPrimary, fontFamily: 'Roboto')),
         SizedBox(height: 16),
         PinInputTextField(
           pinLength: 6,
           autoFocus: true,
           decoration: UnderlineDecoration(
-            colorBuilder: PinListenColorBuilder(Colors.amber, Colors.green),
+            colorBuilder: PinListenColorBuilder(AppColors.primaryOrange, AppColors.success),
             textStyle: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
           ),
           onSubmit: (pin) {
@@ -190,11 +187,11 @@ class _ResetPasswordMobileScreenState extends State<ResetPasswordMobileScreen> {
           child: ElevatedButton(
             onPressed: _isLoading ? null : _verifyOtp,
             style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.amber,
+              backgroundColor: AppColors.primaryOrange,
               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
             ),
             child: _isLoading
-                ? CircularProgressIndicator(color: Colors.white)
+                ? CircularProgressIndicator(color: AppColors.white)
                 : Text('Verify OTP', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
           ),
         ),
@@ -202,12 +199,12 @@ class _ResetPasswordMobileScreenState extends State<ResetPasswordMobileScreen> {
         Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Text("Didn't receive the code? ", style: TextStyle(color: Colors.grey[600])),
+            Text("Didn't receive the code? ", style: TextStyle(color: AppColors.lightTextSecondary)),
             _canResend
                 ? GestureDetector(
                     onTap: _resendOtp,
                     child: Text('Resend OTP',
-                        style: TextStyle(color: Colors.amber[700], fontWeight: FontWeight.bold, decoration: TextDecoration.underline)),
+                        style: TextStyle(color: AppColors.primaryOrangeDark, fontWeight: FontWeight.bold, decoration: TextDecoration.underline)),
                   )
                 : Text('Resend in ${_resendCountdown}s', style: TextStyle(color: Colors.grey)),
           ],
@@ -224,12 +221,12 @@ class _ResetPasswordMobileScreenState extends State<ResetPasswordMobileScreen> {
         children: [
           Text(
             'Create New Password',
-            style: FontUtils.heading1(color: Colors.black87, fontSize: 24, fontWeight: FontWeight.bold),
+            style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: AppColors.lightTextPrimary, fontFamily: 'Roboto'),
           ),
           SizedBox(height: 8),
           Text(
             'Your new password must meet all requirements below',
-            style: FontUtils.bodyText(color: Colors.grey[600], fontSize: 14),
+            style: TextStyle(fontSize: 14, color: AppColors.lightTextSecondary, fontFamily: 'Roboto'),
           ),
           SizedBox(height: 24),
           TextFormField(
@@ -274,18 +271,18 @@ class _ResetPasswordMobileScreenState extends State<ResetPasswordMobileScreen> {
             child: ElevatedButton(
               onPressed: (_isLoading || !_isPasswordValid) ? null : _resetPassword,
               style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.amber,
+                backgroundColor: AppColors.primaryOrange,
                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
               ),
               child: _isLoading
-                  ? CircularProgressIndicator(color: Colors.white)
+                  ? CircularProgressIndicator(color: AppColors.white)
                   : Text('Reset Password', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
             ),
           ),
           SizedBox(height: 20),
           Text(
             'Password Requirements:',
-            style: FontUtils.bodyText(color: Colors.black87, fontSize: 14, fontWeight: FontWeight.w600),
+            style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: AppColors.lightTextPrimary, fontFamily: 'Roboto'),
           ),
           _buildRequirement('At least 8 characters'),
           _buildRequirement('At least 1 uppercase letter'),
@@ -305,9 +302,11 @@ class _ResetPasswordMobileScreenState extends State<ResetPasswordMobileScreen> {
         children: [
           Icon(Icons.check_circle_outline, size: 16, color: Colors.grey),
           SizedBox(width: 8),
-          Text(text, style: FontUtils.captionText(color: Colors.grey[600]!, fontSize: 13)),
+          Text(text, style: TextStyle(fontSize: 13, color: AppColors.lightTextSecondary!, fontFamily: 'Roboto')),
         ],
       ),
     );
   }
 }
+
+

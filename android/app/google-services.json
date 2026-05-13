@@ -1,0 +1,47 @@
+{
+  "project_info": {
+    "project_number": "24122477606",
+    "project_id": "bookmyjuice-4c156",
+    "storage_bucket": "bookmyjuice-4c156.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:24122477606:android:6e503ce61455786ee2aae7",
+        "android_client_info": {
+          "package_name": "com.bookmyjuice.app"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "24122477606-h4ot6fsirmll1m4cng2i4f5mu1jh7558.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.bookmyjuice.app",
+            "certificate_hash": "4244b3516ccc604fe16a7c342bde948a2a6c9c01"
+          }
+        },
+        {
+          "client_id": "24122477606-tju3ortu42psbfluvl9hvmj7q15ec64c.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAYGWyGFM5c52O-1vHRjOlX7hI2bynf0p0"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "24122477606-tju3ortu42psbfluvl9hvmj7q15ec64c.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

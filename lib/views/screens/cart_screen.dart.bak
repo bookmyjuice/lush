@@ -113,7 +113,7 @@ class CartScreen extends StatelessWidget {
                   children: [
                     const Icon(
                       Icons.error_outline,
-                      color: AppColors.error,
+                      color: Colors.red,
                       size: 48,
                     ),
                     SizedBox(height: 16.h),
@@ -138,8 +138,8 @@ class CartScreen extends StatelessWidget {
                             context.read<CartBloc>().add(LoadCart());
                           },
                           style: ElevatedButton.styleFrom(
-                            backgroundColor: AppColors.info,
-                            foregroundColor: AppColors.white,
+                            backgroundColor: Colors.blue,
+                            foregroundColor: Colors.white,
                           ),
                           child: const Text('Try Again'),
                         ),
@@ -155,8 +155,8 @@ class CartScreen extends StatelessWidget {
                             });
                           },
                           style: ElevatedButton.styleFrom(
-                            backgroundColor: AppColors.error,
-                            foregroundColor: AppColors.white,
+                            backgroundColor: Colors.red,
+                            foregroundColor: Colors.white,
                           ),
                           child: const Text('Reset Cart'),
                         ),
@@ -181,7 +181,7 @@ class CartScreen extends StatelessWidget {
           Icon(
             Icons.shopping_cart_outlined,
             size: 80.r,
-            color: AppColors.grey,
+            color: Colors.grey[400],
           ),
           SizedBox(height: 16.h),
           Text(
@@ -189,7 +189,7 @@ class CartScreen extends StatelessWidget {
             style: TextStyle(
               fontSize: 20.sp,
               fontWeight: FontWeight.bold,
-              color: AppColors.lightTextPrimary,
+              color: LushTheme.darkerText,
             ),
           ),
           SizedBox(height: 8.h),
@@ -197,7 +197,7 @@ class CartScreen extends StatelessWidget {
             'Add some delicious juices to get started',
             style: TextStyle(
               fontSize: 14.sp,
-              color: AppColors.lightTextSecondary,
+              color: LushTheme.lightText,
             ),
           ),
           SizedBox(height: 32.h),
@@ -208,8 +208,8 @@ class CartScreen extends StatelessWidget {
             icon: const Icon(Icons.local_drink),
             label: const Text('Browse Juices'),
             style: ElevatedButton.styleFrom(
-              backgroundColor: AppColors.primaryOrange,
-              foregroundColor: AppColors.white,
+              backgroundColor: Colors.orange,
+              foregroundColor: Colors.white,
               padding: EdgeInsets.symmetric(horizontal: 24.w, vertical: 12.h),
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(30.r),
@@ -263,7 +263,7 @@ class CartScreen extends StatelessWidget {
                           return Icon(
                             Icons.local_drink,
                             size: 40.r,
-                            color: AppColors.white,
+                            color: Colors.white,
                           );
                         },
                       ),
@@ -271,7 +271,7 @@ class CartScreen extends StatelessWidget {
                   : Icon(
                       Icons.local_drink,
                       size: 40.r,
-                      color: AppColors.white,
+                      color: Colors.white,
                     ),
             ),
 
@@ -287,7 +287,7 @@ class CartScreen extends StatelessWidget {
                     style: TextStyle(
                       fontSize: 16.sp,
                       fontWeight: FontWeight.bold,
-                      color: AppColors.lightTextPrimary,
+                      color: LushTheme.darkerText,
                     ),
                   ),
                   SizedBox(height: 4.h),
@@ -296,7 +296,7 @@ class CartScreen extends StatelessWidget {
                       selectedPrice.name ?? 'Regular',
                       style: TextStyle(
                         fontSize: 14.sp,
-                        color: AppColors.primaryOrangeDark,
+                        color: Colors.orange[700],
                       ),
                     ),
                   SizedBox(height: 4.h),
@@ -304,7 +304,7 @@ class CartScreen extends StatelessWidget {
                     selectedPrice?.description ?? item.description ?? '',
                     style: TextStyle(
                       fontSize: 12.sp,
-                      color: AppColors.lightTextSecondary,
+                      color: LushTheme.lightText,
                     ),
                     maxLines: 2,
                     overflow: TextOverflow.ellipsis,
@@ -344,7 +344,7 @@ class CartScreen extends StatelessWidget {
                         style: TextStyle(
                           fontSize: 16.sp,
                           fontWeight: FontWeight.bold,
-                          color: AppColors.lightTextPrimary,
+                          color: LushTheme.darkerText,
                         ),
                       ),
                     ],
@@ -367,14 +367,14 @@ class CartScreen extends StatelessWidget {
       width: 28.r,
       height: 28.r,
       decoration: BoxDecoration(
-        color: AppColors.lightGrey,
+        color: Colors.grey[200],
         borderRadius: BorderRadius.circular(6.r),
       ),
       child: IconButton(
         padding: EdgeInsets.zero,
         icon: Icon(icon, size: 16.r),
         onPressed: onPressed,
-        color: AppColors.lightTextPrimary,
+        color: LushTheme.darkerText,
       ),
     );
   }
@@ -398,10 +398,10 @@ class CartScreen extends StatelessWidget {
     return Container(
       padding: EdgeInsets.all(16.r),
       decoration: BoxDecoration(
-        color: AppColors.white,
+        color: Colors.white,
         boxShadow: [
           BoxShadow(
-            color: AppColors.lightDivider.withAlpha(51),
+            color: Colors.grey.withAlpha(51),
             spreadRadius: 1,
             blurRadius: 5,
             offset: const Offset(0, -3),
@@ -436,12 +436,12 @@ class CartScreen extends StatelessWidget {
                 'Add ₹${(_freeDeliveryThreshold - subtotal).toStringAsFixed(0)} more for FREE delivery',
                 style: TextStyle(
                   fontSize: 12.sp,
-                  color: AppColors.primaryOrangeDark,
+                  color: Colors.orange[700],
                   fontWeight: FontWeight.w500,
                 ),
               ),
             ),
-          Divider(height: 24.h, color: AppColors.lightDivider),
+          Divider(height: 24.h, color: Colors.grey[300]),
           // Total Amount
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -451,7 +451,7 @@ class CartScreen extends StatelessWidget {
                 style: TextStyle(
                   fontSize: 18.sp,
                   fontWeight: FontWeight.bold,
-                  color: AppColors.lightTextPrimary,
+                  color: LushTheme.darkerText,
                 ),
               ),
               Text(
@@ -459,7 +459,7 @@ class CartScreen extends StatelessWidget {
                 style: TextStyle(
                   fontSize: 22.sp,
                   fontWeight: FontWeight.bold,
-                  color: AppColors.primaryOrange,
+                  color: const Color(0xFFFF8C42),
                 ),
               ),
             ],
@@ -489,7 +489,7 @@ class CartScreen extends StatelessWidget {
                           ScaffoldMessenger.of(context).showSnackBar(
                             SnackBar(
                               content: Text('Failed to get checkout URL'),
-                              backgroundColor: AppColors.error,
+                              backgroundColor: Colors.red,
                             ),
                           );
                         }
@@ -497,16 +497,16 @@ class CartScreen extends StatelessWidget {
                         ScaffoldMessenger.of(context).showSnackBar(
                           SnackBar(
                             content: Text('Checkout error: $e'),
-                            backgroundColor: AppColors.error,
+                            backgroundColor: Colors.red,
                           ),
                         );
                       }
                     }
                   : null,
               style: ElevatedButton.styleFrom(
-                backgroundColor: AppColors.primaryOrange,
-                foregroundColor: AppColors.white,
-                disabledBackgroundColor: AppColors.lightDivider,
+                backgroundColor: const Color(0xFFFF8C42),
+                foregroundColor: Colors.white,
+                disabledBackgroundColor: Colors.grey[300],
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(15.r),
                 ),
@@ -541,7 +541,7 @@ class CartScreen extends StatelessWidget {
           label,
           style: TextStyle(
             fontSize: 14.sp,
-            color: AppColors.lightTextSecondary,
+            color: LushTheme.lightText,
           ),
         ),
         isFree
@@ -549,7 +549,7 @@ class CartScreen extends StatelessWidget {
                 'FREE',
                 style: TextStyle(
                   fontSize: 14.sp,
-                  color: AppColors.success,
+                  color: Colors.green[700],
                   fontWeight: FontWeight.bold,
                 ),
               )
@@ -557,7 +557,7 @@ class CartScreen extends StatelessWidget {
                 '₹${amount.toStringAsFixed(2)}',
                 style: TextStyle(
                   fontSize: 14.sp,
-                  color: AppColors.lightTextPrimary,
+                  color: LushTheme.darkerText,
                   fontWeight: FontWeight.w500,
                 ),
               ),
@@ -601,7 +601,7 @@ class CartScreen extends StatelessWidget {
             },
             child: const Text(
               'Clear',
-              style: TextStyle(color: AppColors.error),
+              style: TextStyle(color: Colors.red),
             ),
           ),
         ],

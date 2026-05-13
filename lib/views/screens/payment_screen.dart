@@ -6,7 +6,7 @@ import 'package:fluttertoast/fluttertoast.dart';
 import '../../bloc/CartBloc/cart_bloc.dart';
 import '../../bloc/CartBloc/cart_event.dart';
 import '../../bloc/CartBloc/cart_state.dart';
-import '../../theme.dart';
+import 'package:lush/theme/app_colors.dart';
 
 class PaymentScreen extends StatefulWidget {
   const PaymentScreen({super.key});
@@ -53,7 +53,7 @@ class _PaymentScreenState extends State<PaymentScreen> {
     Fluttertoast.showToast(
       msg: "Payment successful! Order placed.",
       toastLength: Toast.LENGTH_LONG,
-      backgroundColor: Colors.green,
+      backgroundColor: AppColors.success,
     );
     
     // Clear the cart
@@ -74,7 +74,7 @@ class _PaymentScreenState extends State<PaymentScreen> {
     Fluttertoast.showToast(
       msg: "Payment failed: ${response.message}",
       toastLength: Toast.LENGTH_LONG,
-      backgroundColor: Colors.red,
+      backgroundColor: AppColors.error,
     );
   }
 
@@ -124,7 +124,7 @@ class _PaymentScreenState extends State<PaymentScreen> {
         Fluttertoast.showToast(
           msg: "Error: $e",
           toastLength: Toast.LENGTH_LONG,
-          backgroundColor: Colors.red,
+          backgroundColor: AppColors.error,
         );
       }
     } else if (_selectedPaymentMethod == 'cod') {
@@ -138,7 +138,7 @@ class _PaymentScreenState extends State<PaymentScreen> {
         Fluttertoast.showToast(
           msg: "Order placed successfully! Pay on delivery.",
           toastLength: Toast.LENGTH_LONG,
-          backgroundColor: Colors.green,
+          backgroundColor: AppColors.success,
         );
         
         // Clear the cart
@@ -160,12 +160,12 @@ class _PaymentScreenState extends State<PaymentScreen> {
           'Checkout',
           style: TextStyle(
             fontWeight: FontWeight.bold,
-            color: LushTheme.darkerText,
+            color: AppColors.lightTextPrimary,
           ),
         ),
         backgroundColor: Colors.white,
         elevation: 1,
-        iconTheme: const IconThemeData(color: LushTheme.darkerText),
+        iconTheme: const IconThemeData(color: AppColors.lightTextPrimary),
       ),
       body: BlocBuilder<CartBloc, CartState>(
         builder: (context, state) {
@@ -181,7 +181,7 @@ class _PaymentScreenState extends State<PaymentScreen> {
                     Icon(
                       Icons.shopping_cart_outlined,
                       size: 80.r,
-                      color: Colors.grey[400],
+                      color: AppColors.lightTextDisabled,
                     ),
                     SizedBox(height: 16.h),
                     Text(
@@ -189,7 +189,7 @@ class _PaymentScreenState extends State<PaymentScreen> {
                       style: TextStyle(
                         fontSize: 20.sp,
                         fontWeight: FontWeight.bold,
-                        color: LushTheme.darkerText,
+                        color: AppColors.lightTextPrimary,
                       ),
                     ),
                     SizedBox(height: 32.h),
@@ -198,7 +198,7 @@ class _PaymentScreenState extends State<PaymentScreen> {
                         Navigator.of(context).pushReplacementNamed('/menu');
                       },
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.orange,
+                        backgroundColor: AppColors.primaryOrange,
                         foregroundColor: Colors.white,
                       ),
                       child: const Text('Browse Juices'),
@@ -236,7 +236,7 @@ class _PaymentScreenState extends State<PaymentScreen> {
                               style: TextStyle(
                                 fontSize: 18.sp,
                                 fontWeight: FontWeight.bold,
-                                color: LushTheme.darkerText,
+                                color: AppColors.lightTextPrimary,
                               ),
                             ),
                             SizedBox(height: 16.h),
@@ -250,7 +250,7 @@ class _PaymentScreenState extends State<PaymentScreen> {
                                       '${item.quantity}x ${item.item.name ?? ''} (${item.selectedPrice?.name ?? 'Regular'})',
                                       style: TextStyle(
                                         fontSize: 14.sp,
-                                        color: LushTheme.darkerText,
+                                        color: AppColors.lightTextPrimary,
                                       ),
                                     ),
                                   ),
@@ -259,7 +259,7 @@ class _PaymentScreenState extends State<PaymentScreen> {
                                     style: TextStyle(
                                       fontSize: 14.sp,
                                       fontWeight: FontWeight.bold,
-                                      color: LushTheme.darkerText,
+                                      color: AppColors.lightTextPrimary,
                                     ),
                                   ),
                                 ],
@@ -274,7 +274,7 @@ class _PaymentScreenState extends State<PaymentScreen> {
                                   style: TextStyle(
                                     fontSize: 16.sp,
                                     fontWeight: FontWeight.bold,
-                                    color: LushTheme.darkerText,
+                                    color: AppColors.lightTextPrimary,
                                   ),
                                 ),
                                 Text(
@@ -282,7 +282,7 @@ class _PaymentScreenState extends State<PaymentScreen> {
                                   style: TextStyle(
                                     fontSize: 18.sp,
                                     fontWeight: FontWeight.bold,
-                                    color: Colors.orange[700],
+                                    color: AppColors.primaryOrangeDark,
                                   ),
                                 ),
                               ],
@@ -300,7 +300,7 @@ class _PaymentScreenState extends State<PaymentScreen> {
                       style: TextStyle(
                         fontSize: 18.sp,
                         fontWeight: FontWeight.bold,
-                        color: LushTheme.darkerText,
+                        color: AppColors.lightTextPrimary,
                       ),
                     ),
                     SizedBox(height: 16.h),
@@ -388,7 +388,7 @@ class _PaymentScreenState extends State<PaymentScreen> {
                       style: TextStyle(
                         fontSize: 18.sp,
                         fontWeight: FontWeight.bold,
-                        color: LushTheme.darkerText,
+                        color: AppColors.lightTextPrimary,
                       ),
                     ),
                     SizedBox(height: 16.h),
@@ -402,7 +402,7 @@ class _PaymentScreenState extends State<PaymentScreen> {
                           RadioListTile<String>(
                             title: Row(
                               children: [
-                                Icon(Icons.payment, color: Colors.blue[700]),
+                                Icon(Icons.payment, color: AppColors.info),
                                 SizedBox(width: 8.w),
                                 const Text('Pay with Razorpay'),
                               ],
@@ -419,7 +419,7 @@ class _PaymentScreenState extends State<PaymentScreen> {
                           RadioListTile<String>(
                             title: Row(
                               children: [
-                                Icon(Icons.money, color: Colors.green[700]),
+                                Icon(Icons.money, color: AppColors.success),
                                 SizedBox(width: 8.w),
                                 const Text('Cash on Delivery'),
                               ],
@@ -451,12 +451,12 @@ class _PaymentScreenState extends State<PaymentScreen> {
                                 'Order from BookMyJuice - ${items.length} items',
                               ),
                         style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.orange,
+                          backgroundColor: AppColors.primaryOrange,
                           foregroundColor: Colors.white,
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(15.r),
                           ),
-                          disabledBackgroundColor: Colors.grey,
+                          disabledBackgroundColor: AppColors.grey,
                         ),
                         child: _isProcessing
                             ? Row(
@@ -496,7 +496,7 @@ class _PaymentScreenState extends State<PaymentScreen> {
                   children: [
                     const Icon(
                       Icons.error_outline,
-                      color: Colors.red,
+                      color: AppColors.error,
                       size: 48,
                     ),
                     SizedBox(height: 16.h),
@@ -521,7 +521,7 @@ class _PaymentScreenState extends State<PaymentScreen> {
                             context.read<CartBloc>().add(LoadCart());
                           },
                           style: ElevatedButton.styleFrom(
-                            backgroundColor: Colors.blue,
+                            backgroundColor: AppColors.info,
                             foregroundColor: Colors.white,
                           ),
                           child: const Text('Try Again'),
@@ -532,7 +532,7 @@ class _PaymentScreenState extends State<PaymentScreen> {
                             Navigator.of(context).pop();
                           },
                           style: ElevatedButton.styleFrom(
-                            backgroundColor: Colors.grey,
+                            backgroundColor: AppColors.grey,
                             foregroundColor: Colors.white,
                           ),
                           child: const Text('Back to Cart'),

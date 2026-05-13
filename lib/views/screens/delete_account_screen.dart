@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:lush/UserRepository/user_repository.dart';
-import 'package:lush/utils/font_utils.dart';
+import 'package:lush/utils/back_button_handler.dart';
 import 'package:toastification/toastification.dart';
+import 'package:lush/theme/app_colors.dart';
 
 /// #9 UX: Delete Account Screen
 /// Allows user to soft-delete their account with 30-day grace period.
@@ -72,7 +73,7 @@ class _DeleteAccountScreenState extends State<DeleteAccountScreen> {
           children: [
             Text(
               'Are you sure you want to delete your account?',
-              style: FontUtils.bodyText(color: Colors.black87, fontSize: 16, fontWeight: FontWeight.w600),
+              style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600, color: AppColors.lightTextPrimary, fontFamily: 'Roboto'),
             ),
             const SizedBox(height: 16),
             Text(
@@ -80,7 +81,7 @@ class _DeleteAccountScreenState extends State<DeleteAccountScreen> {
               '• Your data will be soft-deleted and can be recovered within 30 days\n'
               '• After 30 days, your data will be permanently deleted\n'
               '• To recover your account within 30 days, contact support',
-              style: FontUtils.bodyText(color: Colors.grey[700], fontSize: 13),
+              style: TextStyle(fontSize: 13, color: AppColors.darkGrey, fontFamily: 'Roboto'),
             ),
           ],
         ),
@@ -95,7 +96,7 @@ class _DeleteAccountScreenState extends State<DeleteAccountScreen> {
               setState(() => _confirmed = true);
               _deleteAccount();
             },
-            style: TextButton.styleFrom(foregroundColor: Colors.red),
+            style: TextButton.styleFrom(foregroundColor: AppColors.error),
             child: const Text('Delete Account'),
           ),
         ],
@@ -105,10 +106,23 @@ class _DeleteAccountScreenState extends State<DeleteAccountScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
+    return PopScope(
+      canPop: false,
+      onPopInvokedWithResult: (didPop, result) async {
+        if (didPop) return;
+        final shouldPop = await BackButtonHandler.confirmExit(
+          context,
+          title: 'Leave Account Deletion?',
+          message: 'Are you sure you want to go back? Your account will not be deleted.',
+        );
+        if (shouldPop && context.mounted) {
+          Navigator.of(context).pop();
+        }
+      },
+      child: Scaffold(
       appBar: AppBar(
         title: const Text('Delete Account'),
-        backgroundColor: Colors.amber,
+        backgroundColor: AppColors.primaryOrange,
         centerTitle: true,
       ),
       body: SafeArea(
@@ -122,16 +136,12 @@ class _DeleteAccountScreenState extends State<DeleteAccountScreen> {
               const SizedBox(height: 24),
               Text(
                 'Delete Your Account',
-                style: FontUtils.heading1(
-                  color: Colors.black87,
-                  fontSize: 24,
-                  fontWeight: FontWeight.bold,
-                ),
+                style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: AppColors.lightTextPrimary, fontFamily: 'Roboto'),
               ),
               const SizedBox(height: 16),
               Text(
                 'This action will soft-delete your account. Your data will be retained for 30 days in case you change your mind.',
-                style: FontUtils.bodyText(color: Colors.grey[700], fontSize: 14),
+                style: TextStyle(fontSize: 14, color: AppColors.darkGrey, fontFamily: 'Roboto'),
                 textAlign: TextAlign.center,
               ),
               const SizedBox(height: 32),
@@ -147,15 +157,11 @@ class _DeleteAccountScreenState extends State<DeleteAccountScreen> {
                   children: [
                     Row(
                       children: [
-                        Icon(Icons.warning_amber_rounded, color: Colors.red[700]),
+                        Icon(Icons.warning_amber_rounded, color: AppColors.error),
                         const SizedBox(width: 8),
                         Text(
                           'What you will lose:',
-                          style: FontUtils.bodyText(
-                            color: Colors.red[800],
-                            fontSize: 16,
-                            fontWeight: FontWeight.w600,
-                          ),
+                          style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600, color: Colors.red[800], fontFamily: 'Roboto'),
                         ),
                       ],
                     ),
@@ -167,7 +173,7 @@ class _DeleteAccountScreenState extends State<DeleteAccountScreen> {
                     const SizedBox(height: 12),
                     Text(
                       'Recovery: Contact support within 30 days to recover your account.',
-                      style: FontUtils.captionText(color: Colors.grey[600]!, fontSize: 12),
+                      style: TextStyle(fontSize: 12, color: AppColors.lightTextSecondary!, fontFamily: 'Roboto'),
                     ),
                   ],
                 ),
@@ -179,13 +185,13 @@ class _DeleteAccountScreenState extends State<DeleteAccountScreen> {
                 child: ElevatedButton(
                   onPressed: _isLoading ? null : _deleteAccount,
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.red,
+                    backgroundColor: AppColors.error,
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(12),
                     ),
                   ),
                   child: _isLoading
-                      ? const CircularProgressIndicator(color: Colors.white)
+                      ? const CircularProgressIndicator(color: AppColors.white)
                       : const Text(
                           'Delete My Account',
                           style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
@@ -197,16 +203,13 @@ class _DeleteAccountScreenState extends State<DeleteAccountScreen> {
                 onPressed: () => Navigator.of(context).pop(),
                 child: Text(
                   'Cancel',
-                  style: FontUtils.bodyText(
-                    color: Colors.grey[600],
-                    fontSize: 16,
-                    fontWeight: FontWeight.w600,
-                  ),
+                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600, color: AppColors.lightTextSecondary, fontFamily: 'Roboto'),
                 ),
               ),
             ],
           ),
         ),
+      ),
       ),
     );
   }
@@ -216,12 +219,12 @@ class _DeleteAccountScreenState extends State<DeleteAccountScreen> {
       padding: const EdgeInsets.only(bottom: 8),
       child: Row(
         children: [
-          Icon(Icons.close, size: 16, color: Colors.red[700]),
+          Icon(Icons.close, size: 16, color: AppColors.error),
           const SizedBox(width: 8),
           Expanded(
             child: Text(
               text,
-              style: FontUtils.bodyText(color: Colors.grey[800], fontSize: 14),
+              style: TextStyle(fontSize: 14, color: Colors.grey[800], fontFamily: 'Roboto'),
             ),
           ),
         ],

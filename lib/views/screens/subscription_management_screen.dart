@@ -1,6 +1,7 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 import 'package:lush/services/local_notification_service.dart';
 import 'package:lush/services/subscription_service.dart';
+import 'package:lush/utils/back_button_handler.dart';
 import 'package:webview_flutter/webview_flutter.dart';
 
 /// BR-041 to BR-046: Subscription management with 9 PM IST cutoff,
@@ -253,7 +254,19 @@ class _SubscriptionManagementScreenState
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
+    return PopScope(
+      canPop: false,
+      onPopInvokedWithResult: (didPop, result) async {
+        if (didPop) return;
+        final shouldPop = await BackButtonHandler.confirmExit(
+          context,
+          message: 'Operations may be in progress. Are you sure you want to go back?',
+        );
+        if (shouldPop && context.mounted) {
+          Navigator.of(context).pop();
+        }
+      },
+      child: Scaffold(
       appBar: AppBar(
         title: const Text('My Subscriptions'),
         elevation: 0,
@@ -316,7 +329,7 @@ class _SubscriptionManagementScreenState
               label: const Text('Add Subscription'),
             )
           : null,
-    );
+    ),);
   }
 
   Widget _buildSubscriptionCard(Map<String, dynamic> subscription) {
@@ -454,6 +467,7 @@ class _SubscriptionManagementScreenState
         ),
       ),
     );
+
   }
 }
 

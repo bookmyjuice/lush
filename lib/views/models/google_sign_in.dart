@@ -15,9 +15,10 @@ class GoogleSignInHelper {
   // Internal storage for the current user
   GoogleSignInAccount? _currentUser;
 
-  // Server Client ID (REQUIRED for Android)
-  // Ensure your SHA-1 fingerprint is added to this project in Google Cloud Console
-  static const String _serverClientId = '434116959668-sovbab9648v9hgbk1pi3tfg3ssl60mhb.apps.googleusercontent.com';
+  // Server Client ID for ID token verification (REQUIRED for Android)
+  // IMPORTANT: This must be the WEB client ID (not Android) as per google_sign_in 7.x docs.
+  // The Android OAuth client is auto-configured via google-services.json.
+  static const String _serverClientId = '24122477606-tju3ortu42psbfluvl9hvmj7q15ec64c.apps.googleusercontent.com';
 
   /// Get the current signed-in user
   GoogleSignInAccount? get currentUser => _currentUser;
@@ -33,12 +34,9 @@ class GoogleSignInHelper {
       // Initialize with server client ID
       await _googleSignIn.initialize(serverClientId: _serverClientId);
 
-      // Try to restore previous session automatically
-      final restoredUser = await _googleSignIn.attemptLightweightAuthentication();
-      if (restoredUser != null) {
-        _currentUser = restoredUser;
-        debugPrint('✅ Restored session: ${restoredUser.email}');
-      }
+      // In google_sign_in 7.x, session restore APIs (isSignedIn, currentUser) were removed.
+      // Users will authenticate fresh via the sign-in flow when needed.
+      debugPrint('ℹ️ GoogleSignIn initialized. Session will be restored on first sign-in.');
 
       _isInitialized = true;
       debugPrint('✅ GoogleSignIn initialized');
@@ -76,6 +74,11 @@ class GoogleSignInHelper {
       return account;
     } catch (e) {
       debugPrint('❌ GoogleSignIn Failed: $e');
+      // Log the full error details for debugging
+      if (e is Exception) {
+        debugPrint('❌ GoogleSignIn Error Type: ${e.runtimeType}');
+        debugPrint('❌ GoogleSignIn Error Details: $e');
+      }
       return null;
     }
   }

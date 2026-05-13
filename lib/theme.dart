@@ -1,100 +1,68 @@
-import 'package:flutter/material.dart';
+/// Backward-compatible LushTheme shim.
+///
+/// This file provides the legacy [LushTheme] API surface that existing
+/// widgets reference. All values delegate to the new [AppColors] tokens
+/// from the ThemeData-based design system (lib/theme/app_colors.dart).
+///
+/// NEW WIDGETS SHOULD USE [AppColors] AND [AppTheme] DIRECTLY.
+///
+/// See docs/DESIGN_SYSTEM_FLUTTER_INTEGRATION.md for the token-to-code map.
 
+import 'package:flutter/material.dart';
+import 'theme/app_colors.dart';
+
+/// Legacy theme constants used by existing views.
+///
+/// DEPRECATED: New code should use [AppColors] and [AppTheme] instead.
 class LushTheme {
   LushTheme._();
-  static const Color nearlyWhite = Color(0xFFFAFAFA);
-  static const Color orangeAccent = Color(0xFFFFA726);
-  static const Color white = Color(0xFFFFFFFF);
-  static const Color background = Color.fromARGB(255, 249, 245, 234);
-  static const Color nearlyDarkBlue = Color(0xFF2633C5);
 
-  static const Color nearlyBlue = Color(0xFF00B6F0);
-  static const Color appbarColor = Color(0xFF2503FF);
-  static const Color nearlyBlack = Color(0xFF213333);
-  static const Color grey = Color(0xFF3A5160);
-  static const Color dark_grey = Color(0xFF313A44);
+  // ── Colors ──
 
-  // Helper method to replace deprecated withOpacity
-  static Color withOpacity(Color color, double opacity) {
-    return color.withValues(alpha: (opacity * 255).round().toDouble());
-  }
+  /// Primary brand orange.
+  static const Color orangeAccent = AppColors.primaryOrange;
 
-  static const Color darkText = Color(0xFF253840);
-  static const Color darkerText = Color(0xFF17262A);
-  static const Color lightText = Color(0xFF4A6572);
-  static const Color deactivatedText = Color(0xFF767676);
-  static const Color dismissibleBackground = Color(0xFF364A54);
-  static const Color spacer = Color(0xFFF2F2F2);
-  static const Color light_blue = Color(0xff7c94b6);
-  static const String fontName = 'Roboto';
-  // static const Color subscribeNow = Color(0xFF4A6572);
+  /// Background color (light theme).
+  static const Color background = AppColors.lightBackground;
 
-  static const TextTheme textTheme = TextTheme(
-      headlineLarge: display1,
-      headlineMedium: headline,
-      titleLarge: title,
-      titleSmall: subtitle,
-      bodyLarge: body2,
-      bodyMedium: body1,
-      labelMedium: caption,
-      labelSmall: subscribeNow);
+  /// White.
+  static const Color white = AppColors.white;
 
-  static const TextStyle display1 = TextStyle(
-    fontFamily: fontName,
-    fontWeight: FontWeight.bold,
-    fontSize: 36,
-    letterSpacing: 0.4,
-    height: 0.9,
-    color: darkerText,
-  );
-  static const TextStyle headline = TextStyle(
-    fontFamily: fontName,
-    fontWeight: FontWeight.bold,
-    fontSize: 24,
-    letterSpacing: 0.27,
-    color: darkerText,
-  );
-  static const TextStyle title = TextStyle(
-    fontFamily: fontName,
-    fontWeight: FontWeight.bold,
-    fontSize: 16,
-    letterSpacing: 0.18,
-    color: darkerText,
-  );
-  static const TextStyle subtitle = TextStyle(
-    fontFamily: fontName,
-    fontWeight: FontWeight.w400,
-    fontSize: 14,
-    letterSpacing: -0.04,
-    color: darkText,
-  );
-  static const TextStyle body2 = TextStyle(
-    fontFamily: fontName,
-    fontWeight: FontWeight.w400,
-    fontSize: 14,
-    letterSpacing: 0.2,
-    color: darkText,
-  );
+  /// Off-white / nearly white.
+  static const Color nearlyWhite = AppColors.offWhite;
+
+  /// Primary text color (dark).
+  static const Color darkerText = AppColors.lightTextPrimary;
+
+  /// Secondary text color.
+  static const Color lightText = AppColors.lightTextSecondary;
+
+  /// Neutral grey.
+  static const Color grey = AppColors.grey;
+
+  /// App bar color (primary orange).
+  static const Color appbarColor = AppColors.primaryOrange;
+
+  /// Blue accent (info blue).
+  static const Color nearlyBlue = AppColors.info;
+
+  /// Dark blue accent (teal dark).
+  static const Color nearlyDarkBlue = AppColors.secondaryTealDark;
+
+  // ── Typography ──
+
+  /// Legacy font family name.
+  /// Used by old widgets that hardcode fontFamily.
+  /// Prefer ThemeData text theme for new widgets.
+  static const String fontName = 'Poppins';
+
+  // ── Legacy Text Styles (minimal set for backward compat) ──
+
+  /// Body1 style (used in a few commented-out references).
   static const TextStyle body1 = TextStyle(
     fontFamily: fontName,
+    fontSize: 14,
     fontWeight: FontWeight.w400,
-    fontSize: 16,
-    letterSpacing: -0.05,
-    color: darkText,
-  );
-  static const TextStyle caption = TextStyle(
-    fontFamily: fontName,
-    fontWeight: FontWeight.w400,
-    fontSize: 12,
-    letterSpacing: 0.2,
-    color: lightText, // was lightText
-  );
-  static const TextStyle subscribeNow = TextStyle(
-    fontFamily: fontName,
-    fontWeight: FontWeight.bold,
-    fontSize: 12,
-    letterSpacing: 0.4,
-    height: 0.9,
-    color: Colors.white,
+    color: darkerText,
   );
 }

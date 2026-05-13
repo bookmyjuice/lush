@@ -14,8 +14,10 @@ class ApiConfig {
       return 'http://127.0.0.1:8080';
     }
 
-    // defaultTargetPlatform is only valid when not running in tests without bindings
-    // Use Android emulator loopback by default as project previously targeted Android
-    return 'http://10.159.18.139:8080';
+    // Android emulator loopback: 10.0.2.2 maps to host machine's localhost
+    // For physical device testing on same WiFi:
+    //   Run: flutter run --dart-define=API_BASE_URL=http://YOUR_MACHINE_IP:8080
+    //   Or use: ..\ops\build_flutter_for_phone.ps1
+    return 'http://10.0.2.2:8080';
   }
 }

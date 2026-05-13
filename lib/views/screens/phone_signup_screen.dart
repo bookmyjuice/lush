@@ -4,10 +4,12 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:lush/bloc/AuthBloc/auth_bloc.dart';
 import 'package:lush/bloc/AuthBloc/auth_events.dart';
 import 'package:lush/bloc/AuthBloc/auth_state.dart';
+import 'package:lush/utils/back_button_handler.dart';
+import 'package:lush/views/models/firebase_phone_auth.dart';
 import 'package:toastification/toastification.dart';
 
 /// Step 2b (Phone-first): Phone Entry Screen
-/// User enters phone number and receives OTP
+/// User enters phone number and receives OTP via backend or Firebase
 class PhoneSignupScreen extends StatefulWidget {
   static const routeName = '/phone-signup';
 
@@ -20,7 +22,9 @@ class PhoneSignupScreen extends StatefulWidget {
 class PhoneSignupScreenState extends State<PhoneSignupScreen> {
   final _formKey = GlobalKey<FormState>();
   final _phoneController = TextEditingController();
-  bool _isLoading = false;
+  bool _isLoadingBackend = false;
+  bool _isLoadingFirebase = false;
+  final _firebasePhoneAuth = FirebasePhoneAuth.instance;
 
   @override
   void dispose() {
@@ -28,13 +32,14 @@ class PhoneSignupScreenState extends State<PhoneSignupScreen> {
     super.dispose();
   }
 
+  /// Send OTP via backend (existing flow)
   void _onContinue() {
     if (_formKey.currentState!.validate()) {
-      setState(() => _isLoading = true);
+      setState(() => _isLoadingBackend = true);
 
       final phone = _phoneController.text.trim();
 
-      // Send OTP to phone
+      // Send OTP to phone via backend
       BlocProvider.of<AuthenticationBloc>(context).add(
         SendOTP(phoneNumber: phone),
       );
@@ -44,18 +49,79 @@ class PhoneSignupScreenState extends State<PhoneSignupScreen> {
         context,
         '/phone-otp-verification',
         arguments: {
-          'email': null, // Will be collected after OTP verification
+          'email': null,
           'phone': phone,
         },
       );
 
-      setState(() => _isLoading = false);
+      setState(() => _isLoadingBackend = false);
+    }
+  }
+
+  /// Send OTP via Firebase Phone Auth (alternative flow)
+  Future<void> _onFirebaseVerify() async {
+    if (_formKey.currentState!.validate()) {
+      final phone = _phoneController.text.trim();
+      if (phone.length != 10) return;
+
+      // Format to E.164 for Firebase
+      final e164Phone = '+91$phone';
+
+      setState(() => _isLoadingFirebase = true);
+
+      await _firebasePhoneAuth.initiatePhoneVerification(
+        phone: e164Phone,
+        onCodeSent: (verificationId) {
+          setState(() => _isLoadingFirebase = false);
+          // Navigate to OTP verification screen with Firebase flag
+          Navigator.pushNamed(
+            context,
+            '/phone-otp-verification',
+            arguments: {
+              'email': null,
+              'phone': phone,
+              'isFirebaseAuth': true,
+              'verificationId': verificationId,
+            },
+          );
+        },
+        onError: (error) {
+          setState(() => _isLoadingFirebase = false);
+          toastification.show(
+            title: const Text('Firebase Verification Failed'),
+            description: Text(error),
+            type: ToastificationType.error,
+          );
+        },
+        onTimeout: () {
+          setState(() => _isLoadingFirebase = false);
+          toastification.show(
+            title: const Text('Timeout'),
+            description: const Text('SMS delivery timed out. Please try again.'),
+            type: ToastificationType.error,
+          );
+        },
+      );
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
+    return PopScope(
+      canPop: false,
+      onPopInvokedWithResult: (didPop, result) async {
+        if (didPop) return;
+        final hasText = _phoneController.text.isNotEmpty;
+        final shouldPop = await BackButtonHandler.handleBackPress(
+          context: context,
+          hasUnsavedChanges: hasText,
+          message: 'Phone entry in progress. Are you sure you want to go back?',
+        );
+        if (shouldPop && context.mounted) {
+          Navigator.of(context).pop();
+        }
+      },
+      child: Scaffold(
       appBar: AppBar(
         title: const Text('Sign up with Phone'),
         backgroundColor: Colors.amber,
@@ -93,7 +159,7 @@ class PhoneSignupScreenState extends State<PhoneSignupScreen> {
                 ),
                 const SizedBox(height: 10),
                 const Text(
-                  'We\'ll send you an OTP to verify your phone number.',
+                  'Choose a verification method for your phone number.',
                   style: TextStyle(
                     fontSize: 16,
                     color: Colors.grey,
@@ -132,19 +198,20 @@ class PhoneSignupScreenState extends State<PhoneSignupScreen> {
                     onFieldSubmitted: (_) => _onContinue(),
                   ),
                 ),
-                const SizedBox(height: 30),
+                const SizedBox(height: 24),
+                // Backend OTP button (existing flow)
                 SizedBox(
                   width: double.infinity,
                   height: 50,
                   child: ElevatedButton(
-                    onPressed: _isLoading ? null : _onContinue,
+                    onPressed: _isLoadingBackend || _isLoadingFirebase ? null : _onContinue,
                     style: ElevatedButton.styleFrom(
                       backgroundColor: Colors.amber,
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(12),
                       ),
                     ),
-                    child: _isLoading
+                    child: _isLoadingBackend
                         ? const CircularProgressIndicator(color: Colors.white)
                         : const Text(
                             'Send OTP',
@@ -153,6 +220,36 @@ class PhoneSignupScreenState extends State<PhoneSignupScreen> {
                               fontWeight: FontWeight.bold,
                             ),
                           ),
+                  ),
+                ),
+                const SizedBox(height: 16),
+                // Firebase Phone Auth button (alternative flow)
+                SizedBox(
+                  width: double.infinity,
+                  height: 50,
+                  child: OutlinedButton.icon(
+                    onPressed: _isLoadingBackend || _isLoadingFirebase ? null : _onFirebaseVerify,
+                    style: OutlinedButton.styleFrom(
+                      foregroundColor: Colors.blue,
+                      side: const BorderSide(color: Colors.blue),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                    ),
+                    icon: _isLoadingFirebase
+                        ? const SizedBox(
+                            width: 20,
+                            height: 20,
+                            child: CircularProgressIndicator(strokeWidth: 2),
+                          )
+                        : const Icon(Icons.verified_user),
+                    label: Text(
+                      _isLoadingFirebase ? 'Sending...' : 'Verify via Firebase',
+                      style: const TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
                   ),
                 ),
                 const SizedBox(height: 20),
@@ -168,6 +265,7 @@ class PhoneSignupScreenState extends State<PhoneSignupScreen> {
             ),
           ),
         ),
+      ),
       ),
     );
   }

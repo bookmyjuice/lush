@@ -1,5 +1,5 @@
-import 'package:flutter/material.dart';
-import 'package:lush/theme.dart';
+﻿import 'package:flutter/material.dart';
+import 'package:lush/theme/app_colors.dart';
 import 'package:rive/rive.dart' as rive;
 
 class SplashScreen extends StatefulWidget {
@@ -50,7 +50,7 @@ class SplashScreenState extends State<SplashScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: LushTheme.background,
+      backgroundColor: AppColors.lightBackground,
       body: Center(
         child: SizedBox(
           height: 76.35,

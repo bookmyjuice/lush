@@ -1,8 +1,8 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:lush/theme/app_colors.dart';
 import 'package:lush/UserRepository/user_repository.dart';
-import 'package:lush/utils/font_utils.dart';
-import 'package:lush/widgets/app_text_field.dart';
+import 'package:lush/widgets/app_text_field.dart' hide AppColors;
 import 'package:toastification/toastification.dart';
 
 /// BR-009: Forgot Password - Choose reset method (mobile OTP or email OTP)
@@ -89,7 +89,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
     return Scaffold(
       appBar: AppBar(
         title: Text('Forgot Password'),
-        backgroundColor: Colors.amber,
+        backgroundColor: AppColors.primaryOrange,
         centerTitle: true,
       ),
       body: SafeArea(
@@ -101,24 +101,16 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
                 SizedBox(height: 20),
-                Icon(Icons.lock_reset, size: 80, color: Colors.amber),
+                Icon(Icons.lock_reset, size: 80, color: AppColors.primaryOrange),
                 SizedBox(height: 20),
                 Text(
                   'Reset Your Password',
-                  style: FontUtils.heading1(
-                    color: Colors.black87,
-                    fontSize: 24,
-                    fontWeight: FontWeight.bold,
-                  ),
+                  style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: AppColors.lightTextPrimary, fontFamily: 'Roboto'),
                 ),
                 SizedBox(height: 8),
                 Text(
                   'Choose how you want to verify your identity',
-                  style: FontUtils.bodyText(
-                    color: Colors.grey[600],
-                    fontSize: 14,
-                    fontWeight: FontWeight.normal,
-                  ),
+                  style: TextStyle(fontSize: 14, color: AppColors.lightTextSecondary, fontFamily: 'Roboto'),
                   textAlign: TextAlign.center,
                 ),
                 SizedBox(height: 30),
@@ -149,19 +141,15 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
 
                 SizedBox(height: 16),
 
-                Divider(thickness: 1, color: Colors.grey[300]),
+                Divider(thickness: 1, color: AppColors.lightDivider),
 
                 SizedBox(height: 8),
                 Text(
                   'OR',
-                  style: FontUtils.bodyText(
-                    color: Colors.grey[500],
-                    fontSize: 14,
-                    fontWeight: FontWeight.w500,
-                  ),
+                  style: TextStyle(fontSize: 14, fontWeight: FontWeight.w500, color: AppColors.grey, fontFamily: 'Roboto'),
                 ),
                 SizedBox(height: 8),
-                Divider(thickness: 1, color: Colors.grey[300]),
+                Divider(thickness: 1, color: AppColors.lightDivider),
                 SizedBox(height: 16),
 
                 // Method 2: Email OTP
@@ -191,11 +179,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                   onPressed: () => Navigator.of(context).pop(),
                   child: Text(
                     'Back to Login',
-                    style: FontUtils.bodyText(
-                      color: Colors.amber[700],
-                      fontSize: 16,
-                      fontWeight: FontWeight.w600,
-                    ),
+                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600, color: AppColors.primaryOrangeDark, fontFamily: 'Roboto'),
                   ),
                 ),
                 SizedBox(height: 12),
@@ -204,10 +188,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                   onPressed: () => _showContactSupportDialog(context),
                   child: Text(
                     "Can't access your phone or email? Contact Support",
-                    style: FontUtils.captionText(
-                      color: Colors.grey[600]!,
-                      fontSize: 12,
-                    ),
+                    style: TextStyle(fontSize: 12, color: AppColors.lightTextSecondary, fontFamily: 'Roboto'),
                     textAlign: TextAlign.center,
                   ),
                 ),
@@ -231,12 +212,12 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
     return Container(
       padding: EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: AppColors.white,
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: Colors.grey[200]!),
+        border: Border.all(color: AppColors.lightDivider),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.05),
+            color: AppColors.nearlyBlack.withValues(alpha: 0.05),
             blurRadius: 8,
             offset: Offset(0, 2),
           ),
@@ -247,7 +228,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
         children: [
           Row(
             children: [
-              Icon(icon, size: 28, color: Colors.amber[700]),
+              Icon(icon, size: 28, color: AppColors.primaryOrangeDark),
               SizedBox(width: 12),
               Expanded(
                 child: Column(
@@ -255,19 +236,12 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                   children: [
                     Text(
                       title,
-                      style: FontUtils.heading1(
-                        color: Colors.black87,
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
-                      ),
+                      style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: AppColors.lightTextPrimary, fontFamily: 'Roboto'),
                     ),
                     SizedBox(height: 4),
                     Text(
                       subtitle,
-                      style: FontUtils.captionText(
-                        color: Colors.grey[600]!,
-                        fontSize: 12,
-                      ),
+                      style: TextStyle(fontSize: 12, color: AppColors.lightTextSecondary, fontFamily: 'Roboto'),
                     ),
                   ],
                 ),
@@ -283,16 +257,16 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
             child: ElevatedButton(
               onPressed: isLoading ? null : onTap,
               style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.amber,
+                backgroundColor: AppColors.primaryOrange,
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(12),
                 ),
               ),
               child: isLoading
-                  ? CircularProgressIndicator(color: Colors.white)
+                  ? CircularProgressIndicator(color: AppColors.white)
                   : Text(
                       buttonText,
-                      style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.white),
+                      style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: AppColors.white),
                     ),
             ),
           ),
@@ -312,22 +286,22 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
           children: [
             Text(
               'If you cannot access your registered phone number or email, please contact our support team to verify your identity and reset your password.',
-              style: FontUtils.bodyText(color: Colors.black87, fontSize: 14),
+              style: TextStyle(fontSize: 14, color: AppColors.lightTextPrimary, fontFamily: 'Roboto'),
             ),
             SizedBox(height: 16),
             Text(
-              '📧 Email: support@bookmyjuice.co.in',
-              style: FontUtils.bodyText(color: Colors.blue[700], fontSize: 14, fontWeight: FontWeight.w600),
+              '?? Email: support@bookmyjuice.co.in',
+              style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: AppColors.info, fontFamily: 'Roboto'),
             ),
             SizedBox(height: 8),
             Text(
-              '📱 WhatsApp: +91-XXXXXXXXXX',
-              style: FontUtils.bodyText(color: Colors.green[700], fontSize: 14, fontWeight: FontWeight.w600),
+              '?? WhatsApp: +91-XXXXXXXXXX',
+              style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: AppColors.success, fontFamily: 'Roboto'),
             ),
             SizedBox(height: 8),
             Text(
               'Please include your registered phone number and email in your message for faster assistance.',
-              style: FontUtils.captionText(color: Colors.grey[600]!, fontSize: 12),
+              style: TextStyle(fontSize: 12, color: AppColors.lightTextSecondary, fontFamily: 'Roboto'),
             ),
           ],
         ),

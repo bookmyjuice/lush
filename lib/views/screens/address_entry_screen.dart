@@ -4,6 +4,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:lush/bloc/AuthBloc/auth_bloc.dart';
 import 'package:lush/bloc/AuthBloc/auth_events.dart';
 import 'package:lush/bloc/AuthBloc/auth_state.dart';
+import 'package:lush/utils/back_button_handler.dart';
 import 'package:toastification/toastification.dart';
 
 /// Step 3: Address Entry Screen (Common for all signup flows)
@@ -117,7 +118,24 @@ class AddressEntryScreenState extends State<AddressEntryScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
+    return PopScope(
+      canPop: false,
+      onPopInvokedWithResult: (didPop, result) async {
+        if (didPop) return;
+        final hasText = _firstNameController.text.isNotEmpty ||
+            _lastNameController.text.isNotEmpty ||
+            _addressController.text.isNotEmpty ||
+            _cityController.text.isNotEmpty;
+        final shouldPop = await BackButtonHandler.handleBackPress(
+          context: context,
+          hasUnsavedChanges: hasText,
+          message: 'Address entry in progress. Are you sure you want to go back?',
+        );
+        if (shouldPop && context.mounted) {
+          Navigator.of(context).pop();
+        }
+      },
+      child: Scaffold(
       appBar: AppBar(
         title: const Text('Enter Address'),
         backgroundColor: Colors.amber,
@@ -394,6 +412,7 @@ class AddressEntryScreenState extends State<AddressEntryScreen> {
             ),
           ),
         ),
+      ),
       ),
     );
   }

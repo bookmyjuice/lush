@@ -1,11 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:lush/UserRepository/user_repository.dart';
-import 'package:lush/utils/font_utils.dart';
+import 'package:lush/get_it.dart';
+import 'package:lush/views/models/firebase_phone_auth.dart';
 import 'package:toastification/toastification.dart';
+import 'package:lush/theme/app_colors.dart';
+import 'package:lush/theme/app_text_styles.dart';
 
 /// BR-011: Phone Sign-In Screen
-/// User enters phone number, receives OTP, then either logs in or starts signup
+/// User enters phone number, receives OTP via backend or Firebase, then either logs in or starts signup
 class PhoneLoginScreen extends StatefulWidget {
   const PhoneLoginScreen({super.key});
 
@@ -16,8 +19,16 @@ class PhoneLoginScreen extends StatefulWidget {
 class _PhoneLoginScreenState extends State<PhoneLoginScreen> {
   final _formKey = GlobalKey<FormState>();
   final _phoneController = TextEditingController();
-  bool _isLoading = false;
-  final _userRepository = UserRepository();
+  bool _isLoadingBackend = false;
+  bool _isLoadingFirebase = false;
+  late final UserRepository _userRepository;
+  final _firebasePhoneAuth = FirebasePhoneAuth.instance;
+
+  @override
+  void initState() {
+    super.initState();
+    _userRepository = getIt.get<UserRepository>();
+  }
 
   @override
   void dispose() {
@@ -25,6 +36,7 @@ class _PhoneLoginScreenState extends State<PhoneLoginScreen> {
     super.dispose();
   }
 
+  /// Send OTP via backend (existing flow)
   Future<void> _sendOTP() async {
     if (!_formKey.currentState!.validate()) return;
 
@@ -34,14 +46,13 @@ class _PhoneLoginScreenState extends State<PhoneLoginScreen> {
       return;
     }
 
-    setState(() => _isLoading = true);
+    setState(() => _isLoadingBackend = true);
 
     final response = await _userRepository.sendOTP(phone);
 
-    setState(() => _isLoading = false);
+    setState(() => _isLoadingBackend = false);
 
-    if (response.contains('Success') || response.contains('sent')) {
-      // Navigate to OTP verification with login flow flag
+    if (response == "OTP_SENT" || response.contains('Success') || response.contains('sent')) {
       if (mounted) {
         Navigator.pushNamed(
           context,
@@ -55,6 +66,50 @@ class _PhoneLoginScreenState extends State<PhoneLoginScreen> {
     } else {
       _showToast('Failed to Send OTP', response, ToastificationType.error);
     }
+  }
+
+  /// Send OTP via Firebase Phone Auth (alternative flow)
+  Future<void> _sendFirebaseOTP() async {
+    if (!_formKey.currentState!.validate()) return;
+
+    final phone = _phoneController.text.trim();
+    if (!isValidPhone(phone)) {
+      _showToast('Invalid Phone', 'Enter a valid 10-digit Indian number', ToastificationType.error);
+      return;
+    }
+
+    // Format phone to E.164 for Firebase
+    final e164Phone = '+91$phone';
+
+    setState(() => _isLoadingFirebase = true);
+
+    await _firebasePhoneAuth.initiatePhoneVerification(
+      phone: e164Phone,
+      onCodeSent: (verificationId) {
+        setState(() => _isLoadingFirebase = false);
+        // Navigate to the same OTP screen but pass Firebase verification ID
+        if (mounted) {
+          Navigator.pushNamed(
+            context,
+            '/phone-otp-verification',
+            arguments: {
+              'phone': phone,
+              'isLoginFlow': true,
+              'isFirebaseAuth': true,
+              'verificationId': verificationId,
+            },
+          );
+        }
+      },
+      onError: (error) {
+        setState(() => _isLoadingFirebase = false);
+        _showToast('Firebase Verification Failed', error, ToastificationType.error);
+      },
+      onTimeout: () {
+        setState(() => _isLoadingFirebase = false);
+        _showToast('Timeout', 'SMS delivery timed out. Please try again.', ToastificationType.error);
+      },
+    );
   }
 
   bool isValidPhone(String phone) {
@@ -75,7 +130,7 @@ class _PhoneLoginScreenState extends State<PhoneLoginScreen> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Sign In with Phone'),
-        backgroundColor: Colors.amber,
+        backgroundColor: AppColors.primaryOrange,
         centerTitle: true,
       ),
       body: SafeArea(
@@ -87,20 +142,16 @@ class _PhoneLoginScreenState extends State<PhoneLoginScreen> {
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
                 const SizedBox(height: 40),
-                Icon(Icons.phone_android, size: 80, color: Colors.amber[700]),
+                Icon(Icons.phone_android, size: 80, color: AppColors.primaryOrangeDark),
                 const SizedBox(height: 24),
                 Text(
                   'Enter Your Phone Number',
-                  style: FontUtils.heading1(
-                    color: Colors.black87,
-                    fontSize: 24,
-                    fontWeight: FontWeight.bold,
-                  ),
+                  style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: AppColors.lightTextPrimary, fontFamily: 'Roboto'),
                 ),
                 const SizedBox(height: 8),
                 Text(
-                  'We\'ll send a 6-digit OTP to verify your number',
-                  style: FontUtils.bodyText(color: Colors.grey[600], fontSize: 14),
+                  'Choose how to verify your number',
+                  style: TextStyle(fontSize: 14, color: AppColors.lightTextSecondary, fontFamily: 'Roboto'),
                   textAlign: TextAlign.center,
                 ),
                 const SizedBox(height: 32),
@@ -112,17 +163,17 @@ class _PhoneLoginScreenState extends State<PhoneLoginScreen> {
                   decoration: InputDecoration(
                     labelText: 'Phone Number *',
                     hintText: 'Enter 10-digit mobile number',
-                    prefixIcon: Icon(Icons.phone, color: Colors.amber[700]),
+                    prefixIcon: Icon(Icons.phone, color: AppColors.primaryOrangeDark),
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(12),
                     ),
                     enabledBorder: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(12),
-                      borderSide: BorderSide(color: Colors.grey[300]!),
+                      borderSide: BorderSide(color: AppColors.lightDivider!),
                     ),
                     focusedBorder: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(12),
-                      borderSide: BorderSide(color: Colors.amber, width: 2),
+                      borderSide: BorderSide(color: AppColors.primaryOrange, width: 2),
                     ),
                     counterText: '',
                   ),
@@ -136,24 +187,52 @@ class _PhoneLoginScreenState extends State<PhoneLoginScreen> {
                     return null;
                   },
                 ),
-                const SizedBox(height: 32),
+                const SizedBox(height: 24),
+                // Backend OTP button (existing flow)
                 SizedBox(
                   width: double.infinity,
                   height: 50,
                   child: ElevatedButton(
-                    onPressed: _isLoading ? null : _sendOTP,
+                    onPressed: _isLoadingBackend || _isLoadingFirebase ? null : _sendOTP,
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.amber,
+                      backgroundColor: AppColors.primaryOrange,
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(12),
                       ),
                     ),
-                    child: _isLoading
-                        ? const CircularProgressIndicator(color: Colors.white)
+                    child: _isLoadingBackend
+                        ? const CircularProgressIndicator(color: AppColors.white)
                         : const Text(
-                            'Send OTP',
+                            'Send OTP via SMS',
                             style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
                           ),
+                  ),
+                ),
+                const SizedBox(height: 16),
+                // Firebase Phone Auth button (alternative flow)
+                SizedBox(
+                  width: double.infinity,
+                  height: 50,
+                  child: OutlinedButton.icon(
+                    onPressed: _isLoadingBackend || _isLoadingFirebase ? null : _sendFirebaseOTP,
+                    style: OutlinedButton.styleFrom(
+                      foregroundColor: AppColors.info,
+                      side: const BorderSide(color: AppColors.info),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                    ),
+                    icon: _isLoadingFirebase
+                        ? const SizedBox(
+                            width: 20,
+                            height: 20,
+                            child: CircularProgressIndicator(strokeWidth: 2),
+                          )
+                        : const Icon(Icons.verified_user),
+                    label: Text(
+                      _isLoadingFirebase ? 'Sending...' : 'Verify via Firebase',
+                      style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                    ),
                   ),
                 ),
                 const SizedBox(height: 24),
@@ -161,11 +240,7 @@ class _PhoneLoginScreenState extends State<PhoneLoginScreen> {
                   onPressed: () => Navigator.of(context).pop(),
                   child: Text(
                     'Back to Login',
-                    style: FontUtils.bodyText(
-                      color: Colors.amber[700],
-                      fontSize: 16,
-                      fontWeight: FontWeight.w600,
-                    ),
+                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600, color: AppColors.primaryOrangeDark, fontFamily: 'Roboto'),
                   ),
                 ),
               ],

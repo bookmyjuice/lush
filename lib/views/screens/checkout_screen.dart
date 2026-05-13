@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:lush/utils/back_button_handler.dart';
 import 'package:webview_flutter/webview_flutter.dart';
 
 class CheckoutScreen extends StatefulWidget {
@@ -43,22 +44,37 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
   }
 
   @override
+
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Checkout'),
-        bottom: _loadingProgress < 100
-            ? PreferredSize(
-                preferredSize: const Size.fromHeight(4.0),
-                child: LinearProgressIndicator(
-                  value: _loadingProgress / 100.0,
-                  backgroundColor: Colors.grey[200],
-                  color: Colors.orangeAccent,
-                ),
-              )
-            : null,
+    return PopScope(
+      canPop: false,
+      onPopInvokedWithResult: (didPop, result) async {
+        if (didPop) return;
+        final shouldPop = await BackButtonHandler.confirmExit(
+          context,
+          title: 'Leave Checkout?',
+          message: 'You have an active checkout in progress. Are you sure you want to leave?',
+        );
+        if (shouldPop && context.mounted) {
+          Navigator.of(context).pop();
+        }
+      },
+      child: Scaffold(
+        appBar: AppBar(
+          title: const Text('Checkout'),
+          bottom: _loadingProgress < 100
+              ? PreferredSize(
+                  preferredSize: const Size.fromHeight(4.0),
+                  child: LinearProgressIndicator(
+                    value: _loadingProgress / 100.0,
+                    backgroundColor: Colors.grey[200],
+                    color: Colors.orangeAccent,
+                  ),
+                )
+              : null,
+        ),
+        body: WebViewWidget(controller: _controller),
       ),
-      body: WebViewWidget(controller: _controller),
     );
   }
 }

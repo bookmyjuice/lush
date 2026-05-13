@@ -1,5 +1,6 @@
-﻿import 'package:flutter/material.dart';
-import 'package:lush/utils/font_utils.dart';
+import 'package:flutter/material.dart';
+import 'package:lush/utils/back_button_handler.dart';
+import 'package:lush/theme/app_colors.dart';
 
 /// BR-045: Day-wise subscription schedule selector
 /// 6 days (Mon-Sat), Sunday is holiday.
@@ -75,10 +76,24 @@ class _DayWiseScheduleScreenState extends State<DayWiseScheduleScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
+    return PopScope(
+      canPop: false,
+      onPopInvokedWithResult: (didPop, result) async {
+        if (didPop) return;
+        final hasSchedule = _isScheduleValid || _sameJuiceEveryday;
+        final shouldPop = await BackButtonHandler.handleBackPress(
+          context: context,
+          hasUnsavedChanges: hasSchedule,
+          message: 'Schedule selection in progress. Are you sure you want to go back?',
+        );
+        if (shouldPop && context.mounted) {
+          Navigator.of(context).pop();
+        }
+      },
+      child: Scaffold(
       appBar: AppBar(
         title: Text('Select Delivery Days'),
-        backgroundColor: Colors.amber,
+        backgroundColor: AppColors.primaryOrange,
         centerTitle: true,
       ),
       body: SafeArea(
@@ -90,12 +105,12 @@ class _DayWiseScheduleScreenState extends State<DayWiseScheduleScreen> {
               padding: EdgeInsets.all(16),
               margin: EdgeInsets.all(12),
               decoration: BoxDecoration(
-                color: Colors.white,
+                color: AppColors.white,
                 borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: Colors.grey[200]!),
+                border: Border.all(color: AppColors.lightDivider!),
                 boxShadow: [
                   BoxShadow(
-                    color: Colors.black.withValues(alpha: 0.05),
+                    color: AppColors.nearlyBlack.withValues(alpha: 0.05),
                     blurRadius: 8,
                     offset: Offset(0, 2),
                   ),
@@ -119,16 +134,12 @@ class _DayWiseScheduleScreenState extends State<DayWiseScheduleScreen> {
                             }
                           });
                         },
-                        activeColor: Colors.amber,
+                        activeColor: AppColors.primaryOrange,
                       ),
                       Expanded(
                         child: Text(
                           'Same juice everyday',
-                          style: FontUtils.bodyText(
-                            color: Colors.black87,
-                            fontSize: 16,
-                            fontWeight: FontWeight.w600,
-                          ),
+                          style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600, color: AppColors.lightTextPrimary, fontFamily: 'Roboto'),
                         ),
                       ),
                     ],
@@ -137,7 +148,7 @@ class _DayWiseScheduleScreenState extends State<DayWiseScheduleScreen> {
                     SizedBox(height: 12),
                     Text(
                       'Select one juice for all delivery days',
-                      style: FontUtils.captionText(color: Colors.grey[600]!, fontSize: 12),
+                      style: TextStyle(fontSize: 12, color: AppColors.lightTextSecondary!, fontFamily: 'Roboto'),
                     ),
                     SizedBox(height: 8),
                     _buildJuiceDropdown(
@@ -175,18 +186,14 @@ class _DayWiseScheduleScreenState extends State<DayWiseScheduleScreen> {
                       SizedBox(height: 16),
                       Text(
                         'Your selection will apply to all 6 delivery days',
-                        style: FontUtils.bodyText(color: Colors.grey[600], fontSize: 14),
+                        style: TextStyle(fontSize: 14, color: AppColors.lightTextSecondary, fontFamily: 'Roboto'),
                         textAlign: TextAlign.center,
                       ),
                       if (_globalSelection != null) ...[
                         SizedBox(height: 12),
                         Text(
                           (_globalSelection!['name'] as String?) ?? '',
-                          style: FontUtils.heading1(
-                            color: Colors.black87,
-                            fontSize: 18,
-                            fontWeight: FontWeight.bold,
-                          ),
+                          style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: AppColors.lightTextPrimary, fontFamily: 'Roboto'),
                         ),
                       ],
                     ],
@@ -199,10 +206,10 @@ class _DayWiseScheduleScreenState extends State<DayWiseScheduleScreen> {
               width: double.infinity,
               padding: EdgeInsets.all(16),
               decoration: BoxDecoration(
-                color: Colors.white,
+                color: AppColors.white,
                 boxShadow: [
                   BoxShadow(
-                    color: Colors.black.withValues(alpha: 0.1),
+                    color: AppColors.nearlyBlack.withValues(alpha: 0.1),
                     blurRadius: 8,
                     offset: Offset(0, -2),
                   ),
@@ -211,7 +218,7 @@ class _DayWiseScheduleScreenState extends State<DayWiseScheduleScreen> {
               child: ElevatedButton(
                 onPressed: _isScheduleValid ? _confirmSchedule : null,
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.amber,
+                  backgroundColor: AppColors.primaryOrange,
                   padding: EdgeInsets.symmetric(vertical: 16),
                   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                 ),
@@ -223,6 +230,7 @@ class _DayWiseScheduleScreenState extends State<DayWiseScheduleScreen> {
             ),
           ],
         ),
+      ),
       ),
     );
   }
@@ -236,16 +244,12 @@ class _DayWiseScheduleScreenState extends State<DayWiseScheduleScreen> {
         padding: EdgeInsets.all(16),
         child: Row(
           children: [
-            Icon(Icons.calendar_today, size: 20, color: Colors.amber[700]),
+            Icon(Icons.calendar_today, size: 20, color: AppColors.primaryOrangeDark),
             SizedBox(width: 12),
             Expanded(
               child: Text(
                 day,
-                style: FontUtils.bodyText(
-                  color: Colors.black87,
-                  fontSize: 16,
-                  fontWeight: FontWeight.w600,
-                ),
+                style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600, color: AppColors.lightTextPrimary, fontFamily: 'Roboto'),
               ),
             ),
             Expanded(
@@ -271,26 +275,22 @@ class _DayWiseScheduleScreenState extends State<DayWiseScheduleScreen> {
         padding: EdgeInsets.all(16),
         child: Row(
           children: [
-            Icon(Icons.beach_access, size: 20, color: Colors.grey[400]),
+            Icon(Icons.beach_access, size: 20, color: AppColors.lightTextDisabled),
             SizedBox(width: 12),
             Text(
               'Sunday',
-              style: FontUtils.bodyText(
-                color: Colors.grey[500],
-                fontSize: 16,
-                fontWeight: FontWeight.w600,
-              ),
+              style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600, color: AppColors.grey, fontFamily: 'Roboto'),
             ),
             SizedBox(width: 12),
             Container(
               padding: EdgeInsets.symmetric(horizontal: 10, vertical: 4),
               decoration: BoxDecoration(
-                color: Colors.grey[300],
+                color: AppColors.lightDivider,
                 borderRadius: BorderRadius.circular(8),
               ),
               child: Text(
                 'Holiday',
-                style: TextStyle(color: Colors.grey[700], fontSize: 12, fontWeight: FontWeight.bold),
+                style: TextStyle(color: AppColors.darkGrey, fontSize: 12, fontWeight: FontWeight.bold),
               ),
             ),
           ],
@@ -306,21 +306,21 @@ class _DayWiseScheduleScreenState extends State<DayWiseScheduleScreen> {
   }) {
     return DropdownButtonFormField<Map<String, dynamic>>(
       value: value,
-      hint: Text(hint, style: TextStyle(color: Colors.grey[500])),
+      hint: Text(hint, style: TextStyle(color: AppColors.grey)),
       isExpanded: true,
       decoration: InputDecoration(
         contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(8),
-          borderSide: BorderSide(color: Colors.grey[300]!),
+          borderSide: BorderSide(color: AppColors.lightDivider!),
         ),
         enabledBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(8),
-          borderSide: BorderSide(color: Colors.grey[300]!),
+          borderSide: BorderSide(color: AppColors.lightDivider!),
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(8),
-          borderSide: BorderSide(color: Colors.amber, width: 2),
+          borderSide: BorderSide(color: AppColors.primaryOrange, width: 2),
         ),
       ),
       items: widget.availableJuices.map((juice) {
@@ -359,3 +359,5 @@ class _DayWiseScheduleScreenState extends State<DayWiseScheduleScreen> {
     Navigator.of(context).pop(payload);
   }
 }
+
+

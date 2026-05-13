@@ -3,8 +3,8 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:lush/bloc/AuthBloc/auth_bloc.dart';
 import 'package:lush/bloc/AuthBloc/auth_events.dart';
+import 'package:lush/utils/back_button_handler.dart';
 import 'package:lush/views/models/google_sign_in.dart';
-import 'package:toastification/toastification.dart';
 
 /// Step 1: Signup Method Selection Screen
 /// User chooses between Email, Phone, or Google signup
@@ -22,7 +22,20 @@ class SignupMethodSelectionScreenState
     extends State<SignupMethodSelectionScreen> {
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
+    return PopScope(
+      canPop: false,
+      onPopInvokedWithResult: (didPop, result) async {
+        if (didPop) return;
+        final shouldPop = await BackButtonHandler.confirmExit(
+          context,
+          message: 'Signup in progress. Are you sure you want to go back?',
+        );
+        if (shouldPop && context.mounted) {
+          Navigator.of(context).pop();
+        }
+      },
+      child: Scaffold(
+
       body: SafeArea(
         child: SingleChildScrollView(
           padding: const EdgeInsets.all(24.0),
@@ -150,6 +163,7 @@ class SignupMethodSelectionScreenState
           ),
         ),
       ),
+      ),
     );
   }
 
@@ -258,49 +272,4 @@ class SignupMethodSelectionScreenState
     );
   }
 
-  void _handleGoogleSignup() async {
-    try {
-      // Trigger Google Sign-In
-      BlocProvider.of<AuthenticationBloc>(context).add(
-        const GoogleSignIn(),
-      );
-
-      // Get Google account info using login() method
-      final googleUser = await GoogleSignInHelper.instance.signIn();
-
-      if (googleUser != null) {
-        // Extract name from display name (GoogleSignInAccount doesn't have firstName/lastName)
-        String firstName = '';
-        String lastName = '';
-        
-        if (googleUser.displayName != null && googleUser.displayName!.isNotEmpty) {
-          final nameParts = googleUser.displayName!.split(' ');
-          firstName = nameParts.first;
-          lastName = nameParts.length > 1 ? nameParts.skip(1).join(' ') : '';
-        }
-
-        // Navigate to phone entry screen (email is already verified from Google)
-        Navigator.pushNamed(
-          context,
-          '/google-phone-entry',
-          arguments: {
-            'email': googleUser.email,
-            'firstName': firstName,
-            'lastName': lastName,
-          },
-        );
-      } else {
-        toastification.show(
-          title: const Text('Google Sign-In Cancelled'),
-          type: ToastificationType.info,
-        );
-      }
-    } catch (e) {
-      toastification.show(
-        title: const Text('Google Sign-In Failed'),
-        description: Text(e.toString()),
-        type: ToastificationType.error,
-      );
-    }
-  }
 }

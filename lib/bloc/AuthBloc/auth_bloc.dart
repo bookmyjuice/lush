@@ -2,13 +2,14 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:lush/get_it.dart';
+import 'package:lush/views/models/firebase_phone_auth.dart';
 
 import '../../UserRepository/user_repository.dart';
 import 'auth_events.dart';
 import 'auth_state.dart';
 
 class AuthenticationBloc extends Bloc<AuthenticationEvent, AuthenticationState> {
-  final UserRepository userRepository = getIt.get();
+  final UserRepository userRepository;
 
   // Signup flow state storage
   String _signupEmail = '';
@@ -23,7 +24,9 @@ class AuthenticationBloc extends Bloc<AuthenticationEvent, AuthenticationState> 
   String _signupZip = '';
   String _signupCountry = '';
 
-  AuthenticationBloc() : super(AuthenticationInProgress()) {
+  AuthenticationBloc({UserRepository? repo})
+      : userRepository = repo ?? getIt.get(),
+        super(AuthenticationInProgress()) {
     on<AutoLogIn>((event, emit) async {
       emit(AuthenticationInProgress());
       await userRepository.isInternetAvailable()
@@ -345,29 +348,83 @@ class AuthenticationBloc extends Bloc<AuthenticationEvent, AuthenticationState> 
 
     on<FacebookSignUp>((event, emit) {});
 
-    @override
-    void onChange(Change<AuthenticationState> change) {
-      super.onChange(change);
-      debugPrint(change.toString());
-    }
+    // ============================================================
+    // Firebase Phone Auth Handlers (alternative to backend OTP)
+    // ============================================================
 
-    @override
-    void onTransition(Transition<AuthenticationEvent, AuthenticationState> transition) {
-      super.onTransition(transition);
-      debugPrint(transition.toString());
-    }
+    // Initiate Firebase Phone Auth verification
+    on<FirebasePhoneSignIn>((event, emit) async {
+      final phone = event.phoneNumber.trim();
+      _signupPhone = phone;
+      emit(PhoneEntered(phone: phone));
+      emit(FirebasePhoneAuthInProgress(phone: phone));
 
-    @override
-    void onError(Object error, StackTrace stackTrace) {
-      super.onError(error, stackTrace);
-      debugPrint(error.toString());
-    }
+      try {
+        await FirebasePhoneAuth.instance.initiatePhoneVerification(
+          phone: phone,
+          onCodeSent: (verificationId) {
+            // Dispatch event to update state
+            add(FirebasePhoneOtpSent(verificationId: verificationId));
+          },
+          onError: (error) {
+            add(FirebasePhoneAuthError(error: error));
+          },
+          onTimeout: () {
+            add(const FirebasePhoneAuthError(error: 'SMS delivery timed out'));
+          },
+        );
+      } catch (e) {
+        emit(FirebasePhoneVerificationFailed(error: 'Firebase Phone Auth failed: $e'));
+      }
+    });
 
-    @override
-    void onEvent(AuthenticationEvent event) {
-      super.onEvent(event);
-      debugPrint(event.toString());
-    }
+    // Firebase has sent the SMS code
+    on<FirebasePhoneOtpSent>((event, emit) {
+      emit(FirebasePhoneOtpSentState(
+        phone: _signupPhone,
+        verificationId: event.verificationId,
+      ));
+    });
+
+    // Verify Firebase OTP code
+    on<VerifyFirebaseOtp>((event, emit) async {
+      final success = await FirebasePhoneAuth.instance.verifyPhoneOtp(event.smsCode);
+      if (success) {
+        emit(FirebasePhoneVerified(phone: _signupPhone));
+        emit(PhoneVerified(phone: _signupPhone));
+      } else {
+        emit(const FirebasePhoneVerificationFailed(error: 'Invalid or expired verification code'));
+      }
+    });
+
+    // Firebase Phone Auth error
+    on<FirebasePhoneAuthError>((event, emit) {
+      emit(FirebasePhoneVerificationFailed(error: event.error));
+    });
+  }
+
+  @override
+  void onChange(Change<AuthenticationState> change) {
+    super.onChange(change);
+    debugPrint(change.toString());
+  }
+
+  @override
+  void onTransition(Transition<AuthenticationEvent, AuthenticationState> transition) {
+    super.onTransition(transition);
+    debugPrint(transition.toString());
+  }
+
+  @override
+  void onError(Object error, StackTrace stackTrace) {
+    super.onError(error, stackTrace);
+    debugPrint(error.toString());
+  }
+
+  @override
+  void onEvent(AuthenticationEvent event) {
+    super.onEvent(event);
+    debugPrint(event.toString());
   }
 
   void _resetSignupState() {
