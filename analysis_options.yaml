@@ -52,7 +52,7 @@ linter:
 
     # Design Rules
     - one_member_abstracts
-    - prefer_abstract_classes
+    # - prefer_abstract_classes (removed - not a valid Dart lint rule)
     - avoid_classes_with_only_static_members
     - prefer_final_in_for_each
     - unnecessary_await_in_return

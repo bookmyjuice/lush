@@ -46,6 +46,8 @@ dependencies:
   shimmer: ^3.0.0
   rive: ^0.14.4
   intl: ^0.20.2
+  # Sentry error tracking
+  sentry_flutter: ^8.10.0
 
 dev_dependencies:
   flutter_test:

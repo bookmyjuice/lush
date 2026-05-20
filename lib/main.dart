@@ -5,6 +5,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:sentry_flutter/sentry_flutter.dart';
 import 'package:lush/services/firebase_notification_service.dart';
 import 'package:lush/services/firebase_options.dart';
 import 'package:lush/theme/theme_cubit.dart';
@@ -84,6 +85,24 @@ Future<void> _initializeApp() async {
     // Initialize Google Sign-In
     await GoogleSignInHelper.instance.initialize();
 
+    // Initialize Sentry error tracking
+    await SentryFlutter.init(
+      (options) {
+        options.dsn = const String.fromEnvironment(
+          'SENTRY_DSN_FLUTTER',
+          defaultValue: '',
+        );
+        options.tracesSampleRate = 0.1;
+        options.environment = const String.fromEnvironment(
+          'SENTRY_ENVIRONMENT',
+          defaultValue: 'development',
+        );
+        if (kDebugMode) {
+          options.debug = true;
+        }
+      },
+    );
+
     // Initialize error handling
     _initializeErrorHandling();
 
@@ -130,6 +149,8 @@ void _initializeErrorHandling() {
   // Handle Flutter framework errors
   FlutterError.onError = (FlutterErrorDetails details) {
     FlutterError.presentError(details);
+    // Capture with Sentry
+    Sentry.captureException(details.exception, stackTrace: details.stack);
     if (kDebugMode) {
       print('[ERROR] Flutter Error: ${details.exception}');
       print('StackTrace: ${details.stack}');
@@ -138,6 +159,8 @@ void _initializeErrorHandling() {
 
   // Handle errors outside of Flutter framework
   PlatformDispatcher.instance.onError = (error, stack) {
+    // Capture with Sentry
+    Sentry.captureException(error, stackTrace: stack);
     if (kDebugMode) {
       print('[ERROR] Platform Error: $error');
       print('StackTrace: $stack');
@@ -256,7 +279,7 @@ class BookMyJuiceApp extends StatelessWidget {
                 '/address-entry': (_) => const AddressEntryScreen(),
                 '/create-password': (_) => const CreatePasswordScreen(),
                 '/login': (_) => const LoginPage(
-                    toast_message: '', toast_heading: ''),
+                    toastMessage: '', toastHeading: ''),
                 '/dashboard': (_) => Dashboard(),
                 '/product-catalog': (_) => ProductCatalogScreen(),
               },
@@ -364,22 +387,31 @@ class AuthWrapper extends StatelessWidget {
           );
         }
 
-        // ── Show public dashboard (no login needed) for all other states ──
-        // Users can explore plans and one-time ordering.
-        // Auth-gated actions will show login prompt.
-        //
-        // States handled by this branch:
-        //   AutoLoginFailed, LogInFailed, SignUpFailed, SignUpSuccessful,
-        //   LoggedOut, InternetIssue, AuthenticationInProgress, unknown
-        //
-        // Toasts for transient states are shown via pop-up / snackbar within
-        // the Dashboard itself rather than requiring a LoginPage redirect.
-        if (state is AuthenticationInProgress) {
+        // ── AutoLoginFailed: Show login page with toast message ──
+        // BUG FIX 7: Instead of silently showing public dashboard, redirect
+        // to login page with the failure message so user can sign in manually.
+        if (state is AutoLoginFailed) {
+          return LoginPage(
+            toastMessage: state.toastMessage,
+            toastHeading: state.toastHeading,
+          );
+        }
+
+        // ── InternetIssue: Show public dashboard (offline mode) ──
+        if (state is InternetIssue) {
           return Dashboard(mode: DashboardMode.public);
         }
+
+        // ── SignUpSuccessful: Go to login page to sign in with new credentials ──
+        // BUG FIX 7: Show login page after successful signup instead of public dashboard
         if (state is SignUpSuccessful) {
-          return Dashboard(mode: DashboardMode.public);
+          return const LoginPage(
+            toastMessage: 'Please sign in with your new account',
+            toastHeading: 'Registration Successful!',
+          );
         }
+
+        // ── Loading / LoggedOut / default: Show public dashboard ──
         return Dashboard(mode: DashboardMode.public);
       },
     );
@@ -400,12 +432,13 @@ class MyAccountPageUrl {
 }
 
 class SubscriptionPageUrlArgument {
-  final String premium_page_url, signature_page_url, delight_page_url;
+  final String premiumPageUrl, signaturePageUrl, delightPageUrl;
   SubscriptionPageUrlArgument(
-      {required this.premium_page_url,
-      required this.signature_page_url,
-      required this.delight_page_url});
+      {required this.premiumPageUrl,
+      required this.signaturePageUrl,
+      required this.delightPageUrl});
 }
+
 
 class SignUpScreenArguments {
   // final user user;
@@ -421,7 +454,7 @@ class PaymentScreenArguments {
 
 class AuthenticationBlocObserver extends BlocObserver {
   @override
-  void onCreate(BlocBase bloc) {
+  void onCreate(BlocBase<dynamic> bloc) {
     super.onCreate(bloc);
     if (kDebugMode) {
       print('[DEBUG] BLoC Created: ${bloc.runtimeType}');
@@ -429,7 +462,7 @@ class AuthenticationBlocObserver extends BlocObserver {
   }
 
   @override
-  void onChange(BlocBase bloc, Change change) {
+  void onChange(BlocBase<dynamic> bloc, Change<dynamic> change) {
     super.onChange(bloc, change);
     if (kDebugMode) {
       print('[DEBUG] BLoC Change: ${bloc.runtimeType} - $change');
@@ -437,7 +470,8 @@ class AuthenticationBlocObserver extends BlocObserver {
   }
 
   @override
-  void onTransition(Bloc bloc, Transition transition) {
+  void onTransition(
+      Bloc<dynamic, dynamic> bloc, Transition<dynamic, dynamic> transition) {
     super.onTransition(bloc, transition);
     if (kDebugMode) {
       print('[DEBUG] BLoC Transition: ${bloc.runtimeType} - $transition');
@@ -445,7 +479,8 @@ class AuthenticationBlocObserver extends BlocObserver {
   }
 
   @override
-  void onError(BlocBase bloc, Object error, StackTrace stackTrace) {
+  void onError(
+      BlocBase<dynamic> bloc, Object error, StackTrace stackTrace) {
     super.onError(bloc, error, stackTrace);
     if (kDebugMode) {
       print('[ERROR] BLoC Error: ${bloc.runtimeType} - $error');
@@ -454,10 +489,11 @@ class AuthenticationBlocObserver extends BlocObserver {
   }
 
   @override
-  void onClose(BlocBase bloc) {
+  void onClose(BlocBase<dynamic> bloc) {
     super.onClose(bloc);
     if (kDebugMode) {
       print('[DEBUG] BLoC Closed: ${bloc.runtimeType}');
     }
   }
+
 }

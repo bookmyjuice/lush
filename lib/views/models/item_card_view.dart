@@ -1,4 +1,4 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:hexcolor/hexcolor.dart' as hex;
 import '../../theme.dart';
@@ -78,7 +78,7 @@ class ItemCardView extends StatelessWidget {
                     textColor: Colors.white,
                     onPressed: () {
                       // Use a delayed future to ensure we're not using a disposed context
-                      Future.delayed(Duration.zero, () {
+                      Future<void>.delayed(Duration.zero, () {
                         // Get the navigator from the current context
                         final navigator = Navigator.of(
                           ScaffoldMessenger.of(context).context,

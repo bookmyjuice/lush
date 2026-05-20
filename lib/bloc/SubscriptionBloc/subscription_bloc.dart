@@ -183,8 +183,8 @@ class ActiveSubscription extends Equatable {
     // Create a default plan
     final plan = SubscriptionPlan(
       id: json['planId']?.toString() ?? '',
-      name: json['planName'] as String ?? 'Unknown Plan',
-      description: json['planDescription'] as String ?? '',
+      name: (json['planName'] as String?) ?? 'Unknown Plan',
+      description: (json['planDescription'] as String?) ?? '',
       pricingPageUrl: '',
       startColor: '#FF9800',
       endColor: '#FF5722',
@@ -382,7 +382,7 @@ class SubscriptionBloc extends Bloc<SubscriptionEvent, SubscriptionState> {
 
       // Make API call to your Spring Boot backend to get active subscriptions
       // For now, simulating API call - replace with actual implementation
-      await Future.delayed(const Duration(seconds: 1));
+      await Future<void>.delayed(const Duration(seconds: 1));
 
       // Check if user has an active subscription
       if (userRepository.user.id.isNotEmpty) {
@@ -423,7 +423,7 @@ class SubscriptionBloc extends Bloc<SubscriptionEvent, SubscriptionState> {
 
     try {
       // Load available subscription plans from your backend or use static data
-      await Future.delayed(const Duration(milliseconds: 500));
+      await Future<void>.delayed(const Duration(milliseconds: 500));
 
       final plans = _getDefaultSubscriptionPlans();
       emit(SubscriptionPlansLoaded(plans: plans));
@@ -441,7 +441,7 @@ class SubscriptionBloc extends Bloc<SubscriptionEvent, SubscriptionState> {
     try {
       // Load user's subscription history from your backend
       // Example: GET /api/subscriptions/history?userId=${userRepository.user.id}
-      await Future.delayed(const Duration(seconds: 1));
+      await Future<void>.delayed(const Duration(seconds: 1));
 
       // Mock subscription history for demo
       final subscriptions = <ActiveSubscription>[
@@ -486,7 +486,7 @@ class SubscriptionBloc extends Bloc<SubscriptionEvent, SubscriptionState> {
     try {
       // Create new subscription via your backend API
       // Example: POST /api/subscriptions with Chargebee integration
-      await Future.delayed(const Duration(seconds: 2));
+      await Future<void>.delayed(const Duration(seconds: 2));
 
       // Get the selected plan based on planId
       final selectedPlan = _getDefaultSubscriptionPlan(planID: event.planId);
@@ -523,7 +523,7 @@ class SubscriptionBloc extends Bloc<SubscriptionEvent, SubscriptionState> {
     try {
       // Cancel subscription via your backend API
       // Example: POST /api/subscriptions/{id}/cancel
-      await Future.delayed(const Duration(seconds: 1));
+      await Future<void>.delayed(const Duration(seconds: 1));
 
       // Clear cached subscription
       await _clearCache();
@@ -544,7 +544,7 @@ class SubscriptionBloc extends Bloc<SubscriptionEvent, SubscriptionState> {
 
       try {
         // Pause subscription via your backend API
-        await Future.delayed(const Duration(seconds: 1));
+        await Future<void>.delayed(const Duration(seconds: 1));
 
         final currentSubscription = (state as SubscriptionLoaded).subscription;
         final pausedSubscription = currentSubscription.copyWith(
@@ -573,7 +573,7 @@ class SubscriptionBloc extends Bloc<SubscriptionEvent, SubscriptionState> {
 
       try {
         // Resume subscription via your backend API
-        await Future.delayed(const Duration(seconds: 1));
+        await Future<void>.delayed(const Duration(seconds: 1));
 
         final currentSubscription = (state as SubscriptionLoaded).subscription;
         final resumedSubscription = currentSubscription.copyWith(

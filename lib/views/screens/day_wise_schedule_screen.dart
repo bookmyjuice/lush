@@ -148,7 +148,8 @@ class _DayWiseScheduleScreenState extends State<DayWiseScheduleScreen> {
                     SizedBox(height: 12),
                     Text(
                       'Select one juice for all delivery days',
-                      style: TextStyle(fontSize: 12, color: AppColors.lightTextSecondary!, fontFamily: 'Roboto'),
+                      style: TextStyle(fontSize: 12, color: AppColors.lightTextSecondary, fontFamily: 'Roboto'),
+
                     ),
                     SizedBox(height: 8),
                     _buildJuiceDropdown(
@@ -312,11 +313,11 @@ class _DayWiseScheduleScreenState extends State<DayWiseScheduleScreen> {
         contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(8),
-          borderSide: BorderSide(color: AppColors.lightDivider!),
+          borderSide: BorderSide(color: AppColors.lightDivider),
         ),
         enabledBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(8),
-          borderSide: BorderSide(color: AppColors.lightDivider!),
+          borderSide: BorderSide(color: AppColors.lightDivider),
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(8),

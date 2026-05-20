@@ -27,7 +27,7 @@ class SubscriptionState extends State<Subscription> {
   void initState() {
     super.initState();
     url = widget
-        .args.premium_page_url; // Set the initial URL to the premium page URL
+        .args.premiumPageUrl; // Set the initial URL to the premium page URL
 
     // if (!url.contains("http")) {
     //   toastification.show(
@@ -144,16 +144,16 @@ class SubscriptionState extends State<Subscription> {
                   switch (index) {
                     case 0:
                       _controller
-                          .loadRequest(Uri.parse(widget.args.premium_page_url));
+                          .loadRequest(Uri.parse(widget.args.premiumPageUrl));
                       break;
                     case 1:
                       _controller.loadRequest(
-                          Uri.parse(widget.args.signature_page_url));
+                          Uri.parse(widget.args.signaturePageUrl));
                       break;
 
                     case 2:
                       _controller
-                          .loadRequest(Uri.parse(widget.args.delight_page_url));
+                          .loadRequest(Uri.parse(widget.args.delightPageUrl));
                       break;
                   }
                 },

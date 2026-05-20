@@ -73,7 +73,7 @@ class PhoneOtpVerificationScreenState
       _resendCountdown = 30;
     });
 
-    Future.delayed(const Duration(seconds: 30), () {
+    Future<void>.delayed(const Duration(seconds: 30), () {
       if (mounted) {
         setState(() {
           _canResend = true;

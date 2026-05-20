@@ -5,9 +5,11 @@ import 'package:lush/bloc/AuthBloc/auth_bloc.dart';
 import 'package:lush/bloc/AuthBloc/auth_events.dart';
 import 'package:lush/bloc/AuthBloc/auth_state.dart';
 import 'package:lush/theme/app_colors.dart';
+import 'package:lush/theme/app_spacing.dart';
+import 'package:lush/theme/app_text_styles.dart';
+import 'package:lush/theme/app_theme.dart';
 import 'package:lush/views/models/google_sign_in.dart';
 import 'package:toastification/toastification.dart';
-import 'package:lush/theme/app_text_styles.dart';
 
 /// Unified Authentication Screen
 ///
@@ -20,12 +22,12 @@ import 'package:lush/theme/app_text_styles.dart';
 class LoginPage extends StatefulWidget {
   const LoginPage({
     super.key,
-    required this.toast_message,
-    required this.toast_heading,
+    required this.toastMessage,
+    required this.toastHeading,
   });
 
-  final String toast_message;
-  final String toast_heading;
+  final String toastMessage;
+  final String toastHeading;
 
   @override
   LoginPageState createState() => LoginPageState();
@@ -60,14 +62,14 @@ class LoginPageState extends State<LoginPage>
       }
     });
 
-    if (widget.toast_heading.isNotEmpty) {
+    if (widget.toastHeading.isNotEmpty) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         toastification.show(
           icon: const Icon(Icons.error),
           closeButton: ToastCloseButton(),
           alignment: Alignment.center,
-          title: Text(widget.toast_heading),
-          description: Text(widget.toast_message),
+          title: Text(widget.toastHeading),
+          description: Text(widget.toastMessage),
           type: ToastificationType.error,
         );
       });
@@ -113,7 +115,7 @@ class LoginPageState extends State<LoginPage>
             _dialogShown = true;
             toastification.show(
               closeButton: ToastCloseButton(),
-              title: Text(state.error_heading),
+              title: Text(state.errorHeading),
               description: Text(state.error),
               type: ToastificationType.error,
             );
@@ -133,7 +135,7 @@ class LoginPageState extends State<LoginPage>
           width: double.infinity,
           decoration: const BoxDecoration(
             gradient: LinearGradient(
-              colors: [Color(0xFFFFA726), Color(0xFFFF7043)],
+              colors: [AppColors.gradientStart, AppColors.gradientEnd],
               begin: Alignment.topCenter,
               end: Alignment.bottomCenter,
             ),
@@ -142,39 +144,45 @@ class LoginPageState extends State<LoginPage>
             child: Column(
               children: [
                 // ── Logo & Title ──
-                const SizedBox(height: 20),
+                const SizedBox(height: AppSpacing.lg),
                 SizedBox(
                   height: 100,
                   width: 200,
                   child: Image.asset('assets/bmjlogo.png'),
                 ),
-                const SizedBox(height: 6),
+                const SizedBox(height: AppSpacing.xs),
                 Text(
                   'Fresh Juices, Delivered Daily',
                   style: TextStyle(fontSize: 14, color: AppColors.white.withOpacity(0.9),
                     fontWeight: FontWeight.w500,
                   ),
                 ),
-                const SizedBox(height: 16),
+                const SizedBox(height: AppSpacing.md),
 
                 // ── Tab Bar: Sign In | Sign Up ──
                 Container(
-                  margin: const EdgeInsets.symmetric(horizontal: 24),
+                  margin: const EdgeInsets.symmetric(horizontal: AppSpacing.lg),
                   decoration: BoxDecoration(
                     color: AppColors.white.withOpacity(0.2),
-                    borderRadius: BorderRadius.circular(30),
+                    borderRadius: BorderRadius.circular(AppRadius.lg * 1.875),
                   ),
                   child: TabBar(
                     controller: _tabController,
                     indicator: BoxDecoration(
                       color: AppColors.white,
-                      borderRadius: BorderRadius.circular(30),
+                      borderRadius: BorderRadius.circular(AppRadius.lg * 1.875),
                     ),
                     indicatorSize: TabBarIndicatorSize.tab,
                     labelColor: AppColors.primaryOrange,
                     unselectedLabelColor: AppColors.white,
-                    labelStyle: TextStyle(fontSize: 15, fontWeight: FontWeight.w700, color: AppColors.primaryOrange, fontFamily: 'Roboto'),
-                    unselectedLabelStyle: TextStyle(fontSize: 15, fontWeight: FontWeight.w600, color: AppColors.white, fontFamily: 'Roboto'),
+                    labelStyle: AppTextStyles.textTheme.labelLarge?.copyWith(
+                      fontWeight: FontWeight.w700,
+                      color: AppColors.primaryOrange,
+                    ),
+                    unselectedLabelStyle: AppTextStyles.textTheme.labelLarge?.copyWith(
+                      fontWeight: FontWeight.w600,
+                      color: AppColors.white,
+                    ),
                     dividerHeight: 0,
                     tabs: const [
                       Tab(text: 'Sign In'),
@@ -183,7 +191,7 @@ class LoginPageState extends State<LoginPage>
                   ),
                 ),
 
-                const SizedBox(height: 16),
+                const SizedBox(height: AppSpacing.md),
 
                 // ── Tab Content ──
                 Expanded(
@@ -210,7 +218,7 @@ class LoginPageState extends State<LoginPage>
 
   Widget _buildSignInTab() {
     return SingleChildScrollView(
-      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
+      padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg, vertical: AppSpacing.sm),
       child: Form(
         key: _signInFormKey,
         child: Column(
@@ -219,17 +227,19 @@ class LoginPageState extends State<LoginPage>
             // ── Heading ──
             Text(
               'Welcome Back!',
-              style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: AppColors.white, fontFamily: 'Roboto'),
+              style: AppTextStyles.textTheme.headlineMedium?.copyWith(
+                color: AppColors.white,
+              ),
               textAlign: TextAlign.center,
             ),
-            const SizedBox(height: 4),
+            const SizedBox(height: AppSpacing.xs),
             Text(
               'Sign in to your account',
               style: TextStyle(fontSize: 14, color: AppColors.white.withOpacity(0.8),
               ),
               textAlign: TextAlign.center,
             ),
-            const SizedBox(height: 24),
+            const SizedBox(height: AppSpacing.lg),
 
             // ── Email Field ──
             _buildWhiteTextField(
@@ -247,7 +257,7 @@ class LoginPageState extends State<LoginPage>
                 return null;
               },
             ),
-            const SizedBox(height: 16),
+            const SizedBox(height: AppSpacing.md),
 
             // ── Password Field ──
             _buildWhiteTextField(
@@ -260,7 +270,7 @@ class LoginPageState extends State<LoginPage>
                   _obscurePassword
                       ? Icons.visibility_off_outlined
                       : Icons.visibility_outlined,
-                  color: Colors.grey,
+                  color: AppColors.darkGrey,
                   size: 20,
                 ),
                 onPressed: () {
@@ -274,7 +284,7 @@ class LoginPageState extends State<LoginPage>
                 return null;
               },
             ),
-            const SizedBox(height: 6),
+            const SizedBox(height: AppSpacing.xs),
 
             // ── Forgot Password ──
             Align(
@@ -285,35 +295,41 @@ class LoginPageState extends State<LoginPage>
                 },
                 child: Text(
                   'Forgot Password?',
-                  style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: AppColors.white, fontFamily: 'Roboto'),
+                  style: AppTextStyles.textTheme.labelLarge?.copyWith(
+                    fontWeight: FontWeight.w600,
+                    color: AppColors.white,
+                  ),
                 ),
               ),
             ),
-            const SizedBox(height: 8),
+            const SizedBox(height: AppSpacing.sm),
 
             // ── Sign In Button ──
             _buildSignInButton(),
-            const SizedBox(height: 20),
+            const SizedBox(height: AppSpacing.lg),
 
             // ── Divider ──
             Row(
               children: [
-                const Expanded(
-                  child: Divider(color: Colors.white54, thickness: 1),
+                Expanded(
+                  child: Divider(color: AppColors.white54, thickness: 1),
                 ),
                 Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 12),
+                  padding: const EdgeInsets.symmetric(horizontal: AppSpacing.sm),
                   child: Text(
                     'OR',
-                    style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: Colors.white70, fontFamily: 'Roboto'),
+                    style: AppTextStyles.textTheme.labelLarge?.copyWith(
+                      fontWeight: FontWeight.w600,
+                      color: AppColors.white70,
+                    ),
                   ),
                 ),
-                const Expanded(
-                  child: Divider(color: Colors.white54, thickness: 1),
+                Expanded(
+                  child: Divider(color: AppColors.white54, thickness: 1),
                 ),
               ],
             ),
-            const SizedBox(height: 20),
+            const SizedBox(height: AppSpacing.lg),
 
             // ── Social / Alt Login Row ──
             Row(
@@ -328,7 +344,7 @@ class LoginPageState extends State<LoginPage>
                     onTap: _handleGoogleSignIn,
                   ),
                 ),
-                const SizedBox(width: 12),
+                const SizedBox(width: AppSpacing.sm),
                 // Phone OTP Login Button
                 Expanded(
                   child: _buildAltLoginButton(
@@ -343,7 +359,7 @@ class LoginPageState extends State<LoginPage>
                 ),
               ],
             ),
-            const SizedBox(height: 24),
+            const SizedBox(height: AppSpacing.lg),
 
             // ── Switch to Sign Up ──
             Row(
@@ -360,12 +376,15 @@ class LoginPageState extends State<LoginPage>
                   },
                   child: Text(
                     'Sign Up',
-                    style: TextStyle(fontSize: 14, fontWeight: FontWeight.w700, color: AppColors.white, fontFamily: 'Roboto'),
+                    style: AppTextStyles.textTheme.labelLarge?.copyWith(
+                      fontWeight: FontWeight.w700,
+                      color: AppColors.white,
+                    ),
                   ),
                 ),
               ],
             ),
-            const SizedBox(height: 16),
+            const SizedBox(height: AppSpacing.md),
           ],
         ),
       ),
@@ -378,24 +397,26 @@ class LoginPageState extends State<LoginPage>
 
   Widget _buildSignUpTab() {
     return SingleChildScrollView(
-      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
+      padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg, vertical: AppSpacing.sm),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           // ── Heading ──
           Text(
             'Create Your Account',
-            style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: AppColors.white, fontFamily: 'Roboto'),
+            style: AppTextStyles.textTheme.headlineMedium?.copyWith(
+              color: AppColors.white,
+            ),
             textAlign: TextAlign.center,
           ),
-          const SizedBox(height: 4),
+          const SizedBox(height: AppSpacing.xs),
           Text(
             'Choose your preferred signup method',
             style: TextStyle(fontSize: 14, color: AppColors.white.withOpacity(0.8),
             ),
             textAlign: TextAlign.center,
           ),
-          const SizedBox(height: 28),
+          const SizedBox(height: AppSpacing.lg + AppSpacing.xs),
 
           // ── Sign up with Email ──
           _buildSignupMethodCard(
@@ -410,7 +431,7 @@ class LoginPageState extends State<LoginPage>
               Navigator.pushNamed(context, '/email-signup');
             },
           ),
-          const SizedBox(height: 12),
+          const SizedBox(height: AppSpacing.sm),
 
           // ── Sign up with Phone ──
           _buildSignupMethodCard(
@@ -425,7 +446,7 @@ class LoginPageState extends State<LoginPage>
               Navigator.pushNamed(context, '/phone-signup');
             },
           ),
-          const SizedBox(height: 12),
+          const SizedBox(height: AppSpacing.sm),
 
           // ── Sign up with Google ──
           _buildSignupMethodCard(
@@ -436,27 +457,30 @@ class LoginPageState extends State<LoginPage>
             onTap: _isGoogleLoading ? null : _handleGoogleSignUp,
             isLoading: _isGoogleLoading,
           ),
-          const SizedBox(height: 28),
+          const SizedBox(height: AppSpacing.lg + AppSpacing.xs),
 
           // ── Divider ──
           Row(
             children: [
-              const Expanded(
-                child: Divider(color: Colors.white54, thickness: 1),
+              Expanded(
+                child: Divider(color: AppColors.white54, thickness: 1),
               ),
               Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 12),
+                padding: const EdgeInsets.symmetric(horizontal: AppSpacing.sm),
                 child: Text(
                   'OR',
-                  style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: Colors.white70, fontFamily: 'Roboto'),
+                  style: AppTextStyles.textTheme.labelLarge?.copyWith(
+                    fontWeight: FontWeight.w600,
+                    color: AppColors.white70,
+                  ),
                 ),
               ),
-              const Expanded(
-                child: Divider(color: Colors.white54, thickness: 1),
+              Expanded(
+                child: Divider(color: AppColors.white54, thickness: 1),
               ),
             ],
           ),
-          const SizedBox(height: 20),
+          const SizedBox(height: AppSpacing.lg),
 
           // ── Switch to Sign In ──
           Row(
@@ -473,12 +497,15 @@ class LoginPageState extends State<LoginPage>
                 },
                 child: Text(
                   'Sign In',
-                  style: TextStyle(fontSize: 14, fontWeight: FontWeight.w700, color: AppColors.white, fontFamily: 'Roboto'),
+                  style: AppTextStyles.textTheme.labelLarge?.copyWith(
+                    fontWeight: FontWeight.w700,
+                    color: AppColors.white,
+                  ),
                 ),
               ),
             ],
           ),
-          const SizedBox(height: 16),
+          const SizedBox(height: AppSpacing.md),
         ],
       ),
     );
@@ -501,7 +528,7 @@ class LoginPageState extends State<LoginPage>
           disabledBackgroundColor: AppColors.white.withOpacity(0.5),
           disabledForegroundColor: AppColors.primaryOrange.withOpacity(0.5),
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(14),
+            borderRadius: BorderRadius.circular(AppRadius.lg + 2),
           ),
         ),
         child: _isSignInLoading
@@ -517,7 +544,10 @@ class LoginPageState extends State<LoginPage>
               )
             : Text(
                 'Sign In',
-                style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700, color: AppColors.primaryOrange, fontFamily: 'Roboto'),
+                style: AppTextStyles.textTheme.titleMedium?.copyWith(
+                  fontWeight: FontWeight.w700,
+                  color: AppColors.primaryOrange,
+                ),
               ),
       ),
     );
@@ -534,13 +564,6 @@ class LoginPageState extends State<LoginPage>
     BlocProvider.of<AuthenticationBloc>(context).add(
       LogIn(email, password, false),
     );
-
-    // Reset loading after a reasonable timeout
-    Future.delayed(const Duration(seconds: 5), () {
-      if (mounted) {
-        setState(() => _isSignInLoading = false);
-      }
-    });
   }
 
   // ═══════════════════════════════════════════════════════
@@ -601,7 +624,7 @@ class LoginPageState extends State<LoginPage>
     } catch (e) {
       debugPrint('❌ Google Sign-In from login page failed: $e');
     } finally {
-      await Future.delayed(const Duration(milliseconds: 500));
+      await Future<void>.delayed(const Duration(milliseconds: 500));
       if (mounted) {
         setState(() => _isSignInLoading = false);
       }
@@ -625,7 +648,7 @@ class LoginPageState extends State<LoginPage>
     return Container(
       decoration: BoxDecoration(
         color: AppColors.white,
-        borderRadius: BorderRadius.circular(14),
+        borderRadius: BorderRadius.circular(AppRadius.lg + 2),
         border: Border.all(color: AppColors.white.withOpacity(0.3)),
       ),
       child: TextFormField(
@@ -633,15 +656,19 @@ class LoginPageState extends State<LoginPage>
         keyboardType: keyboardType,
         obscureText: obscureText,
         validator: validator,
-        style: TextStyle(fontSize: 15, color: AppColors.lightTextPrimary, fontFamily: 'Roboto'),
+        style: AppTextStyles.textTheme.bodyLarge?.copyWith(
+          color: AppColors.lightTextPrimary,
+        ),
         decoration: InputDecoration(
           hintText: hintText,
-          hintStyle: TextStyle(fontSize: 15, color: Colors.grey, fontFamily: 'Roboto'),
-          prefixIcon: Icon(prefixIcon, color: Colors.grey, size: 22),
+          hintStyle: AppTextStyles.textTheme.bodyLarge?.copyWith(
+            color: AppColors.darkGrey,
+          ),
+          prefixIcon: Icon(prefixIcon, color: AppColors.darkGrey, size: 22),
           suffixIcon: suffixIcon,
           border: InputBorder.none,
           contentPadding:
-              const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+              const EdgeInsets.symmetric(horizontal: AppSpacing.md, vertical: AppSpacing.md),
         ),
       ),
     );
@@ -662,18 +689,21 @@ class LoginPageState extends State<LoginPage>
         foregroundColor: AppColors.white,
         side: BorderSide(color: AppColors.white.withOpacity(0.3)),
         shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(14),
+          borderRadius: BorderRadius.circular(AppRadius.lg + 2),
         ),
-        padding: const EdgeInsets.symmetric(vertical: 14),
+        padding: const EdgeInsets.symmetric(vertical: AppSpacing.sm + 6),
       ),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           FaIcon(icon, size: 18, color: iconColor),
-          const SizedBox(width: 8),
+          const SizedBox(width: AppSpacing.sm),
           Text(
             label,
-            style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: AppColors.white, fontFamily: 'Roboto'),
+            style: AppTextStyles.textTheme.bodyLarge?.copyWith(
+              fontWeight: FontWeight.w600,
+              color: AppColors.white,
+            ),
           ),
         ],
       ),
@@ -700,12 +730,12 @@ class LoginPageState extends State<LoginPage>
   }) {
     return InkWell(
       onTap: onTap,
-      borderRadius: BorderRadius.circular(14),
+      borderRadius: BorderRadius.circular(AppRadius.lg + 2),
       child: Container(
-        padding: const EdgeInsets.all(18),
+        padding: const EdgeInsets.all(AppSpacing.lg - 6),
         decoration: BoxDecoration(
           color: AppColors.white.withOpacity(0.15),
-          borderRadius: BorderRadius.circular(14),
+          borderRadius: BorderRadius.circular(AppRadius.lg + 2),
           border: Border.all(color: AppColors.white.withOpacity(0.2)),
         ),
         child: Row(
@@ -715,18 +745,21 @@ class LoginPageState extends State<LoginPage>
               height: 44,
               decoration: BoxDecoration(
                 color: AppColors.white.withOpacity(0.2),
-                borderRadius: BorderRadius.circular(12),
+                borderRadius: BorderRadius.circular(AppRadius.sm + 4),
               ),
               child: _buildCardIcon(icon, iconColor),
             ),
-            const SizedBox(width: 16),
+            const SizedBox(width: AppSpacing.md),
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
                     title,
-                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700, color: AppColors.white, fontFamily: 'Roboto'),
+                    style: AppTextStyles.textTheme.titleMedium?.copyWith(
+                      fontWeight: FontWeight.w700,
+                      color: AppColors.white,
+                    ),
                   ),
                   const SizedBox(height: 2),
                   Text(
@@ -758,8 +791,3 @@ class LoginPageState extends State<LoginPage>
     );
   }
 }
-
-
-
-
-

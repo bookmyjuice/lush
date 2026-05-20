@@ -4,6 +4,10 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:lush/bloc/AuthBloc/auth_bloc.dart';
 import 'package:lush/bloc/AuthBloc/auth_events.dart';
 import 'package:lush/bloc/AuthBloc/auth_state.dart';
+import 'package:lush/theme/app_colors.dart';
+import 'package:lush/theme/app_spacing.dart';
+import 'package:lush/theme/app_text_styles.dart';
+import 'package:lush/theme/app_theme.dart';
 import 'package:lush/views/models/user.dart';
 import 'package:lush/widgets/app_text_field.dart';
 import 'package:toastification/toastification.dart';
@@ -69,7 +73,7 @@ class SignUpScreenState extends State<SignUpScreen> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Create Account'),
-        backgroundColor: Colors.white,
+        backgroundColor: AppColors.lightSurface,
         elevation: 0,
         centerTitle: true,
         leading: IconButton(
@@ -90,7 +94,7 @@ class SignUpScreenState extends State<SignUpScreen> {
             Navigator.pushReplacementNamed(context, '/dashboard');
           } else if (state is SignUpFailed) {
             toastification.show(
-              title: Text(state.error_heading),
+              title: Text(state.errorHeading),
               description: Text(state.error),
               type: ToastificationType.error,
               autoCloseDuration: const Duration(seconds: 5),
@@ -122,8 +126,7 @@ class SignUpScreenState extends State<SignUpScreen> {
                     const SizedBox(height: AppSpacing.xs),
                     Text(
                       'Create your account to get started',
-                      style: TextStyle(
-                        fontSize: 14,
+                      style: AppTextStyles.textTheme.bodyMedium?.copyWith(
                         color: AppColors.darkGrey,
                       ),
                     ),
@@ -308,10 +311,10 @@ class SignUpScreenState extends State<SignUpScreen> {
                         onPressed: _handleSignUp,
                         style: ElevatedButton.styleFrom(
                           backgroundColor: AppColors.primaryOrange,
-                          foregroundColor: Colors.white,
-                          disabledBackgroundColor: Colors.grey[300],
+                          foregroundColor: AppColors.white,
+                          disabledBackgroundColor: AppColors.lightTextDisabled,
                           shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12),
+                            borderRadius: BorderRadius.circular(AppRadius.md),
                           ),
                         ),
                         child: const Text(
@@ -378,7 +381,7 @@ class SignUpScreenState extends State<SignUpScreen> {
                     size: 16,
                     color: req['met'] as bool? ?? false ? AppColors.success : AppColors.darkGrey,
                   ),
-                  const SizedBox(width: 8),
+                  const SizedBox(width: AppSpacing.sm),
                   Text(
                     req['text'] as String,
                     style: TextStyle(

@@ -105,7 +105,7 @@ graph TD
 | **HTTP Client** | HTTP Package | 1.2.1+ |
 | **Screen Adaptation** | ScreenUtil | 5.9.3+ |
 | **Local Storage** | Shared Preferences | 2.0.17+ |
-| **Payments** | Razorpay | 1.3.0+ |
+| **Payments** | Chargebee Checkout pages | 1.3.0+ |
 
 ## 🎯 Core Features
 
@@ -1015,12 +1015,12 @@ dependencies:
   pin_input_text_field: ^4.2.0   # OTP input
 ```
 
-### Payment Dependencies
+<!-- ### Payment Dependencies - payment managed by chargebee checkout pages only
 ```yaml
 dependencies:
-  razorpay_flutter: ^1.3.0       # Payment processing
+
   webview_flutter: ^4.10.0       # WebView for hosted pages
-  url_launcher: ^6.3.1           # URL handling
+  url_launcher: ^6.3.1           # URL handling -->
 ```
 
 ## 🔧 Configuration

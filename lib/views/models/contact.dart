@@ -1,28 +1,28 @@
 class Contact {
-  String first_name;
-  String last_name;
+  String firstName;
+  String lastName;
   String email;
   String phone;
   bool enabled;
-  bool send_account_email;
-  bool send_billing_email;
+  bool sendAccountEmail;
+  bool sendBillingEmail;
 
   Contact(
-      {required this.first_name,
-      required this.last_name,
+      {required this.firstName,
+      required this.lastName,
       required this.email,
       required this.phone,
       required this.enabled,
-      required this.send_account_email,
-      required this.send_billing_email});
+      required this.sendAccountEmail,
+      required this.sendBillingEmail});
 
-  String get firstname => first_name;
+  String get firstname => firstName;
 
-  set firstname(String value) => first_name = value;
+  set firstname(String value) => firstName = value;
 
-  String get lastname => last_name;
+  String get lastname => lastName;
 
-  set lastname(String value) => last_name = value;
+  set lastname(String value) => lastName = value;
 
   String get getEmail => email;
 
@@ -36,11 +36,11 @@ class Contact {
 
   set setEnabled(bool enabled) => this.enabled = enabled;
 
-  bool get sendaccount_email => send_account_email;
+  bool get sendaccountEmail => sendAccountEmail;
 
-  set sendaccount_email(bool value) => send_account_email = value;
+  set sendaccountEmail(bool value) => sendAccountEmail = value;
 
-  bool get sendbilling_email => send_billing_email;
+  bool get sendbillingEmail => sendBillingEmail;
 
-  set sendbilling_email(bool value) => send_billing_email = value;
+  set sendbillingEmail(bool value) => sendBillingEmail = value;
 }

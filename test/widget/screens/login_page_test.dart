@@ -48,8 +48,8 @@ Widget buildTestApp({
       ],
       child: MaterialApp(
         home: LoginPage(
-          toast_message: toastMessage,
-          toast_heading: toastHeading,
+          toastMessage: toastMessage,
+          toastHeading: toastHeading,
         ),
         routes: routes ?? {},
       ),

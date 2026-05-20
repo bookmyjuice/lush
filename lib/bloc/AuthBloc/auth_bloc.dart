@@ -24,6 +24,12 @@ class AuthenticationBloc extends Bloc<AuthenticationEvent, AuthenticationState> 
   String _signupZip = '';
   String _signupCountry = '';
 
+  // BUG FIX 11: Loading guard to prevent double-tap sending multiple OTPs
+  bool _isSendingOTP = false;
+
+  // BUG FIX 9: Track OTP send timestamp for client-side expiry
+  DateTime? _otpSentAt;
+
   AuthenticationBloc({UserRepository? repo})
       : userRepository = repo ?? getIt.get(),
         super(AuthenticationInProgress()) {
@@ -33,11 +39,11 @@ class AuthenticationBloc extends Bloc<AuthenticationEvent, AuthenticationState> 
           ? await userRepository.autoLogin()
               ? emit(AuthenticationSuccess(userRepository.user))
               : emit(AutoLoginFailed(
-                  toast_heading: "AutoLogin Failed!",
-                  toast_message: "Please login again or register"))
+                  toastHeading: "AutoLogin Failed!",
+                  toastMessage: "Please login again or register"))
           : emit(InternetIssue(
-              toast_heading: "No Internet Connection!",
-              toast_message: "Please check your internet connection!"));
+              toastHeading: "No Internet Connection!",
+              toastMessage: "Please check your internet connection!"));
     });
 
     on<LogIn>((event, emit) async {
@@ -47,12 +53,12 @@ class AuthenticationBloc extends Bloc<AuthenticationEvent, AuthenticationState> 
               await userRepository.login(event.username, event.password, event.remember)
                   ? emit(AuthenticationSuccess(userRepository.user))
                   : emit(LogInFailed(
-                      toast_heading: "Login Failed!",
-                      toast_message: "Please check your credentials!"))
+                      toastHeading: "Login Failed!",
+                      toastMessage: "Please check your credentials!"))
             }
           : emit(InternetIssue(
-              toast_heading: "No Internet Connection!",
-              toast_message: "Please check your internet connection!"));
+              toastHeading: "No Internet Connection!",
+              toastMessage: "Please check your internet connection!"));
     });
 
     on<LogOut>((event, emit) async {
@@ -72,6 +78,8 @@ class AuthenticationBloc extends Bloc<AuthenticationEvent, AuthenticationState> 
 
     // Step 2a: Email-first flow - Enter email
     on<EnterEmail>((event, emit) async {
+      // BUG FIX 3: Reset stale signup state when re-entering signup flow
+      _resetSignupState();
       _signupEmail = event.email.toLowerCase().trim();
       emit(EmailEntered(email: _signupEmail));
 
@@ -90,6 +98,11 @@ class AuthenticationBloc extends Bloc<AuthenticationEvent, AuthenticationState> 
 
     // Step 2a: Verify email code
     on<VerifyEmail>((event, emit) async {
+      // BUG FIX 4: Check for empty _signupEmail (never entered email flow)
+      if (_signupEmail.isEmpty) {
+        emit(const EmailVerificationFailed(error: 'No email in session. Please enter your email first.'));
+        return;
+      }
       if (event.email.toLowerCase().trim() != _signupEmail) {
         emit(const EmailVerificationFailed(error: 'Email mismatch. Please try again.'));
         return;
@@ -117,14 +130,25 @@ class AuthenticationBloc extends Bloc<AuthenticationEvent, AuthenticationState> 
 
     // Send OTP to phone
     on<SendOTP>((event, emit) async {
+      // BUG FIX 11: Prevent double-tap sending multiple OTPs
+      if (_isSendingOTP) {
+        emit(const OTPSendFailed(error: 'OTP already being sent. Please wait.'));
+        return;
+      }
+
+      _isSendingOTP = true;
       _signupPhone = event.phoneNumber.trim();
       emit(PhoneEntered(phone: _signupPhone));
 
       final result = await userRepository.sendOTP(event.phoneNumber);
-      if (result.startsWith("Error:")) {
-        final errorMsg = result.replaceFirst("Error: ", "");
+      _isSendingOTP = false;
+
+      if (result.startsWith('Error:')) {
+        final errorMsg = result.replaceFirst('Error: ', '');
         emit(OTPSendFailed(error: errorMsg));
       } else {
+        // BUG FIX 9: Track OTP send timestamp for client-side expiry
+        _otpSentAt = DateTime.now();
         emit(OTPSent());
       }
     });
@@ -132,8 +156,8 @@ class AuthenticationBloc extends Bloc<AuthenticationEvent, AuthenticationState> 
     // Verify OTP
     on<VerifyOTP>((event, emit) async {
       final result = await userRepository.verifyOTP(event.otp);
-      if (result.startsWith("Error:")) {
-        final errorMsg = result.replaceFirst("Error: ", "");
+      if (result.startsWith('Error:')) {
+        final errorMsg = result.replaceFirst('Error: ', '');
         emit(OTPVerificationFailed(error: errorMsg));
       } else {
         emit(PhoneVerified(phone: _signupPhone));
@@ -143,16 +167,27 @@ class AuthenticationBloc extends Bloc<AuthenticationEvent, AuthenticationState> 
 
     // Resend OTP
     on<ResendOTP>((event, emit) async {
+      // BUG FIX 11: Also guard resend against double-tap
+      if (_isSendingOTP) {
+        emit(const OTPSendFailed(error: 'OTP already being sent. Please wait.'));
+        return;
+      }
+
       if (_signupPhone.isNotEmpty) {
+        _isSendingOTP = true;
         final result = await userRepository.sendOTP(_signupPhone);
-        if (result.startsWith("Error:")) {
-          final errorMsg = result.replaceFirst("Error: ", "");
+        _isSendingOTP = false;
+
+        if (result.startsWith('Error:')) {
+          final errorMsg = result.replaceFirst('Error: ', '');
           emit(OTPSendFailed(error: errorMsg));
         } else {
+          // BUG FIX 9: Track OTP send timestamp for client-side expiry
+          _otpSentAt = DateTime.now();
           emit(OTPSent());
         }
       } else {
-        emit(const OTPSendFailed(error: "Phone number not set"));
+        emit(const OTPSendFailed(error: 'Phone number not set'));
       }
     });
 
@@ -177,10 +212,19 @@ class AuthenticationBloc extends Bloc<AuthenticationEvent, AuthenticationState> 
         email: _signupEmail,
         firstName: _signupFirstName,
         lastName: _signupLastName,
-      ));
+      ),);
 
       // If all fields are provided, proceed with signup
       if (event.password != null && event.password!.isNotEmpty) {
+        // BUG FIX: Check password confirmation before proceeding
+        if (event.confirmPassword == null || event.password != event.confirmPassword) {
+          emit(const SignUpFailed(
+            errorHeading: 'Password Mismatch',
+            error: 'Passwords do not match',
+          ));
+          return;
+        }
+
         // Store password and trigger complete signup
         emit(AuthenticationInProgress());
 
@@ -201,9 +245,9 @@ class AuthenticationBloc extends Bloc<AuthenticationEvent, AuthenticationState> 
           photoUrl: event.photoUrl,
         );
 
-        if (result.startsWith("Error:")) {
-          final errorMsg = result.replaceFirst("Error: ", "");
-          emit(SignUpFailed(error: errorMsg, error_heading: "SignUp Failed!"));
+        if (result.startsWith('Error:')) {
+          final errorMsg = result.replaceFirst('Error: ', '');
+          emit(SignUpFailed(error: errorMsg, errorHeading: 'SignUp Failed!'));
         } else {
           if (userRepository.userLoggedIn) {
             emit(AuthenticationSuccess(userRepository.user));
@@ -216,6 +260,36 @@ class AuthenticationBloc extends Bloc<AuthenticationEvent, AuthenticationState> 
 
     // Step 3: Enter address
     on<EnterAddress>((event, emit) {
+      // BUG FIX: Validate required address fields
+      if (event.firstName.trim().isEmpty) {
+        emit(const SignUpFailed(errorHeading: 'Validation Error', error: 'First name is required'));
+        return;
+      }
+      if (event.lastName.trim().isEmpty) {
+        emit(const SignUpFailed(errorHeading: 'Validation Error', error: 'Last name is required'));
+        return;
+      }
+      if (event.address.trim().isEmpty) {
+        emit(const SignUpFailed(errorHeading: 'Validation Error', error: 'Address is required'));
+        return;
+      }
+      if (event.city.trim().isEmpty) {
+        emit(const SignUpFailed(errorHeading: 'Validation Error', error: 'City is required'));
+        return;
+      }
+      if (event.state.trim().isEmpty) {
+        emit(const SignUpFailed(errorHeading: 'Validation Error', error: 'State is required'));
+        return;
+      }
+      if (event.zip.trim().isEmpty) {
+        emit(const SignUpFailed(errorHeading: 'Validation Error', error: 'ZIP code is required'));
+        return;
+      }
+      if (event.country.trim().isEmpty) {
+        emit(const SignUpFailed(errorHeading: 'Validation Error', error: 'Country is required'));
+        return;
+      }
+
       _signupFirstName = event.firstName.trim();
       _signupLastName = event.lastName.trim();
       _signupAddress = event.address.trim();
@@ -226,20 +300,8 @@ class AuthenticationBloc extends Bloc<AuthenticationEvent, AuthenticationState> 
       _signupZip = event.zip.trim();
       _signupCountry = event.country.trim().toUpperCase();
 
-      emit(AddressEntered(
-        firstName: _signupFirstName,
-        lastName: _signupLastName,
-        email: _signupEmail,
-        phone: _signupPhone,
-        address: _signupAddress,
-        extendedAddr: _signupExtendedAddr,
-        extendedAddr2: _signupExtendedAddr2,
-        city: _signupCity,
-        state: _signupState,
-        zip: _signupZip,
-        country: _signupCountry,
-      ));
-
+      // BUG FIX: Emit only ReadyForFinalSignup (single state emission)
+      // AddressEntered was always swallowed immediately by ReadyForFinalSignup
       emit(ReadyForFinalSignup(
         email: _signupEmail,
         phone: _signupPhone,
@@ -252,14 +314,14 @@ class AuthenticationBloc extends Bloc<AuthenticationEvent, AuthenticationState> 
         state: _signupState,
         zip: _signupZip,
         country: _signupCountry,
-      ));
+      ),);
     });
 
     // Step 4: Complete signup with password
     on<CompleteSignup>((event, emit) async {
       if (event.password != event.confirmPassword) {
         emit(const SignUpFailed(
-            error_heading: "Password Mismatch", error: "Passwords do not match"));
+            errorHeading: 'Password Mismatch', error: 'Passwords do not match'));
         return;
       }
 
@@ -281,46 +343,50 @@ class AuthenticationBloc extends Bloc<AuthenticationEvent, AuthenticationState> 
 
       final res = await userRepository.signUp();
 
-      if (res.startsWith("Error:")) {
-        final errorMsg = res.replaceFirst("Error: ", "");
-        emit(SignUpFailed(error: errorMsg, error_heading: "SignUp Failed!"));
+      // BUG FIX 5: Reset signup state BEFORE emitting terminal state
+      // _resetSignupState was being called AFTER emit, which means the state
+      // was wiped but nobody could receive the last state.
+      _resetSignupState();
+
+      if (res.startsWith('Error:')) {
+        final errorMsg = res.replaceFirst('Error: ', '');
+        emit(SignUpFailed(error: errorMsg, errorHeading: 'SignUp Failed!'));
       } else {
+        // BUG FIX 17: Clear plaintext password from User object after successful signup
+        userRepository.user.setPassword = '';
         if (userRepository.userLoggedIn) {
           emit(AuthenticationSuccess(userRepository.user));
         } else {
           emit(SignUpSuccessful());
         }
       }
-
-      // Reset signup state
-      _resetSignupState();
     });
 
     // Legacy events
     on<GoogleSignIn>((event, emit) async {
-      final res = await userRepository.googleSignIn_();
+      final res = await userRepository.googleSignIn();
       if (res == null) {
         emit(const SignUpFailed(
-            error: 'Google Sign-In Failed', error_heading: "Google Sign-In Failed!"));
+            error: 'Google Sign-In Failed', errorHeading: 'Google Sign-In Failed!'));
       } else if (res is Map && res['type'] == 'login_success') {
         // User found - login successful
         emit(AuthenticationSuccess(userRepository.user));
       } else if (res is Map && res['type'] == 'link_required') {
-        // No account found - show intermediate screen
+        // BUG FIX: Use null-safe casts to prevent crash if keys are missing
         emit(GoogleLinkRequired(
-          googleEmail: res['googleEmail'] as String,
-          googleFirstName: res['googleFirstName'] as String,
-          googleLastName: res['googleLastName'] as String,
-          googleId: res['googleId'] as String,
+          googleEmail: (res['googleEmail'] as String?) ?? '',
+          googleFirstName: (res['googleFirstName'] as String?) ?? '',
+          googleLastName: (res['googleLastName'] as String?) ?? '',
+          googleId: (res['googleId'] as String?) ?? '',
           photoUrl: res['photoUrl'] as String?,
-        ));
+        ),);
       } else if (res is Map && res['type'] == 'signup_required') {
         // User not found - start signup flow
         emit(SignUpStarted(user: userRepository.user));
       } else {
         // Error case
         emit(SignUpFailed(
-            error: res.toString(), error_heading: "Google Sign-In Failed!"));
+            error: res.toString(), errorHeading: 'Google Sign-In Failed!'));
       }
     });
 
@@ -334,9 +400,9 @@ class AuthenticationBloc extends Bloc<AuthenticationEvent, AuthenticationState> 
 
       final res = await userRepository.signUp();
 
-      if (res.startsWith("Error:")) {
-        final errorMsg = res.replaceFirst("Error: ", "");
-        emit(SignUpFailed(error: errorMsg, error_heading: "SignUp Failed!"));
+      if (res.startsWith('Error:')) {
+        final errorMsg = res.replaceFirst('Error: ', '');
+        emit(SignUpFailed(error: errorMsg, errorHeading: 'SignUp Failed!'));
       } else {
         if (userRepository.userLoggedIn) {
           emit(AuthenticationSuccess(userRepository.user));
@@ -346,7 +412,13 @@ class AuthenticationBloc extends Bloc<AuthenticationEvent, AuthenticationState> 
       }
     });
 
-    on<FacebookSignUp>((event, emit) {});
+    on<FacebookSignUp>((event, emit) {
+      // BUG FIX 21: Provide meaningful response instead of no-op handler
+      emit(const SignUpFailed(
+        errorHeading: 'Coming Soon',
+        error: 'Facebook sign-up is not yet available. Please use Email or Google sign-up.',
+      ));
+    });
 
     // ============================================================
     // Firebase Phone Auth Handlers (alternative to backend OTP)

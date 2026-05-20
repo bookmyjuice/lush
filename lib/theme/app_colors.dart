@@ -18,6 +18,13 @@ class AppColors {
   static const Color primaryOrangeDark = Color(0xFFE67E3A);
   static const Color primaryOrangeLight = Color(0xFFFFA96A);
 
+  // ── Brand Gradients ──
+  /// Top color of the login screen background gradient (warm amber).
+  static const Color gradientStart = Color(0xFFFFA726);
+
+  /// Bottom color of the login screen background gradient (deep orange).
+  static const Color gradientEnd = Color(0xFFFF7043);
+
   // ── Brand Secondary (Teal) ──
   static const Color secondaryTeal = Color(0xFF4ECDC4);
   static const Color secondaryTealDark = Color(0xFF45B7AF);
@@ -36,6 +43,13 @@ class AppColors {
   static const Color grey = Color(0xFF9E9E9E);
   static const Color darkGrey = Color(0xFF424242);
   static const Color nearlyBlack = Color(0xFF213333);
+
+  // ── White Opacity Variants (for login screen) ──
+  /// 54% opacity white.
+  static const Color white54 = Color(0x8AFFFFFF);
+
+  /// 70% opacity white.
+  static const Color white70 = Color(0xB3FFFFFF);
 
   // ── Light Theme Surface ──
   static const Color lightBackground = Color(0xFFFAFAFA);

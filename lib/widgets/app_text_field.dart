@@ -1,27 +1,8 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-
-/// Design System Colors
-class AppColors {
-  static const Color primaryOrange = Color(0xFFFF8C42);
-  static const Color nearlyBlack = Color(0xFF213333);
-  static const Color white = Color(0xFFFFFFFF);
-  static const Color grey = Color(0xFFE0E0E0);
-  static const Color darkGrey = Color(0xFF757575);
-  static const Color lightGrey = Color(0xFFF5F5F5);
-  static const Color error = Color(0xFFB00020);
-  static const Color success = Color(0xFF4CAF50);
-}
-
-/// Design System Spacing
-class AppSpacing {
-  static const double xxs = 4.0;
-  static const double xs = 8.0;
-  static const double sm = 12.0;
-  static const double md = 16.0;
-  static const double lg = 24.0;
-  static const double xl = 32.0;
-}
+import 'package:lush/theme/app_colors.dart';
+import 'package:lush/theme/app_spacing.dart';
+import 'package:lush/theme/app_theme.dart';
 
 /// Reusable TextField component following BookMyJuice Design System
 /// 
@@ -88,10 +69,10 @@ class AppTextField extends StatelessWidget {
             style: const TextStyle(
               fontSize: 14,
               fontWeight: FontWeight.w500,
-              color: AppColors.nearlyBlack,
+              color: AppColors.warning,
             ),
           ),
-          const SizedBox(height: AppSpacing.xs),
+          const SizedBox(height: AppSpacing.sm),
         ],
         TextFormField(
           controller: controller,
@@ -112,46 +93,46 @@ class AppTextField extends StatelessWidget {
                 ? Icon(suffixIcon, size: 20, color: AppColors.darkGrey)
                 : null),
             filled: true,
-            fillColor: AppColors.white,
+            fillColor: AppColors.darkCard,
             border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(12),
+              borderRadius: BorderRadius.circular(AppRadius.sm),
               borderSide: const BorderSide(
-                color: AppColors.grey,
+                color: AppColors.lightDivider,
                 width: 1,
               ),
             ),
             enabledBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(12),
+              borderRadius: BorderRadius.circular(AppRadius.sm),
               borderSide: const BorderSide(
-                color: AppColors.grey,
+                color: AppColors.lightDivider,
                 width: 1,
               ),
             ),
             focusedBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(12),
+              borderRadius: BorderRadius.circular(AppRadius.sm),
               borderSide: const BorderSide(
                 color: AppColors.primaryOrange,
                 width: 2,
               ),
             ),
             errorBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(12),
+              borderRadius: BorderRadius.circular(AppRadius.sm),
               borderSide: const BorderSide(
                 color: AppColors.error,
                 width: 1,
               ),
             ),
             focusedErrorBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(12),
+              borderRadius: BorderRadius.circular(AppRadius.sm),
               borderSide: const BorderSide(
                 color: AppColors.error,
                 width: 2,
               ),
             ),
             disabledBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(12),
+              borderRadius: BorderRadius.circular(AppRadius.sm),
               borderSide: const BorderSide(
-                color: AppColors.grey,
+                color: AppColors.lightDivider,
                 width: 1,
               ),
             ),

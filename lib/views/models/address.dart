@@ -3,26 +3,26 @@ class Address {
   String lastName;
   String phone;
   String addr;
-  String extended_addr;
-  String extended_addr2;
+  String extendedAddr;
+  String extendedAddr2;
   String city;
-  String state_code;
+  String stateCode;
   String zip;
-  bool validation_status;
-  String subscription_id;
+  bool validationStatus;
+  String subscriptionId;
 
   Address(
       {required this.firstName,
       required this.lastName,
       required this.phone,
       required this.addr,
-      required this.extended_addr,
-      required this.extended_addr2,
+      required this.extendedAddr,
+      required this.extendedAddr2,
       required this.city,
-      required this.state_code,
+      required this.stateCode,
       required this.zip,
-      required this.validation_status,
-      required this.subscription_id});
+      required this.validationStatus,
+      required this.subscriptionId});
 
   String get getFirstName => firstName;
 
@@ -40,31 +40,31 @@ class Address {
 
   set setAddr(String addr) => this.addr = addr;
 
-  String get extendedaddr => extended_addr;
+  String get extendedaddr => extendedAddr;
 
-  set extendedaddr(String value) => extended_addr = value;
+  set extendedaddr(String value) => extendedAddr = value;
 
-  String get extendedaddr2 => extended_addr2;
+  String get extendedaddr2 => extendedAddr2;
 
-  set extendedaddr2(String value) => extended_addr2 = value;
+  set extendedaddr2(String value) => extendedAddr2 = value;
 
   String get getCity => city;
 
   set setCity(String city) => this.city = city;
 
-  String get statecode => state_code;
+  String get statecode => stateCode;
 
-  set statecode(String value) => state_code = value;
+  set statecode(String value) => stateCode = value;
 
   String get getZip => zip;
 
   set setZip(String zip) => this.zip = zip;
 
-  bool get validationstatus => validation_status;
+  bool get validationstatus => validationStatus;
 
-  set validationstatus(bool value) => validation_status = value;
+  set validationstatus(bool value) => validationStatus = value;
 
-  String get subscriptionid => subscription_id;
+  String get subscriptionid => subscriptionId;
 
-  set subscriptionid(String value) => subscription_id = value;
+  set subscriptionid(String value) => subscriptionId = value;
 }

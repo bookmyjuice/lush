@@ -59,7 +59,7 @@ class CartRepository {
     try {
       final prefs = await SharedPreferences.getInstance();
       final cartJson =
-          json.encode(items.map((item) => _cartItemToJson(item)).toList());
+          json.encode(items.map(_cartItemToJson).toList());
       await prefs.setString(_cartKey, cartJson);
     } catch (e) {
       print('Error saving cart items: $e');
@@ -214,12 +214,12 @@ class CartRepository {
         item = Item.fromJson(json['item'] as Map<String, dynamic>);
       } catch (e) {
         print('Error parsing item in cart: $e');
-        // Create a minimal valid item to prevent crashes
+      // Create a minimal valid item to prevent crashes
         item = Item(
-          id: json['item']['id'] as String ?? 'unknown',
-          name: json['item']['name'] as String ?? 'Unknown Item',
+          id: (json['item']['id'] as String?) ?? 'unknown',
+          name: (json['item']['name'] as String?) ?? 'Unknown Item',
           description: 'Error loading item details',
-          servingSize: json['item']['servingSize'] as String ?? 'Not Defined' ,
+          servingSize: (json['item']['servingSize'] as String?) ?? 'Not Defined',
         );
       }
 
@@ -232,8 +232,8 @@ class CartRepository {
           print('Error parsing selected price in cart: $e');
           // Create a minimal valid price to prevent crashes
           selectedPrice = ItemPrice(
-            id: json['selectedPrice']['id'] as String ?? 'unknown',
-            name: json['selectedPrice']['name'] as String ?? 'Regular',
+            id: (json['selectedPrice']['id'] as String?) ?? 'unknown',
+            name: (json['selectedPrice']['name'] as String?) ?? 'Regular',
             price: json['selectedPrice']['price'] is num
                 ? (json['selectedPrice']['price'] as num).toDouble()
                 : 0.0,
@@ -254,9 +254,9 @@ class CartRepository {
 
       return CartItem(
         item: item,
-        quantity: json['quantity'] as int ?? 1,
+        quantity: (json['quantity'] as int?) ?? 1,
         selectedSize:
-            json['selectedSize'] as  String ?? 'Not Defined',
+            (json['selectedSize'] as String?) ?? 'Not Defined',
         customizations: customizations,
         selectedPrice: selectedPrice,
       );

@@ -41,6 +41,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
     setState(() => _isLoading = false);
 
     if (response.contains('Success') || response.contains('sent')) {
+      if (!mounted) return;
       Navigator.of(context).pushNamed(
         '/reset-password-mobile-otp',
         arguments: {'phone': phone},
@@ -66,6 +67,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
     setState(() => _isLoading = false);
 
     if (response.contains('Success') || response.contains('sent')) {
+      if (!mounted) return;
       Navigator.of(context).pushNamed(
         '/reset-password-email-code',
         arguments: {'email': email},

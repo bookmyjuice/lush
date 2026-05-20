@@ -5,9 +5,8 @@ import 'package:hexcolor/hexcolor.dart' as hex;
 import 'package:lush/UserRepository/user_repository.dart';
 import 'package:lush/get_it.dart';
 import 'package:lush/theme/app_colors.dart';
-import 'package:lush/theme/app_text_styles.dart';
-
 import '../../bloc/CartBloc/cart_bloc.dart';
+
 import '../../bloc/CartBloc/cart_event.dart';
 import '../../bloc/CartBloc/cart_state.dart';
 import '../models/cart_item.dart';
@@ -123,7 +122,7 @@ class CartScreenState extends State<CartScreen> {
                   child: RefreshIndicator(
                     onRefresh: () async {
                       context.read<CartBloc>().add(LoadCart());
-                      await Future.delayed(const Duration(milliseconds: 500));
+                      await Future<void>.delayed(const Duration(milliseconds: 500));
                     },
                     child: ListView.builder(
                       padding: EdgeInsets.all(16.r),
@@ -183,8 +182,8 @@ class CartScreenState extends State<CartScreen> {
                             // Clear cart and try again
                             final cartBloc = context.read<CartBloc>();
                             cartBloc.add(ClearCart());
-                            Future.delayed(const Duration(milliseconds: 500),
-                                () {
+                            Future<void>.delayed(
+                                const Duration(milliseconds: 500), () {
                               cartBloc.add(LoadCart());
                             });
                           },

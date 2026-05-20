@@ -5,6 +5,9 @@ import 'package:google_sign_in/google_sign_in.dart';
 import 'package:lush/bloc/AuthBloc/auth_bloc.dart';
 import 'package:lush/bloc/AuthBloc/auth_events.dart';
 import 'package:lush/bloc/AuthBloc/auth_state.dart';
+import 'package:lush/theme/app_colors.dart';
+import 'package:lush/theme/app_spacing.dart';
+import 'package:lush/theme/app_theme.dart';
 import 'package:lush/widgets/app_text_field.dart';
 import 'package:toastification/toastification.dart';
 
@@ -67,12 +70,17 @@ class GoogleSignupScreenState extends State<GoogleSignupScreen> {
       return;
     }
 
-    // Populate fields with Google data
+    // Populate fields with Google data (BUG FIX: Try to extract lastName from displayName)
+    final displayName = googleUser.displayName ?? '';
+    final nameParts = displayName.contains(' ') ? displayName.split(' ') : null;
+
     setState(() {
       _emailController.text = googleUser.email;
-      _firstNameController.text = googleUser.displayName ?? '';
-      // Google doesn't provide separate lastName, so we leave it empty for user to fill
-      _lastNameController.text = '';
+      _firstNameController.text = nameParts != null ? nameParts[0] : displayName;
+      // BUG FIX: Try to extract lastName from displayName instead of leaving empty
+      _lastNameController.text = nameParts != null && nameParts.length > 1
+          ? nameParts.sublist(1).join(' ')
+          : '';
       _photoUrl = googleUser.photoUrl;
       _googleId = googleUser.id;
     });
@@ -147,7 +155,8 @@ class GoogleSignupScreenState extends State<GoogleSignupScreen> {
       ),
     );
 
-    setState(() => _isLoading = false);
+    // BUG FIX: Don't reset loading immediately - let BlocBuilder handle it
+    // The loading will be shown until the BLoC emits a terminal state
   }
 
   @override
@@ -155,7 +164,7 @@ class GoogleSignupScreenState extends State<GoogleSignupScreen> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Complete Your Profile'),
-        backgroundColor: Colors.amber,
+        backgroundColor: AppColors.primaryOrange,
         centerTitle: true,
       ),
       body: BlocConsumer<AuthenticationBloc, AuthenticationState>(
@@ -169,12 +178,17 @@ class GoogleSignupScreenState extends State<GoogleSignupScreen> {
             );
             Navigator.pushReplacementNamed(context, '/dashboard');
           } else if (state is SignUpFailed) {
+            // BUG FIX: Reset loading state on failure
+            setState(() => _isLoading = false);
             toastification.show(
-              title: Text(state.error_heading),
+              title: Text(state.errorHeading),
               description: Text(state.error),
               type: ToastificationType.error,
               autoCloseDuration: const Duration(seconds: 5),
             );
+          } else if (state is AuthenticationSuccess) {
+            setState(() => _isLoading = false);
+            Navigator.pushReplacementNamed(context, '/dashboard');
           }
         },
         builder: (context, state) {
@@ -184,7 +198,7 @@ class GoogleSignupScreenState extends State<GoogleSignupScreen> {
 
           return SafeArea(
             child: SingleChildScrollView(
-              padding: const EdgeInsets.all(16.0),
+              padding: const EdgeInsets.all(AppSpacing.md),
               child: Form(
                 key: _formKey,
                 child: Column(
@@ -198,7 +212,7 @@ class GoogleSignupScreenState extends State<GoogleSignupScreen> {
                         fontWeight: FontWeight.bold,
                       ),
                     ),
-                    const SizedBox(height: 16),
+                    const SizedBox(height: AppSpacing.md),
                     
                     // Google Profile Photo (if available)
                     if (_photoUrl != null && _photoUrl!.isNotEmpty)
@@ -206,10 +220,10 @@ class GoogleSignupScreenState extends State<GoogleSignupScreen> {
                         child: CircleAvatar(
                           radius: 50,
                           backgroundImage: NetworkImage(_photoUrl!),
-                          backgroundColor: Colors.grey[200],
+                          backgroundColor: AppColors.lightGrey,
                         ),
                       ),
-                    const SizedBox(height: 16),
+                    const SizedBox(height: AppSpacing.md),
                     
                     // READ-ONLY: Email (from Google)
                     AppTextField(
@@ -219,7 +233,7 @@ class GoogleSignupScreenState extends State<GoogleSignupScreen> {
                       prefixIcon: Icons.email_outlined,
                       suffixIcon: Icons.lock_outlined,
                     ),
-                    const SizedBox(height: 16),
+                    const SizedBox(height: AppSpacing.md),
                     
                     // READ-ONLY: First Name (from Google)
                     AppTextField(
@@ -229,7 +243,7 @@ class GoogleSignupScreenState extends State<GoogleSignupScreen> {
                       prefixIcon: Icons.person_outline,
                       suffixIcon: Icons.lock_outlined,
                     ),
-                    const SizedBox(height: 16),
+                    const SizedBox(height: AppSpacing.md),
                     
                     // READ-ONLY: Last Name (from Google)
                     AppTextField(
@@ -239,11 +253,11 @@ class GoogleSignupScreenState extends State<GoogleSignupScreen> {
                       prefixIcon: Icons.person_outline,
                       suffixIcon: Icons.lock_outlined,
                     ),
-                    const SizedBox(height: 24),
+                    const SizedBox(height: AppSpacing.lg),
                     
                     // Divider
                     const Divider(),
-                    const SizedBox(height: 24),
+                    const SizedBox(height: AppSpacing.lg),
                     
                     // EDITABLE: User-entered fields
                     const Text(
@@ -253,7 +267,7 @@ class GoogleSignupScreenState extends State<GoogleSignupScreen> {
                         fontWeight: FontWeight.bold,
                       ),
                     ),
-                    const SizedBox(height: 16),
+                    const SizedBox(height: AppSpacing.md),
                     
                     // EDITABLE: Phone Number
                     AppTextField(
@@ -280,7 +294,7 @@ class GoogleSignupScreenState extends State<GoogleSignupScreen> {
                         return null;
                       },
                     ),
-                    const SizedBox(height: 16),
+                    const SizedBox(height: AppSpacing.md),
                     
                     // EDITABLE: Address
                     AppTextField(
@@ -295,7 +309,7 @@ class GoogleSignupScreenState extends State<GoogleSignupScreen> {
                         return null;
                       },
                     ),
-                    const SizedBox(height: 16),
+                    const SizedBox(height: AppSpacing.md),
                     
                     AppTextField(
                       label: 'Address Line 2 *',
@@ -309,7 +323,7 @@ class GoogleSignupScreenState extends State<GoogleSignupScreen> {
                         return null;
                       },
                     ),
-                    const SizedBox(height: 16),
+                    const SizedBox(height: AppSpacing.md),
                     
                     AppTextField(
                       label: 'Address Line 3 *',
@@ -323,7 +337,7 @@ class GoogleSignupScreenState extends State<GoogleSignupScreen> {
                         return null;
                       },
                     ),
-                    const SizedBox(height: 16),
+                    const SizedBox(height: AppSpacing.md),
                     
                     // City and State
                     Row(
@@ -341,7 +355,7 @@ class GoogleSignupScreenState extends State<GoogleSignupScreen> {
                             },
                           ),
                         ),
-                        const SizedBox(width: 12),
+                        const SizedBox(width: AppSpacing.sm),
                         Expanded(
                           child: AppTextField(
                             label: 'State *',
@@ -357,7 +371,7 @@ class GoogleSignupScreenState extends State<GoogleSignupScreen> {
                         ),
                       ],
                     ),
-                    const SizedBox(height: 16),
+                    const SizedBox(height: AppSpacing.md),
                     
                     // ZIP Code
                     AppTextField(
@@ -381,11 +395,11 @@ class GoogleSignupScreenState extends State<GoogleSignupScreen> {
                         return null;
                       },
                     ),
-                    const SizedBox(height: 24),
+                    const SizedBox(height: AppSpacing.lg),
                     
                     // Divider
                     const Divider(),
-                    const SizedBox(height: 24),
+                    const SizedBox(height: AppSpacing.lg),
                     
                     // Password Section
                     const Text(
@@ -395,7 +409,7 @@ class GoogleSignupScreenState extends State<GoogleSignupScreen> {
                         fontWeight: FontWeight.bold,
                       ),
                     ),
-                    const SizedBox(height: 16),
+                    const SizedBox(height: AppSpacing.md),
                     
                     // EDITABLE: Password
                     AppTextField(
@@ -435,11 +449,11 @@ class GoogleSignupScreenState extends State<GoogleSignupScreen> {
                         return null;
                       },
                     ),
-                    const SizedBox(height: 16),
+                    const SizedBox(height: AppSpacing.md),
                     
                     // Password Requirements
                     _buildPasswordRequirements(),
-                    const SizedBox(height: 16),
+                    const SizedBox(height: AppSpacing.md),
                     
                     // EDITABLE: Confirm Password
                     AppTextField(
@@ -474,7 +488,7 @@ class GoogleSignupScreenState extends State<GoogleSignupScreen> {
                         return null;
                       },
                     ),
-                    const SizedBox(height: 32),
+                    const SizedBox(height: AppSpacing.xl),
                     
                     // Submit Button
                     SizedBox(
@@ -483,16 +497,16 @@ class GoogleSignupScreenState extends State<GoogleSignupScreen> {
                       child: ElevatedButton(
                         onPressed: _handleSignup,
                         style: ElevatedButton.styleFrom(
-                          backgroundColor: const Color(0xFFFF8C42),
-                          foregroundColor: Colors.white,
-                          disabledBackgroundColor: Colors.grey[300],
+                          backgroundColor: AppColors.primaryOrange,
+                          foregroundColor: AppColors.white,
+                          disabledBackgroundColor: AppColors.lightGrey,
                           shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12),
+                            borderRadius: BorderRadius.circular(AppRadius.md),
                           ),
                         ),
                         child: _isLoading
                             ? const CircularProgressIndicator(
-                                color: Colors.white,
+                                color: AppColors.white,
                               )
                             : const Text(
                                 'Create Account',
@@ -503,7 +517,7 @@ class GoogleSignupScreenState extends State<GoogleSignupScreen> {
                               ),
                       ),
                     ),
-                    const SizedBox(height: 16),
+                    const SizedBox(height: AppSpacing.md),
                     
                     // Cancel Button
                     SizedBox(
@@ -545,17 +559,17 @@ class GoogleSignupScreenState extends State<GoogleSignupScreen> {
                     : Icons.circle_outlined,
                 size: 16,
                 color: req['met'] as bool? ?? false
-                    ? const Color(0xFF4CAF50)
-                    : Colors.grey,
+                    ? AppColors.success
+                    : AppColors.darkGrey,
               ),
-              const SizedBox(width: 8),
+              const SizedBox(width: AppSpacing.sm),
               Text(
                 req['text'] as String,
                 style: TextStyle(
                   fontSize: 12,
                   color: req['met'] as bool? ?? false
-                      ? const Color(0xFF4CAF50)
-                      : Colors.grey,
+                      ? AppColors.success
+                      : AppColors.darkGrey,
                 ),
               ),
             ],

@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:flutter/foundation.dart';
 import 'package:http/io_client.dart';
 import 'package:lush/config/api_config.dart';
 import 'package:lush/services/secure_storage_service.dart';
@@ -13,7 +14,7 @@ class UserRepository {
   String? server = ApiConfig.baseUrl;
   bool userLoggedIn = false;
   User user =
-      User.blank("", "", "", "", "", "", "", "", "", "", "", "", "", "");
+      User.blank('', '', '', '', '', '', '', '', '', '', '', '', '', '');
 
   final Future<SharedPreferences> _prefs = SharedPreferences.getInstance();
   final SecureStorageService _secureStorage = SecureStorageService();
@@ -26,16 +27,16 @@ class UserRepository {
           (X509Certificate cert, String host, int port) => true;
       final http = IOClient(ioc);
       final authToken = await _secureStorage.getAuthToken();
-      var response = await http.get(
+      final response = await http.get(
         Uri.parse('${server!}/api/test/ordersByCustomerId'),
         headers: {
-          "Accept": "application/json",
-          "Content-Type": "application/json",
-          "Authorization": "Bearer $authToken",
+          'Accept': 'application/json',
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $authToken',
         },
       );
       if (response.statusCode == 200) {
-        var body = const Utf8Decoder().convert(response.bodyBytes);
+        final body = const Utf8Decoder().convert(response.bodyBytes);
         final dynamic decoded = json.decode(body);
         if (decoded is List) {
           return decoded.whereType<Map<String, dynamic>>().toList();
@@ -50,37 +51,37 @@ class UserRepository {
   }
 
   Future<String> getCartCheckoutUrl(
-      List<Map<String, dynamic>> cartItems) async {
+      List<Map<String, dynamic>> cartItems,) async {
     try {
       ioc.badCertificateCallback =
           (X509Certificate cert, String host, int port) => true;
       final http = IOClient(ioc);
       final authToken = await _secureStorage.getAuthToken();
 
-      var response = await http.post(
+      final response = await http.post(
         Uri.parse('$server/api/test/cartCheckout'),
         headers: {
-          "Authorization": "Bearer $authToken",
-          "Accept": "application/json",
-          "Content-Type": "application/json",
+          'Authorization': 'Bearer $authToken',
+          'Accept': 'application/json',
+          'Content-Type': 'application/json',
         },
         body: jsonEncode(cartItems),
       );
 
       if (response.statusCode == 200) {
-        var body = const Utf8Decoder().convert(response.bodyBytes);
+        final body = const Utf8Decoder().convert(response.bodyBytes);
         final dynamic jsonResponse = json.decode(body);
         if (jsonResponse is Map<String, dynamic>) {
           // The hosted page URL is usually in 'url' or 'hosted_page.url'
-          final url = jsonResponse["url"] ??
-              jsonResponse["hosted_page"]?["url"] ??
-              jsonResponse["checkout_url"];
+          final url = jsonResponse['url'] ??
+              jsonResponse['hosted_page']?['url'] ??
+              jsonResponse['checkout_url'];
           return url?.toString() ?? jsonResponse.toString();
         }
         return jsonResponse.toString();
       } else {
         throw Exception(
-            'Failed to get cart checkout URL: ${response.statusCode}');
+            'Failed to get cart checkout URL: ${response.statusCode}',);
       }
     } catch (e) {
       throw Exception('Error getting cart checkout URL: $e');
@@ -110,36 +111,36 @@ class UserRepository {
       final http = IOClient(ioc);
       final authToken = await _secureStorage.getAuthToken();
 
-      print('🛒 Fetching charge items from: $server/api/test/charge-items');
+      debugPrint('🛒 Fetching charge items from: $server/api/test/charge-items');
 
-      var response = await http.get(
+      final response = await http.get(
         Uri.parse('$server/api/test/charge-items'),
         headers: {
-          "Accept": "application/json",
-          "Content-Type": "application/json",
-          "Authorization": "Bearer ${authToken ?? ''}",
+          'Accept': 'application/json',
+          'Content-Type': 'application/json',
+          'Authorization': "Bearer ${authToken ?? ''}",
         },
       );
       
-      print('🛒 Response status: ${response.statusCode}');
-      print('🛒 Response body: ${response.body}');
+      debugPrint('🛒 Response status: ${response.statusCode}');
+      debugPrint('🛒 Response body: ${response.body}');
       
       if (response.statusCode == 200) {
-        var body = const Utf8Decoder().convert(response.bodyBytes);
+        final body = const Utf8Decoder().convert(response.bodyBytes);
         final dynamic decoded = json.decode(body);
         
         if (decoded is List) {
-          print('🛒 Successfully fetched ${decoded.length} items');
+          debugPrint('🛒 Successfully fetched ${decoded.length} items');
           return decoded.whereType<Map<String, dynamic>>().toList();
         }
-        print('🛒 Response is not a list');
+        debugPrint('🛒 Response is not a list');
         return [];
       } else {
-        print('🛒 Failed to load items: ${response.statusCode}');
+        debugPrint('🛒 Failed to load items: ${response.statusCode}');
         throw Exception('Failed to load items: ${response.statusCode}');
       }
     } catch (e) {
-      print('🛒 Error fetching charge items: $e');
+      debugPrint('🛒 Error fetching charge items: $e');
       // Return fallback data
       return _getFallbackChargeItems();
     }
@@ -240,28 +241,28 @@ class UserRepository {
   /// Expired or missing token requires manual re-login via login screen.
   /// No credential storage or silent re-authentication.
   Future<bool> autoLogin() async {
-    token = (await _secureStorage.getAuthToken()) ?? "*";
-    if (token == "*") {
+    token = (await _secureStorage.getAuthToken()) ?? '*';
+    if (token == '*') {
       // BR-006: No credential fallback — user must manually login
       userLoggedIn = false;
       return false;
     }
-    return AutologinWithToken();
+    return autologinWithToken();
   }
 
-  Future<bool> AutologinWithToken() async {
+  Future<bool> autologinWithToken() async {
     ioc.badCertificateCallback =
         (X509Certificate cert, String host, int port) => true;
     final http = IOClient(ioc);
-    var response =
-        await http.get(Uri.parse("$server/api/auth/autologin"), headers: {
-      "authorization": "Bearer $token",
-      "Accept": "application/json",
-      "Content-Type": "application/json",
-    });
-    var body = const Utf8Decoder().convert(response.bodyBytes);
-    String res = json.decode(body)["message"] as String;
-    if (res == "ok") {
+    final response =
+        await http.get(Uri.parse('$server/api/auth/autologin'), headers: {
+      'authorization': 'Bearer $token',
+      'Accept': 'application/json',
+      'Content-Type': 'application/json',
+    },);
+    final body = const Utf8Decoder().convert(response.bodyBytes);
+    final String res = json.decode(body)['message'] as String;
+    if (res == 'ok') {
       userLoggedIn = true;
       await getUserDetailsFromServer();
       return true;
@@ -273,21 +274,20 @@ class UserRepository {
   }
 
   Future<bool> login(String username_, String pwd, bool remember) async {
-    SharedPreferences sharedPreferences = await _prefs;
     ioc.badCertificateCallback =
         (X509Certificate cert, String host, int port) => true;
     final http = IOClient(ioc);
     try {
-      var response = await http.post(Uri.parse('$server/api/auth/signin'),
-          body: jsonEncode({"username": username_, "password": pwd}),
+      final response = await http.post(Uri.parse('$server/api/auth/signin'),
+          body: jsonEncode({'username': username_, 'password': pwd}),
           headers: {
-            "Accept": "application/json",
-            "Content-Type": "application/json",
-          });
+            'Accept': 'application/json',
+            'Content-Type': 'application/json',
+          },);
 
       if (response.statusCode == 200) {
         // BR-006: No credential storage - expired token requires manual re-login
-        var body = const Utf8Decoder().convert(response.bodyBytes);
+        final body = const Utf8Decoder().convert(response.bodyBytes);
         final accessToken = json.decode(body)['accessToken'] as String;
         await _secureStorage.saveAuthToken(accessToken);
         token = accessToken;
@@ -320,31 +320,31 @@ class UserRepository {
   }) async {
     // Validate required fields
     if (phone.isEmpty) {
-      return "Error: Phone number is required";
+      return 'Error: Phone number is required';
     }
     if (email.isEmpty) {
-      return "Error: Email is required";
+      return 'Error: Email is required';
     }
     if (password.isEmpty) {
-      return "Error: Password is required";
+      return 'Error: Password is required';
     }
     if (firstName.isEmpty) {
-      return "Error: First name is required";
+      return 'Error: First name is required';
     }
     if (address.isEmpty) {
-      return "Error: Address is required";
+      return 'Error: Address is required';
     }
     if (city.isEmpty) {
-      return "Error: City is required";
+      return 'Error: City is required';
     }
     if (state.isEmpty) {
-      return "Error: State is required";
+      return 'Error: State is required';
     }
     if (zip.isEmpty) {
-      return "Error: ZIP code is required";
+      return 'Error: ZIP code is required';
     }
     if (country.isEmpty) {
-      return "Error: Country is required";
+      return 'Error: Country is required';
     }
 
     // Use unified signup endpoint with Google-specific fields
@@ -370,20 +370,21 @@ class UserRepository {
     final http = IOClient(ioc);
 
     try {
-      print('📝 Signing up user with Google: $email');
+      debugPrint('📝 Signing up user with Google: $email');
 
-      var response = await http.post(
-        Uri.parse("$server/api/auth/unified-signup"),
+      final response = await http.post(
+        Uri.parse('$server/api/auth/unified-signup'),
         body: jsonEncode(signupData),
-        headers: {
-          "Accept": "application/json",
-          "Content-Type": "application/json",
+        headers: 
+        {
+          'Accept': 'application/json',
+          'Content-Type': 'application/json',
         },
       );
 
-      var body = const Utf8Decoder().convert(response.bodyBytes);
-      print('✅ Google Signup Response Status: ${response.statusCode}');
-      print('📄 Response Body: $body');
+      final body = const Utf8Decoder().convert(response.bodyBytes);
+      debugPrint('✅ Google Signup Response Status: ${response.statusCode}');
+      debugPrint('📄 Response Body: $body');
 
       if (response.statusCode == 200) {
         final message = json.decode(body)['message'] as String? ?? 'User registered successfully';
@@ -398,56 +399,56 @@ class UserRepository {
 
         // Persist credentials for auto-login
 
-        // Try to auto-login to get JWT token
-        final loginSuccess = await login(email, password, false);
+        // Try to auto-login to get JWT token using phone as username
+        final loginSuccess = await login(phone, password, false);
 
         if (loginSuccess) {
-          print('🎉 Google user registered and auto-logged in: $email');
+          debugPrint('🎉 Google user registered and auto-logged in: $email');
           return message;
         } else {
-          print('⚠️ Google user registered but auto-login failed');
+          debugPrint('⚠️ Google user registered but auto-login failed');
           return message;
         }
       } else if (response.statusCode == 400) {
         final errorBody = json.decode(body);
         final errorMsg = errorBody['message'] ?? 'Invalid request';
-        return "Error: $errorMsg";
+        return 'Error: $errorMsg';
       } else {
         return "Error: ${response.statusCode} - ${json.decode(body)['message'] ?? 'Unknown error'}";
       }
     } catch (e) {
-      return "Error: Failed to connect to server - $e";
+      return 'Error: Failed to connect to server - $e';
     }
   }
 
   Future<String> signUp() async {
     // Validate required fields
     if (user.getPhone.isEmpty) {
-      return "Error: Phone number is required";
+      return 'Error: Phone number is required';
     }
     if (user.getEmail.isEmpty) {
-      return "Error: Email is required";
+      return 'Error: Email is required';
     }
     if (user.getPassword.isEmpty) {
-      return "Error: Password is required";
+      return 'Error: Password is required';
     }
     if (user.getFirstName.isEmpty) {
-      return "Error: First name is required";
+      return 'Error: First name is required';
     }
     if (user.getAddress.isEmpty) {
-      return "Error: Address is required";
+      return 'Error: Address is required';
     }
     if (user.getCity.isEmpty) {
-      return "Error: City is required";
+      return 'Error: City is required';
     }
     if (user.getState.isEmpty) {
-      return "Error: State is required";
+      return 'Error: State is required';
     }
     if (user.getZip.isEmpty) {
-      return "Error: ZIP code is required";
+      return 'Error: ZIP code is required';
     }
     if (user.getCountry.isEmpty) {
-      return "Error: Country is required";
+      return 'Error: Country is required';
     }
 
     // Use unified signup endpoint
@@ -471,20 +472,20 @@ class UserRepository {
     final http = IOClient(ioc);
 
     try {
-      print('📝 Signing up user with unified signup: ${user.getEmail}');
+      debugPrint('📝 Signing up user with unified signup: ${user.getEmail}');
 
-      var response = await http.post(
-        Uri.parse("$server/api/auth/unified-signup"),
+      final response = await http.post(
+        Uri.parse('$server/api/auth/unified-signup'),
         body: jsonEncode(signupData),
         headers: {
-          "Accept": "application/json",
-          "Content-Type": "application/json",
+          'Accept': 'application/json',
+          'Content-Type': 'application/json',
         },
       );
 
-      var body = const Utf8Decoder().convert(response.bodyBytes);
-      print('✅ Signup Response Status: ${response.statusCode}');
-      print('📄 Response Body: $body');
+      final body = const Utf8Decoder().convert(response.bodyBytes);
+      debugPrint('✅ Signup Response Status: ${response.statusCode}');
+      debugPrint('📄 Response Body: $body');
 
       if (response.statusCode == 200) {
         final message = json.decode(body)['message'] as String? ?? 'User registered successfully';
@@ -494,98 +495,98 @@ class UserRepository {
 
         // Persist credentials for auto-login
 
-        // Try to auto-login to get JWT token using email
+        // Try to auto-login to get JWT token using phone as username
         final loginSuccess =
-            await login(user.getEmail, user.getPassword, false);
+            await login(user.getPhone, user.getPassword, false);
 
         if (loginSuccess) {
-          print('🎉 User registered and auto-logged in: ${user.getEmail}');
+          debugPrint('🎉 User registered and auto-logged in: ${user.getEmail}');
           return message;
         } else {
-          print('⚠️ User registered but auto-login failed');
+          debugPrint('⚠️ User registered but auto-login failed');
           return message; // Signup was successful even if auto-login failed
         }
       } else if (response.statusCode == 400) {
         final errorBody = json.decode(body);
         final errorMsg = errorBody['message'] ?? 'Invalid request';
-        return "Error: $errorMsg";
+        return 'Error: $errorMsg';
       } else {
         return "Error: ${response.statusCode} - ${json.decode(body)['message'] ?? 'Unknown error'}";
       }
     } catch (e) {
-      print('❌ Signup Error: $e');
-      return "Error: ${e.toString()}";
+      debugPrint('❌ Signup Error: $e');
+      return 'Error: ${e.toString()}';
     }
   }
 
   Future<String> sendOTP(String phoneNumber) async {
     try {
-      print('📱 Sending OTP to: $phoneNumber');
+      debugPrint('📱 Sending OTP to: $phoneNumber');
 
       ioc.badCertificateCallback =
           (X509Certificate cert, String host, int port) => true;
       final http = IOClient(ioc);
 
-      var response = await http.post(
-        Uri.parse("$server/api/auth/send-otp"),
+      final response = await http.post(
+        Uri.parse('$server/api/auth/send-otp'),
         headers: {
-          "Content-Type": "application/json",
-          "Accept": "application/json",
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
         },
         body: jsonEncode({
-          "phone": phoneNumber,
+          'phone': phoneNumber,
         }),
       );
 
       if (response.statusCode == 200) {
-        print('✅ OTP sent successfully');
-        return "OTP_SENT";
+        debugPrint('✅ OTP sent successfully');
+        return 'OTP_SENT';
       } else if (response.statusCode == 400) {
         final errorBody = json.decode(response.body);
         final errorMsg = errorBody['message'] ?? 'Invalid request';
-        return "Error: $errorMsg";
+        return 'Error: $errorMsg';
       } else {
-        return "Error: Failed to send OTP (${response.statusCode})";
+        return 'Error: Failed to send OTP (${response.statusCode})';
       }
     } catch (e) {
-      print('❌ Send OTP Error: $e');
-      return "Error: ${e.toString()}";
+      debugPrint('❌ Send OTP Error: $e');
+      return 'Error: ${e.toString()}';
     }
   }
 
   Future<String> verifyOTP(String otp, {String? phone}) async {
     try {
-      print('🔐 Verifying OTP: ${otp.substring(0, 2)}****');
+      debugPrint('🔐 Verifying OTP: ${otp.substring(0, 2)}****');
 
       ioc.badCertificateCallback =
           (X509Certificate cert, String host, int port) => true;
       final http = IOClient(ioc);
 
-      var response = await http.post(
-        Uri.parse("$server/api/auth/verify-otp"),
+      final response = await http.post(
+        Uri.parse('$server/api/auth/verify-otp'),
         headers: {
-          "Content-Type": "application/json",
-          "Accept": "application/json",
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
         },
         body: jsonEncode({
-          "phone": phone ?? user.getPhone,
-          "otp": otp,
+          'phone': phone ?? user.getPhone,
+          'otp': otp,
         }),
       );
 
       if (response.statusCode == 200) {
-        print('✅ OTP verified successfully');
-        return "OTP_VERIFIED";
+        debugPrint('✅ OTP verified successfully');
+        return 'OTP_VERIFIED';
       } else if (response.statusCode == 400) {
         final errorBody = json.decode(response.body);
         final errorMsg = errorBody['message'] ?? 'Invalid OTP';
-        return "Error: $errorMsg";
+        return 'Error: $errorMsg';
       } else {
-        return "Error: OTP verification failed (${response.statusCode})";
+        return 'Error: OTP verification failed (${response.statusCode})';
       }
     } catch (e) {
-      print('❌ Verify OTP Error: $e');
-      return "Error: ${e.toString()}";
+      debugPrint('❌ Verify OTP Error: $e');
+      return 'Error: ${e.toString()}';
     }
   }
 
@@ -595,15 +596,15 @@ class UserRepository {
         (X509Certificate cert, String host, int port) => true;
     final http = IOClient(ioc);
     try {
-      var response = await http.post(
+      final response = await http.post(
         Uri.parse('$server/api/auth/send-email-verification'),
         body: jsonEncode({'email': email}),
         headers: {
-          "Accept": "application/json",
-          "Content-Type": "application/json",
+          'Accept': 'application/json',
+          'Content-Type': 'application/json',
         },
       );
-      var body = const Utf8Decoder().convert(response.bodyBytes);
+      final body = const Utf8Decoder().convert(response.bodyBytes);
       return json.decode(body)['message'] as String;
     } catch (e) {
       return 'Error: Network error - $e';
@@ -616,18 +617,18 @@ class UserRepository {
         (X509Certificate cert, String host, int port) => true;
     final http = IOClient(ioc);
     try {
-      var response = await http.post(
+      final response = await http.post(
         Uri.parse('$server/api/auth/verify-email-code'),
         body: jsonEncode({
           'email': email,
           'verificationCode': code,
         }),
         headers: {
-          "Accept": "application/json",
-          "Content-Type": "application/json",
+          'Accept': 'application/json',
+          'Content-Type': 'application/json',
         },
       );
-      var body = const Utf8Decoder().convert(response.bodyBytes);
+      final body = const Utf8Decoder().convert(response.bodyBytes);
       return json.decode(body)['message'] as String;
     } catch (e) {
       return 'Error: Network error - $e';
@@ -644,7 +645,7 @@ class UserRepository {
         (X509Certificate cert, String host, int port) => true;
     final http = IOClient(ioc);
     try {
-      var response = await http.post(
+      final response = await http.post(
         Uri.parse('$server/api/auth/reset-password-mobile'),
         body: jsonEncode({
           'phone': phone,
@@ -652,11 +653,11 @@ class UserRepository {
           'password': newPassword,
         }),
         headers: {
-          "Accept": "application/json",
-          "Content-Type": "application/json",
+          'Accept': 'application/json',
+          'Content-Type': 'application/json',
         },
       );
-      var body = const Utf8Decoder().convert(response.bodyBytes);
+      final body = const Utf8Decoder().convert(response.bodyBytes);
       return json.decode(body)['message'] as String;
     } catch (e) {
       return 'Error: Network error - $e';
@@ -673,7 +674,7 @@ class UserRepository {
         (X509Certificate cert, String host, int port) => true;
     final http = IOClient(ioc);
     try {
-      var response = await http.post(
+      final response = await http.post(
         Uri.parse('$server/api/auth/reset-password-email'),
         body: jsonEncode({
           'email': email,
@@ -681,11 +682,11 @@ class UserRepository {
           'password': newPassword,
         }),
         headers: {
-          "Accept": "application/json",
-          "Content-Type": "application/json",
+          'Accept': 'application/json',
+          'Content-Type': 'application/json',
         },
       );
-      var body = const Utf8Decoder().convert(response.bodyBytes);
+      final body = const Utf8Decoder().convert(response.bodyBytes);
       return json.decode(body)['message'] as String;
     } catch (e) {
       return 'Error: Network error - $e';
@@ -693,43 +694,43 @@ class UserRepository {
   }
 
   Future<Map<String, String>> getSubscriptionPageUrl() async {
-    SharedPreferences sharedPreferences = await _prefs;
+    final SharedPreferences sharedPreferences = await _prefs;
 
     if (sharedPreferences
-                .getInt("premium_pricing_page_url_expires_at") !=
+                .getInt('premium_pricing_page_url_expires_at') !=
             null &&
-        sharedPreferences.getInt("delight_pricing_page_url_expires_at") !=
+        sharedPreferences.getInt('delight_pricing_page_url_expires_at') !=
             null &&
-        sharedPreferences.getInt("signature_pricing_page_url_expires_at") !=
+        sharedPreferences.getInt('signature_pricing_page_url_expires_at') !=
             null) {
       if (isUrlvalid(sharedPreferences
-              .getInt("premium_pricing_page_url_expires_at")!) &&
+              .getInt('premium_pricing_page_url_expires_at')!,) &&
           isUrlvalid(sharedPreferences
-              .getInt("delight_pricing_page_url_expires_at")!) &&
+              .getInt('delight_pricing_page_url_expires_at')!,) &&
           isUrlvalid(sharedPreferences
-              .getInt("signature_pricing_page_url_expires_at")!)) {
+              .getInt('signature_pricing_page_url_expires_at')!,)) {
         return pricingPageUrlsMap();
       } else {
         try {
-          await get_pricing_page_url();
+          await getPricingPageUrl();
           return pricingPageUrlsMap();
         } catch (e) {
           return {
-            "premium": "could not get premium subscription page url",
-            "delight": "could not get delight subscription page url",
-            "signature": "could not get signature subscription page url"
+            'premium': 'could not get premium subscription page url',
+            'delight': 'could not get delight subscription page url',
+            'signature': 'could not get signature subscription page url',
           };
         }
       }
     } else {
       try {
-        await get_pricing_page_url();
+        await getPricingPageUrl();
         return pricingPageUrlsMap();
       } catch (e) {
         return {
-          "premium": "could not get premium subscription page url",
-          "delight": "could not get delight subscription page url",
-          "signature": "could not get signature subscription page url"
+          'premium': 'could not get premium subscription page url',
+          'delight': 'could not get delight subscription page url',
+          'signature': 'could not get signature subscription page url',
         };
       }
     }
@@ -756,7 +757,7 @@ class UserRepository {
     if (await autoLogin() == true) {
       return token;
     } else {
-      String? token = await _secureStorage.getAuthToken();
+      final String? token = await _secureStorage.getAuthToken();
       if (token == null) {
         return null;
       } else {
@@ -775,28 +776,28 @@ class UserRepository {
   //     sharedPreferences.setString("customerId", customerId);
   //   }
 
-  Future<Object?> googleSignIn_() async {
+  Future<Object?> googleSignIn() async {
     try {
       // Step 1: Show Google account picker and get account
       final googleAccount = await GoogleSignInHelper.instance.signIn();
 
       if (googleAccount == null) {
-        return "Google Sign-In cancelled: No account selected";
+        return 'Google Sign-In cancelled: No account selected';
       }
 
       final currentUser = GoogleSignInHelper.instance.currentUser;
       if (currentUser == null) {
-        return "Google Sign-In Failed: No user found after sign-in";
+        return 'Google Sign-In Failed: No user found after sign-in';
       }
 
       final displayName = currentUser.displayName;
-      if (displayName != null && displayName.contains(" ")) {
-        final nameParts = displayName.split(" ");
+      if (displayName != null && displayName.contains(' ')) {
+        final nameParts = displayName.split(' ');
         user.setFirstName = nameParts[0];
-        user.setLastName = nameParts.length > 1 ? nameParts[1] : "";
+        user.setLastName = nameParts.length > 1 ? nameParts[1] : '';
       } else {
-        user.setFirstName = displayName ?? "";
-        user.setLastName = "";
+        user.setFirstName = displayName ?? '';
+        user.setLastName = '';
       }
 
       user.setEmail = currentUser.email;
@@ -822,14 +823,14 @@ class UserRepository {
           }
         }
       } catch (e) {
-        print('ℹ️ Google user not found, starting signup flow');
+        debugPrint('ℹ️ Google user not found, starting signup flow');
       }
 
       // Step 3: Return user data for signup flow
       return {'type': 'signup_required', 'user': user, 'googleId': currentUser.id, 'photoUrl': currentUser.photoUrl};
     } catch (error) {
-      print('❌ Google Sign-In Error: $error');
-      return "Google Sign-In failed: $error";
+      debugPrint('❌ Google Sign-In Error: $error');
+      return 'Google Sign-In failed: $error';
     }
   }
 
@@ -843,11 +844,11 @@ class UserRepository {
       final googleAccount = GoogleSignInHelper.instance.currentUser;
       if (googleAccount == null) return null;
 
-      final auth = await googleAccount.authentication;
+      final auth = googleAccount.authentication;
       final idToken = auth.idToken;
 
       if (idToken == null) {
-        print('⚠️ No Google ID token, attempting email lookup');
+        debugPrint('⚠️ No Google ID token, attempting email lookup');
         return null;
       }
 
@@ -859,8 +860,8 @@ class UserRepository {
         Uri.parse('$server/api/auth/google'),
         body: jsonEncode({'idToken': idToken}),
         headers: {
-          "Accept": "application/json",
-          "Content-Type": "application/json",
+          'Accept': 'application/json',
+          'Content-Type': 'application/json',
         },
       );
 
@@ -889,7 +890,7 @@ class UserRepository {
         }
       }
     } catch (e) {
-      print('⚠️ Google login failed: $e');
+      debugPrint('⚠️ Google login failed: $e');
     }
     return null;
   }
@@ -909,8 +910,8 @@ class UserRepository {
           'otp': otp,
         }),
         headers: {
-          "Accept": "application/json",
-          "Content-Type": "application/json",
+          'Accept': 'application/json',
+          'Content-Type': 'application/json',
         },
       );
 
@@ -937,7 +938,7 @@ class UserRepository {
 
       return {'error': message};
     } catch (e) {
-      print('❌ Phone OTP login failed: $e');
+      debugPrint('❌ Phone OTP login failed: $e');
       return {'error': 'Phone OTP login failed: $e'};
     }
   }
@@ -963,8 +964,8 @@ class UserRepository {
           if (photoUrl != null) 'photoUrl': photoUrl,
         }),
         headers: {
-          "Accept": "application/json",
-          "Content-Type": "application/json",
+          'Accept': 'application/json',
+          'Content-Type': 'application/json',
         },
       );
 
@@ -984,114 +985,112 @@ class UserRepository {
 
       return {'error': body['message'] ?? 'Failed to link Google account'};
     } catch (e) {
-      print('❌ Link Google account failed: $e');
+      debugPrint('❌ Link Google account failed: $e');
       return {'error': 'Link Google account failed: $e'};
     }
   }
 
   bool isUrlvalid(int expiresAt) {
-    return DateTime.now().toUtc().isAfter(
-          DateTime.fromMillisecondsSinceEpoch(
-            DateTime.fromMillisecondsSinceEpoch(expiresAt * 1000)
-                .millisecondsSinceEpoch,
-            isUtc: true,
-          ).toUtc(),
-        );
+    final expiryTime = DateTime.fromMillisecondsSinceEpoch(expiresAt * 1000, isUtc: true);
+    return DateTime.now().toUtc().isBefore(expiryTime);
   }
 
-  Future<void> get_pricing_page_url() async {
+  Future<void> getPricingPageUrl() async {
     ioc.badCertificateCallback =
         (X509Certificate cert, String host, int port) => true;
     final http = IOClient(ioc);
-    SharedPreferences sharedPreferences = await SharedPreferences.getInstance();
-    var response = await http
+    final SharedPreferences sharedPreferences = await SharedPreferences.getInstance();
+    final response = await http
         .get(Uri.parse('$server/api/test/generate_pricing_page_session_url'),
             // body: jsonEncode({"customerId": user.getId}),
             headers: {
-          "Authorization": "Bearer $token",
-          "Accept": "application/json",
-          "Content-Type": "application/json",
-        });
+          'Authorization': 'Bearer $token',
+          'Accept': 'application/json',
+          'Content-Type': 'application/json',
+        },);
 
     if (response.statusCode == 200) {
-      var body = const Utf8Decoder().convert(response.bodyBytes);
+      final body = const Utf8Decoder().convert(response.bodyBytes);
       final dynamic decoded = json.decode(body);
       if (decoded is Map<String, dynamic>) {
-        final premiumData = decoded["premium"];
-        final delightData = decoded["delight"];
-        final signatureData = decoded["signature"];
+        final premiumData = decoded['premium'];
+        final delightData = decoded['delight'];
+        final signatureData = decoded['signature'];
         
         if (premiumData is Map<String, dynamic>) {
-          sharedPreferences.setString(
-              "premium_pricing_page_url", (premiumData["url"] as String?) ?? "");
-          sharedPreferences.setInt("premium_pricing_page_url_expires_at",
-              (premiumData['expires_at'] as int?) ?? 0);
+          sharedPreferences
+            ..setString(
+                'premium_pricing_page_url', (premiumData['url'] as String?) ?? '',)
+            ..setInt('premium_pricing_page_url_expires_at',
+                (premiumData['expires_at'] as int?) ?? 0,);
         }
         if (delightData is Map<String, dynamic>) {
-          sharedPreferences.setString(
-              "delight_pricing_page_url", (delightData["url"] as String?) ?? "");
-          sharedPreferences.setInt("delight_pricing_page_url_expires_at",
-              (delightData['expires_at'] as int?) ?? 0);
+          sharedPreferences
+            ..setString(
+                'delight_pricing_page_url', (delightData['url'] as String?) ?? '',)
+            ..setInt('delight_pricing_page_url_expires_at',
+                (delightData['expires_at'] as int?) ?? 0,);
         }
         if (signatureData is Map<String, dynamic>) {
-          sharedPreferences.setString(
-              "signature_pricing_page_url", (signatureData["url"] as String?) ?? "");
-          sharedPreferences.setInt("signature_pricing_page_url_expires_at",
-              (signatureData['expires_at'] as int?) ?? 0);
+          sharedPreferences
+            ..setString(
+                'signature_pricing_page_url', (signatureData['url'] as String?) ?? '',)
+            ..setInt('signature_pricing_page_url_expires_at',
+                (signatureData['expires_at'] as int?) ?? 0,);
         }
       }
     } else {
-      throw Exception("Error: ${response.statusCode}");
+      throw Exception('Error: ${response.statusCode}');
     }
   }
 
   Future<String> getSelfServePageUrl() async {
-    SharedPreferences sharedPreferences = await _prefs;
-    if (sharedPreferences.getInt("self_serve_page_url_expires_at") != null) {
+    final SharedPreferences sharedPreferences = await _prefs;
+    if (sharedPreferences.getInt('self_serve_page_url_expires_at') != null) {
       if (isUrlvalid(
-          sharedPreferences.getInt("self_serve_page_url_expires_at")!)) {
-        if (sharedPreferences.getString("self_serve_page_url") == null) {
-          return get_self_serve_page_url();
+          sharedPreferences.getInt('self_serve_page_url_expires_at')!,)) {
+        if (sharedPreferences.getString('self_serve_page_url') == null) {
+          return fetchSelfServePageUrlFromServer();
         } else {
-          return sharedPreferences.getString("self_serve_page_url")!;
+          return sharedPreferences.getString('self_serve_page_url')!;
         }
       } else {
-        return get_self_serve_page_url();
+        return fetchSelfServePageUrlFromServer();
       }
     } else {
-      return get_self_serve_page_url();
+      return fetchSelfServePageUrlFromServer();
     }
   }
 
-  Future<String> get_self_serve_page_url() async {
+  Future<String> fetchSelfServePageUrlFromServer() async {
     ioc.badCertificateCallback =
         (X509Certificate cert, String host, int port) => true;
     final http = IOClient(ioc);
-    SharedPreferences sharedPreferences = await SharedPreferences.getInstance();
-    var response = await http.get(Uri.parse('$server/api/test/portal'),
+    final SharedPreferences sharedPreferences = await SharedPreferences.getInstance();
+    final response = await http.get(Uri.parse('$server/api/test/portal'),
         // body: jsonEncode({"customerId": user.getId}),
         headers: {
-          "Authorization": "Bearer $token",
-          "Accept": "application/json",
-          "Content-Type": "application/json",
-        });
+          'Authorization': 'Bearer $token',
+          'Accept': 'application/json',
+          'Content-Type': 'application/json',
+        },);
 
     if (response.statusCode == 200) {
-      var body = const Utf8Decoder().convert(response.bodyBytes);
+      final body = const Utf8Decoder().convert(response.bodyBytes);
       final dynamic decoded = json.decode(body);
       if (decoded is Map<String, dynamic>) {
-        final url = decoded["access_url"];
+        final url = decoded['access_url'];
         final expiresAt = decoded['expires_at'];
         
         if (url is String) {
-          sharedPreferences.setInt("self_serve_page_url_expires_at",
-              expiresAt is int ? expiresAt : 0);
+          sharedPreferences.setInt('self_serve_page_url_expires_at',
+              expiresAt is int ? expiresAt : 0,);
           return url;
         }
       }
-      return "Error: Invalid response format";
+      return 'Error: Invalid response format';
     } else {
-      return "Error: ${response.statusCode}";
+      return 'Error: ${response.statusCode}';
     }
   }
 
@@ -1105,13 +1104,13 @@ class UserRepository {
       final response = await http.delete(
         Uri.parse('$server/api/auth/account'),
         headers: {
-          "authorization": "Bearer $token",
-          "Accept": "application/json",
-          "Content-Type": "application/json",
+          'authorization': 'Bearer $token',
+          'Accept': 'application/json',
+          'Content-Type': 'application/json',
         },
       );
 
-      var body = const Utf8Decoder().convert(response.bodyBytes);
+      final body = const Utf8Decoder().convert(response.bodyBytes);
       if (response.statusCode == 200) {
         // Clear local session
         await logout();
@@ -1120,15 +1119,16 @@ class UserRepository {
         return "Error: ${json.decode(body)['message'] ?? 'Failed to delete account'}";
       }
     } catch (e) {
-      return "Error: $e";
+      return 'Error: $e';
     }
   }
 
   Future<void> logout() async {
     await _secureStorage.deleteAuthToken();
-    SharedPreferences sharedPreferences = await _prefs;
-    sharedPreferences.remove("username");
-    sharedPreferences.remove("customerId");
+    final SharedPreferences sharedPreferences = await _prefs;
+    sharedPreferences
+      ..remove('username')
+      ..remove('customerId');
     userLoggedIn = false;
   }
 
@@ -1136,35 +1136,37 @@ class UserRepository {
     ioc.badCertificateCallback =
         (X509Certificate cert, String host, int port) => true;
     final http = IOClient(ioc);
-    var response = await http.get(Uri.parse("$server/api/test/user"), headers: {
-      "authorization": "Bearer $token",
-      "Accept": "application/json",
-      "Content-Type": "application/json",
-    });
+    var response = await http.get(Uri.parse('$server/api/test/user'), headers: {
+      'authorization': 'Bearer $token',
+      'Accept': 'application/json',
+      'Content-Type': 'application/json',
+    },);
     var body = const Utf8Decoder().convert(response.bodyBytes);
     if (response.statusCode != 200) {
       final fallbackToken = (await _secureStorage.getAuthToken()) ?? '';
-      response = await http.get(Uri.parse("$server/api/test/user"), headers: {
-        "authorization": "Bearer $fallbackToken",
-        "Accept": "application/json",
-        "Content-Type": "application/json",
-      });
+      response = await http.get(Uri.parse('$server/api/test/user'), headers: {
+        'authorization': 'Bearer $fallbackToken',
+        'Accept': 'application/json',
+        'Content-Type': 'application/json',
+      },);
       body = const Utf8Decoder().convert(response.bodyBytes);
     }
-    user.setFirstName = json.decode(body)["firstName"] as String? ?? "";
-    user.setLastName = json.decode(body)["lastName"] as String? ?? "";
-    user.setEmail = json.decode(body)["email"] as String? ?? "";
-    user.setPhone = json.decode(body)["username"] as String? ?? "";
-    user.setAddress = json.decode(body)["address"] as String? ?? "";
-    user.setExtendedAddr = json.decode(body)["extendedAddr"] as String? ?? "";
-    user.setExtendedAddr2 = json.decode(body)["extendedAddr2"] as String? ?? "";
-    user.setCity = json.decode(body)["city"] as String? ?? "";
-    user.setState = json.decode(body)["state"] as String? ?? "";
-    user.setCountry = json.decode(body)["country"] as String? ?? "";
-    user.setId = json.decode(body)["id"].toString();
-    user.setZip = json.decode(body)["zip"] as String? ?? "";
+    user.setFirstName = json.decode(body)['firstName'] as String? ?? '';
+    user.setLastName = json.decode(body)['lastName'] as String? ?? '';
+    user.setEmail = json.decode(body)['email'] as String? ?? '';
+    // BUG FIX: Prefer 'phone' field from server, fallback to 'username' for backward compatibility
+    final serverPhone = json.decode(body)['phone'] as String? ?? '';
+    user.setPhone = serverPhone.isNotEmpty ? serverPhone : (json.decode(body)['username'] as String? ?? '');
+    user.setAddress = json.decode(body)['address'] as String? ?? '';
+    user.setExtendedAddr = json.decode(body)['extendedAddr'] as String? ?? '';
+    user.setExtendedAddr2 = json.decode(body)['extendedAddr2'] as String? ?? '';
+    user.setCity = json.decode(body)['city'] as String? ?? '';
+    user.setState = json.decode(body)['state'] as String? ?? '';
+    user.setCountry = json.decode(body)['country'] as String? ?? '';
+    user.setId = json.decode(body)['id'].toString();
+    user.setZip = json.decode(body)['zip'] as String? ?? '';
     user.setRole = json
-        .decode(body)["roles"][0]["name"]
+        .decode(body)['roles'][0]['name']
         .toString()
         .substring(5, 9)
         .toLowerCase();
@@ -1176,27 +1178,27 @@ class UserRepository {
       final apiUrls = await getPricingPageUrls();
       if (apiUrls.isNotEmpty) {
         // Save to SharedPreferences for future use
-        SharedPreferences sharedPreferences = await _prefs;
-        for (var entry in apiUrls.entries) {
+        final SharedPreferences sharedPreferences = await _prefs;
+        for (final entry in apiUrls.entries) {
           await sharedPreferences.setString(
-              "${entry.key}_pricing_page_url", entry.value);
+              '${entry.key}_pricing_page_url', entry.value,);
         }
         return apiUrls;
       }
     } catch (e) {
-      print('Error fetching pricing page URLs from API: $e');
+      debugPrint('Error fetching pricing page URLs from API: $e');
       // Fall back to cached URLs if API call fails
     }
 
     // Fallback to cached URLs
-    Map<String, String> urls = {"premium": "", "delight": "", "signature": ""};
-    SharedPreferences sharedPreferences = await _prefs;
-    urls["premium"] =
-        sharedPreferences.getString("premium_pricing_page_url") ?? "";
-    urls["delight"] =
-        sharedPreferences.getString("delight_pricing_page_url") ?? "";
-    urls["signature"] =
-        sharedPreferences.getString("signature_pricing_page_url") ?? "";
+    final Map<String, String> urls = {'premium': '', 'delight': '', 'signature': ''};
+    final SharedPreferences sharedPreferences = await _prefs;
+    urls['premium'] =
+        sharedPreferences.getString('premium_pricing_page_url') ?? '';
+    urls['delight'] =
+        sharedPreferences.getString('delight_pricing_page_url') ?? '';
+    urls['signature'] =
+        sharedPreferences.getString('signature_pricing_page_url') ?? '';
     return urls;
   }
 
@@ -1207,21 +1209,21 @@ class UserRepository {
           (X509Certificate cert, String host, int port) => true;
       final http = IOClient(ioc);
 
-      var response = await http.get(
+      final response = await http.get(
         Uri.parse('$server/api/test/generate_pricing_page_session_url'),
         headers: {
-          "Authorization": "Bearer $token",
-          "Accept": "application/json",
-          "Content-Type": "application/json",
+          'Authorization': 'Bearer $token',
+          'Accept': 'application/json',
+          'Content-Type': 'application/json',
         },
       );
 
       if (response.statusCode == 200) {
-        var body = const Utf8Decoder().convert(response.bodyBytes);
-        Map<String, dynamic> responseJson = json.decode(body) as Map<String, dynamic>;
+        final body = const Utf8Decoder().convert(response.bodyBytes);
+        final Map<String, dynamic> responseJson = json.decode(body) as Map<String, dynamic>;
 
         // Extract URLs from the response
-        Map<String, String> urls = {};
+        final Map<String, String> urls = {};
 
         if (responseJson.containsKey('premium') &&
             responseJson['premium'] is Map) {
@@ -1263,10 +1265,10 @@ class UserRepository {
         return urls;
       } else {
         throw Exception(
-            'Failed to load pricing page URLs: ${response.statusCode}');
+            'Failed to load pricing page URLs: ${response.statusCode}',);
       }
     } catch (e) {
-      print('Error in getPricingPageUrls: $e');
+      debugPrint('Error in getPricingPageUrls: $e');
       return {};
     }
   }
@@ -1282,34 +1284,34 @@ class UserRepository {
       final http = IOClient(ioc);
       final authToken = await _secureStorage.getAuthToken();
 
-      var response = await http.get(
+      final response = await http.get(
         Uri.parse('$server/api/v1/delivery/service-areas?pincode=$pincode'),
         headers: {
-          "Accept": "application/json",
-          "Content-Type": "application/json",
-          "Authorization": "Bearer $authToken",
+          'Accept': 'application/json',
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $authToken',
         },
       );
 
       if (response.statusCode == 200) {
-        var body = const Utf8Decoder().convert(response.bodyBytes);
+        final body = const Utf8Decoder().convert(response.bodyBytes);
         return json.decode(body) as Map<String, dynamic>;
       } else if (response.statusCode == 404) {
         return {
           'status': 'error',
           'message': 'Pincode not serviceable',
-          'serviced': false
+          'serviced': false,
         };
       } else {
         return {
           'status': 'error',
-          'message': 'Failed to check serviceability: ${response.statusCode}'
+          'message': 'Failed to check serviceability: ${response.statusCode}',
         };
       }
     } catch (e) {
       return {
         'status': 'error',
-        'message': 'Error checking serviceability: $e'
+        'message': 'Error checking serviceability: $e',
       };
     }
   }
@@ -1317,30 +1319,30 @@ class UserRepository {
   /// FR-DEL-002: Get available delivery slots for a service area and date
   /// GET /api/v1/delivery/slots?serviceAreaId={id}&date={date}
   Future<Map<String, dynamic>> getAvailableSlots(
-      int serviceAreaId, String date) async {
+      int serviceAreaId, String date,) async {
     try {
       ioc.badCertificateCallback =
           (X509Certificate cert, String host, int port) => true;
       final http = IOClient(ioc);
       final authToken = await _secureStorage.getAuthToken();
 
-      var response = await http.get(
+      final response = await http.get(
         Uri.parse(
-            '$server/api/v1/delivery/slots?serviceAreaId=$serviceAreaId&date=$date'),
+            '$server/api/v1/delivery/slots?serviceAreaId=$serviceAreaId&date=$date',),
         headers: {
-          "Accept": "application/json",
-          "Content-Type": "application/json",
-          "Authorization": "Bearer $authToken",
+          'Accept': 'application/json',
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $authToken',
         },
       );
 
       if (response.statusCode == 200) {
-        var body = const Utf8Decoder().convert(response.bodyBytes);
+        final body = const Utf8Decoder().convert(response.bodyBytes);
         return json.decode(body) as Map<String, dynamic>;
       } else {
         return {
           'status': 'error',
-          'message': 'Failed to get slots: ${response.statusCode}'
+          'message': 'Failed to get slots: ${response.statusCode}',
         };
       }
     } catch (e) {
@@ -1357,22 +1359,22 @@ class UserRepository {
       final http = IOClient(ioc);
       final authToken = await _secureStorage.getAuthToken();
 
-      var response = await http.get(
+      final response = await http.get(
         Uri.parse('$server/api/v1/delivery/addresses'),
         headers: {
-          "Accept": "application/json",
-          "Content-Type": "application/json",
-          "Authorization": "Bearer $authToken",
+          'Accept': 'application/json',
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $authToken',
         },
       );
 
       if (response.statusCode == 200) {
-        var body = const Utf8Decoder().convert(response.bodyBytes);
+        final body = const Utf8Decoder().convert(response.bodyBytes);
         return json.decode(body) as Map<String, dynamic>;
       } else {
         return {
           'status': 'error',
-          'message': 'Failed to get addresses: ${response.statusCode}'
+          'message': 'Failed to get addresses: ${response.statusCode}',
         };
       }
     } catch (e) {
@@ -1383,24 +1385,24 @@ class UserRepository {
   /// FR-DEL-004: Add a new delivery address
   /// POST /api/v1/delivery/addresses
   Future<Map<String, dynamic>> addUserAddress(
-      Map<String, dynamic> addressData) async {
+      Map<String, dynamic> addressData,) async {
     try {
       ioc.badCertificateCallback =
           (X509Certificate cert, String host, int port) => true;
       final http = IOClient(ioc);
       final authToken = await _secureStorage.getAuthToken();
 
-      var response = await http.post(
+      final response = await http.post(
         Uri.parse('$server/api/v1/delivery/addresses'),
         body: jsonEncode(addressData),
         headers: {
-          "Accept": "application/json",
-          "Content-Type": "application/json",
-          "Authorization": "Bearer $authToken",
+          'Accept': 'application/json',
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $authToken',
         },
       );
 
-      var body = const Utf8Decoder().convert(response.bodyBytes);
+      final body = const Utf8Decoder().convert(response.bodyBytes);
       return json.decode(body) as Map<String, dynamic>;
     } catch (e) {
       return {'status': 'error', 'message': 'Error adding address: $e'};
@@ -1410,24 +1412,24 @@ class UserRepository {
   /// FR-DEL-005: Update an existing delivery address
   /// PUT /api/v1/delivery/addresses/{id}
   Future<Map<String, dynamic>> updateUserAddress(
-      int id, Map<String, dynamic> addressData) async {
+      int id, Map<String, dynamic> addressData,) async {
     try {
       ioc.badCertificateCallback =
           (X509Certificate cert, String host, int port) => true;
       final http = IOClient(ioc);
       final authToken = await _secureStorage.getAuthToken();
 
-      var response = await http.put(
+      final response = await http.put(
         Uri.parse('$server/api/v1/delivery/addresses/$id'),
         body: jsonEncode(addressData),
         headers: {
-          "Accept": "application/json",
-          "Content-Type": "application/json",
-          "Authorization": "Bearer $authToken",
+          'Accept': 'application/json',
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $authToken',
         },
       );
 
-      var body = const Utf8Decoder().convert(response.bodyBytes);
+      final body = const Utf8Decoder().convert(response.bodyBytes);
       return json.decode(body) as Map<String, dynamic>;
     } catch (e) {
       return {'status': 'error', 'message': 'Error updating address: $e'};
@@ -1443,16 +1445,16 @@ class UserRepository {
       final http = IOClient(ioc);
       final authToken = await _secureStorage.getAuthToken();
 
-      var response = await http.delete(
+      final response = await http.delete(
         Uri.parse('$server/api/v1/delivery/addresses/$id'),
         headers: {
-          "Accept": "application/json",
-          "Content-Type": "application/json",
-          "Authorization": "Bearer $authToken",
+          'Accept': 'application/json',
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $authToken',
         },
       );
 
-      var body = const Utf8Decoder().convert(response.bodyBytes);
+      final body = const Utf8Decoder().convert(response.bodyBytes);
       return json.decode(body) as Map<String, dynamic>;
     } catch (e) {
       return {'status': 'error', 'message': 'Error deleting address: $e'};
@@ -1468,16 +1470,16 @@ class UserRepository {
       final http = IOClient(ioc);
       final authToken = await _secureStorage.getAuthToken();
 
-      var response = await http.patch(
+      final response = await http.patch(
         Uri.parse('$server/api/v1/delivery/addresses/$id/default'),
         headers: {
-          "Accept": "application/json",
-          "Content-Type": "application/json",
-          "Authorization": "Bearer $authToken",
+          'Accept': 'application/json',
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $authToken',
         },
       );
 
-      var body = const Utf8Decoder().convert(response.bodyBytes);
+      final body = const Utf8Decoder().convert(response.bodyBytes);
       return json.decode(body) as Map<String, dynamic>;
     } catch (e) {
       return {'status': 'error', 'message': 'Error setting default address: $e'};

@@ -173,7 +173,8 @@ class _DeleteAccountScreenState extends State<DeleteAccountScreen> {
                     const SizedBox(height: 12),
                     Text(
                       'Recovery: Contact support within 30 days to recover your account.',
-                      style: TextStyle(fontSize: 12, color: AppColors.lightTextSecondary!, fontFamily: 'Roboto'),
+                      style: TextStyle(fontSize: 12, color: AppColors.lightTextSecondary, fontFamily: 'Roboto'),
+
                     ),
                   ],
                 ),

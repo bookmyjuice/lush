@@ -1,5 +1,3 @@
-import 'dart:ffi';
-
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:equatable/equatable.dart';
 import '../../views/models/item_data.dart';
@@ -311,7 +309,7 @@ class ProductsBloc extends Bloc<ProductsEvent, ProductsState> {
 
       // Load products from your backend API
       // Example: GET /api/products or /api/juices
-      await Future.delayed(const Duration(
+      await Future<void>.delayed(const Duration(
           milliseconds: 300)); // Reduced delay for faster loading
 
       // Create enhanced products from existing juice models
@@ -356,7 +354,7 @@ class ProductsBloc extends Bloc<ProductsEvent, ProductsState> {
 
       // Load recommended products from your backend
       // Example: GET /api/products/recommended?userId=${userRepository.user.id}
-      await Future.delayed(const Duration(milliseconds: 800));
+      await Future<void>.delayed(const Duration(milliseconds: 800));
 
       final allProducts = await _createEnhancedProducts();
       final recommendedProducts = allProducts
@@ -379,7 +377,7 @@ class ProductsBloc extends Bloc<ProductsEvent, ProductsState> {
     try {
       // Load products by category from your backend
       // Example: GET /api/products?category=${event.category}
-      await Future.delayed(const Duration(milliseconds: 800));
+      await Future<void>.delayed(const Duration(milliseconds: 800));
 
       final allProducts = await _createEnhancedProducts();
 
@@ -439,7 +437,7 @@ class ProductsBloc extends Bloc<ProductsEvent, ProductsState> {
     try {
       // Search products in your backend
       // Example: GET /api/products/search?q=${event.query}
-      await Future.delayed(const Duration(milliseconds: 500));
+      await Future<void>.delayed(const Duration(milliseconds: 500));
 
       final allProducts = await _createEnhancedProducts();
       final searchResults = allProducts
@@ -472,7 +470,7 @@ class ProductsBloc extends Bloc<ProductsEvent, ProductsState> {
     try {
       // Load product details from your backend
       // Example: GET /api/products/${event.juiceId}
-      await Future.delayed(const Duration(milliseconds: 800));
+      await Future<void>.delayed(const Duration(milliseconds: 800));
 
       final allProducts = await _createEnhancedProducts();
       final product = allProducts.firstWhere(
@@ -492,7 +490,7 @@ class ProductsBloc extends Bloc<ProductsEvent, ProductsState> {
   ) async {
     if (state is ProductsLoaded) {
       try {
-        await Future.delayed(const Duration(milliseconds: 500));
+        await Future<void>.delayed(const Duration(milliseconds: 500));
 
         final products = await _createEnhancedProducts();
         await _saveToCache(products);

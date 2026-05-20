@@ -4,6 +4,10 @@ import 'package:flutter_pw_validator/flutter_pw_validator.dart';
 import 'package:lush/bloc/AuthBloc/auth_bloc.dart';
 import 'package:lush/bloc/AuthBloc/auth_events.dart';
 import 'package:lush/bloc/AuthBloc/auth_state.dart';
+import 'package:lush/theme/app_colors.dart';
+import 'package:lush/theme/app_spacing.dart';
+import 'package:lush/theme/app_text_styles.dart';
+import 'package:lush/theme/app_theme.dart';
 import 'package:lush/utils/back_button_handler.dart';
 import 'package:toastification/toastification.dart';
 
@@ -26,14 +30,12 @@ class CreatePasswordScreenState extends State<CreatePasswordScreen> {
   bool _isLoading = false;
   bool _isPasswordValid = false;
 
-  Map<String, dynamic>? _signupData;
-
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
     final args = ModalRoute.of(context)?.settings.arguments as Map<String, dynamic>?;
     if (args != null) {
-      _signupData = args;
+      // args received but not used directly in this screen
     } else {
       Navigator.pop(context);
     }
@@ -70,7 +72,7 @@ class CreatePasswordScreenState extends State<CreatePasswordScreen> {
         ),
       );
 
-      setState(() => _isLoading = false);
+      // BUG FIX: Don't reset loading immediately - let BlocListener handle it
     } else if (!_isPasswordValid) {
       toastification.show(
         title: const Text('Weak Password'),
@@ -100,7 +102,7 @@ class CreatePasswordScreenState extends State<CreatePasswordScreen> {
       child: Scaffold(
       appBar: AppBar(
         title: const Text('Create Password'),
-        backgroundColor: Colors.amber,
+        backgroundColor: AppColors.primaryOrange,
         centerTitle: true,
       ),
       body: BlocListener<AuthenticationBloc, AuthenticationState>(
@@ -123,7 +125,7 @@ class CreatePasswordScreenState extends State<CreatePasswordScreen> {
             );
           } else if (state is SignUpFailed) {
             toastification.show(
-              title: Text(state.error_heading),
+              title: Text(state.errorHeading),
               description: Text(state.error),
               type: ToastificationType.error,
             );
@@ -131,11 +133,11 @@ class CreatePasswordScreenState extends State<CreatePasswordScreen> {
         },
         child: SafeArea(
           child: SingleChildScrollView(
-            padding: const EdgeInsets.all(24.0),
+            padding: const EdgeInsets.all(AppSpacing.lg),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const SizedBox(height: 20),
+                const SizedBox(height: AppSpacing.lg),
                 const Text(
                   'Create Your Password',
                   style: TextStyle(
@@ -143,15 +145,14 @@ class CreatePasswordScreenState extends State<CreatePasswordScreen> {
                     fontWeight: FontWeight.bold,
                   ),
                 ),
-                const SizedBox(height: 10),
-                const Text(
+                const SizedBox(height: AppSpacing.sm),
+                Text(
                   'Choose a strong password to secure your account',
-                  style: TextStyle(
-                    fontSize: 16,
-                    color: Colors.grey,
+                  style: AppTextStyles.textTheme.bodyLarge?.copyWith(
+                    color: AppColors.darkGrey,
                   ),
                 ),
-                const SizedBox(height: 30),
+                const SizedBox(height: AppSpacing.lg + 6),
                 Form(
                   key: _formKey,
                   child: Column(
@@ -171,12 +172,12 @@ class CreatePasswordScreenState extends State<CreatePasswordScreen> {
                           labelText: 'Password *',
                           prefixIcon: const Icon(Icons.lock_outlined),
                           border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(12),
+                            borderRadius: BorderRadius.circular(AppRadius.md),
                           ),
                           hintText: 'Enter your password',
                         ),
                       ),
-                      const SizedBox(height: 20),
+                      const SizedBox(height: AppSpacing.lg),
                       // Password Validator
                       FlutterPwValidator(
                         key: _validatorKey,
@@ -184,7 +185,7 @@ class CreatePasswordScreenState extends State<CreatePasswordScreen> {
                         minLength: 8,
                         uppercaseCharCount: 1,
                         lowercaseCharCount: 1,
-                        numericCharCount: 2,
+                        numericCharCount: 1,
                         specialCharCount: 1,
                         normalCharCount: 3,
                         width: MediaQuery.of(context).size.width,
@@ -200,7 +201,7 @@ class CreatePasswordScreenState extends State<CreatePasswordScreen> {
                           });
                         },
                       ),
-                      const SizedBox(height: 20),
+                      const SizedBox(height: AppSpacing.lg),
                       // Confirm Password Field
                       TextFormField(
                         controller: _confirmPasswordController,
@@ -216,7 +217,7 @@ class CreatePasswordScreenState extends State<CreatePasswordScreen> {
                           labelText: 'Confirm Password *',
                           prefixIcon: const Icon(Icons.lock_outlined),
                           border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(12),
+                            borderRadius: BorderRadius.circular(AppRadius.md),
                           ),
                           hintText: 'Re-enter your password',
                         ),
@@ -224,7 +225,7 @@ class CreatePasswordScreenState extends State<CreatePasswordScreen> {
                     ],
                   ),
                 ),
-                const SizedBox(height: 30),
+                const SizedBox(height: AppSpacing.lg + 6),
                 SizedBox(
                   width: double.infinity,
                   height: 50,
@@ -233,13 +234,13 @@ class CreatePasswordScreenState extends State<CreatePasswordScreen> {
                         ? null
                         : _onSignup,
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.amber,
+                      backgroundColor: AppColors.primaryOrange,
                       shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
+                        borderRadius: BorderRadius.circular(AppRadius.md),
                       ),
                     ),
                     child: _isLoading
-                        ? const CircularProgressIndicator(color: Colors.white)
+                        ? const CircularProgressIndicator(color: AppColors.white)
                         : const Text(
                             'Create Account',
                             style: TextStyle(
@@ -249,7 +250,7 @@ class CreatePasswordScreenState extends State<CreatePasswordScreen> {
                           ),
                   ),
                 ),
-                const SizedBox(height: 20),
+                const SizedBox(height: AppSpacing.lg),
                 const Text(
                   'Password Requirements:',
                   style: TextStyle(
@@ -257,11 +258,11 @@ class CreatePasswordScreenState extends State<CreatePasswordScreen> {
                     fontWeight: FontWeight.bold,
                   ),
                 ),
-                const SizedBox(height: 10),
+                const SizedBox(height: AppSpacing.sm),
                 _buildRequirement('At least 8 characters'),
                 _buildRequirement('At least 1 uppercase letter'),
                 _buildRequirement('At least 1 lowercase letter'),
-                _buildRequirement('At least 2 numbers'),
+                _buildRequirement('At least 1 number'),
                 _buildRequirement('At least 1 special character'),
               ],
             ),
@@ -274,14 +275,14 @@ class CreatePasswordScreenState extends State<CreatePasswordScreen> {
 
   Widget _buildRequirement(String text) {
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 4.0),
+      padding: const EdgeInsets.symmetric(vertical: AppSpacing.xs),
       child: Row(
         children: [
-          const Icon(Icons.check_circle_outline, size: 16, color: Colors.grey),
-          const SizedBox(width: 8),
+          Icon(Icons.check_circle_outline, size: 16, color: AppColors.darkGrey),
+          const SizedBox(width: AppSpacing.sm),
           Text(
             text,
-            style: const TextStyle(fontSize: 13, color: Colors.grey),
+            style: TextStyle(fontSize: 13, color: AppColors.darkGrey),
           ),
         ],
       ),

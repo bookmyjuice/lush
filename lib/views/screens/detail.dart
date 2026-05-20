@@ -263,9 +263,9 @@ class _DetailPageState extends State<DetailPage> {
                     if (mounted) {
                       Navigator.pushNamed(context, '/subscriptions',
                         arguments: SubscriptionPageUrlArgument(
-                          premium_page_url: urls['premium'] ?? '',
-                          signature_page_url: urls['signature'] ?? '',
-                          delight_page_url: urls['delight'] ?? '',
+                          premiumPageUrl: urls['premium'] ?? '',
+                          signaturePageUrl: urls['signature'] ?? '',
+                          delightPageUrl: urls['delight'] ?? '',
                         ),
                       );
                     }

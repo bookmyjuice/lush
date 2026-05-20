@@ -52,7 +52,7 @@ class UserBloc extends Bloc<UserEvent, UserState> {
 
       // Call your backend API to update user profile
       // This would be implemented in your UserRepository
-      await Future.delayed(const Duration(seconds: 1)); // Simulating API call
+      await Future<void>.delayed(const Duration(seconds: 1)); // Simulating API call
 
       emit(UserUpdated(user: event.user));
       emit(UserLoaded(user: event.user));

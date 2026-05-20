@@ -1,4 +1,4 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:lush/bloc/CartBloc/cart_bloc.dart';
 import 'package:lush/bloc/CartBloc/cart_event.dart';
@@ -74,7 +74,7 @@ class ProductCatalogScreenState extends State<ProductCatalogScreen> {
             child: RefreshIndicator(
               onRefresh: () async {
                 context.read<ProductCatalogBloc>().add(const LoadProductCatalog());
-                await Future.delayed(const Duration(seconds: 1));
+                await Future<void>.delayed(const Duration(seconds: 1));
               },
               child: BlocBuilder<ProductCatalogBloc, ProductCatalogState>(
                 builder: (context, state) {

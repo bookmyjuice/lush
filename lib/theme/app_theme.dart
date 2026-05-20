@@ -8,17 +8,28 @@ import 'package:flutter/material.dart';
 import 'app_colors.dart';
 import 'app_text_styles.dart';
 
+/// Design system border radius constants.
+///
+/// Use these throughout the app for consistent corner rounding.
+class AppRadius {
+  AppRadius._();
+
+  /// 8dp — Small radius (chips, snackbars, small elements).
+  static const double sm = 8.0;
+
+  /// 12dp — Medium radius (buttons, inputs, cards).
+  static const double md = 12.0;
+
+  /// 16dp — Large radius (bottom sheets, large cards).
+  static const double lg = 16.0;
+}
+
 /// Factory for BMJ light and dark [ThemeData].
 ///
 /// Both themes follow Material 3 with the BMJ brand palette
 /// (Orange primary, Teal secondary).
 class AppTheme {
   AppTheme._();
-
-  // ── Radius Constants ──
-  static const double _radiusSm = 8.0;
-  static const double _radiusMd = 12.0;
-  static const double _radiusLg = 16.0;
 
   // ── Light Theme ──
 
@@ -74,7 +85,7 @@ class AppTheme {
           padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
           minimumSize: const Size(0, 48),
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(_radiusMd),
+            borderRadius: BorderRadius.circular(AppRadius.md),
           ),
           textStyle: AppTextStyles.textTheme.labelLarge,
         ),
@@ -88,7 +99,7 @@ class AppTheme {
           padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
           minimumSize: const Size(0, 48),
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(_radiusMd),
+            borderRadius: BorderRadius.circular(AppRadius.md),
           ),
           textStyle: AppTextStyles.textTheme.labelLarge,
         ),
@@ -111,23 +122,23 @@ class AppTheme {
           vertical: 16,
         ),
         border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(_radiusMd),
+          borderRadius: BorderRadius.circular(AppRadius.md),
           borderSide: const BorderSide(color: AppColors.grey, width: 1),
         ),
         enabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(_radiusMd),
+          borderRadius: BorderRadius.circular(AppRadius.md),
           borderSide: const BorderSide(color: AppColors.grey, width: 1),
         ),
         focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(_radiusMd),
+          borderRadius: BorderRadius.circular(AppRadius.md),
           borderSide: BorderSide(color: colorScheme.primary, width: 2),
         ),
         errorBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(_radiusMd),
+          borderRadius: BorderRadius.circular(AppRadius.md),
           borderSide: const BorderSide(color: AppColors.error, width: 1),
         ),
         focusedErrorBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(_radiusMd),
+          borderRadius: BorderRadius.circular(AppRadius.md),
           borderSide: const BorderSide(color: AppColors.error, width: 2),
         ),
         labelStyle: TextStyle(color: AppColors.grey),
@@ -140,7 +151,7 @@ class AppTheme {
         color: AppColors.lightCard,
         surfaceTintColor: Colors.transparent,
         shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(_radiusLg),
+          borderRadius: BorderRadius.circular(AppRadius.lg),
         ),
         margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       ),
@@ -184,7 +195,7 @@ class AppTheme {
         ),
         behavior: SnackBarBehavior.floating,
         shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(_radiusSm),
+          borderRadius: BorderRadius.circular(AppRadius.sm),
         ),
       ),
 
@@ -195,7 +206,7 @@ class AppTheme {
           color: AppColors.lightTextPrimary,
         ),
         shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(_radiusSm),
+          borderRadius: BorderRadius.circular(AppRadius.sm),
         ),
       ),
 
@@ -204,7 +215,7 @@ class AppTheme {
         backgroundColor: AppColors.lightSurface,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.vertical(
-            top: Radius.circular(_radiusLg),
+            top: Radius.circular(AppRadius.lg),
           ),
         ),
       ),
@@ -271,7 +282,7 @@ class AppTheme {
           padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
           minimumSize: const Size(0, 48),
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(_radiusMd),
+            borderRadius: BorderRadius.circular(AppRadius.md),
           ),
           textStyle: AppTextStyles.textTheme.labelLarge,
         ),
@@ -285,7 +296,7 @@ class AppTheme {
           padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
           minimumSize: const Size(0, 48),
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(_radiusMd),
+            borderRadius: BorderRadius.circular(AppRadius.md),
           ),
           textStyle: AppTextStyles.textTheme.labelLarge,
         ),
@@ -308,23 +319,23 @@ class AppTheme {
           vertical: 16,
         ),
         border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(_radiusMd),
+          borderRadius: BorderRadius.circular(AppRadius.md),
           borderSide: const BorderSide(color: AppColors.darkGrey, width: 1),
         ),
         enabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(_radiusMd),
+          borderRadius: BorderRadius.circular(AppRadius.md),
           borderSide: const BorderSide(color: AppColors.darkGrey, width: 1),
         ),
         focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(_radiusMd),
+          borderRadius: BorderRadius.circular(AppRadius.md),
           borderSide: BorderSide(color: colorScheme.primary, width: 2),
         ),
         errorBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(_radiusMd),
+          borderRadius: BorderRadius.circular(AppRadius.md),
           borderSide: const BorderSide(color: AppColors.error, width: 1),
         ),
         focusedErrorBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(_radiusMd),
+          borderRadius: BorderRadius.circular(AppRadius.md),
           borderSide: const BorderSide(color: AppColors.error, width: 2),
         ),
         labelStyle: TextStyle(color: AppColors.darkTextSecondary),
@@ -337,7 +348,7 @@ class AppTheme {
         color: AppColors.darkCard,
         surfaceTintColor: Colors.transparent,
         shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(_radiusLg),
+          borderRadius: BorderRadius.circular(AppRadius.lg),
         ),
         margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       ),
@@ -381,7 +392,7 @@ class AppTheme {
         ),
         behavior: SnackBarBehavior.floating,
         shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(_radiusSm),
+          borderRadius: BorderRadius.circular(AppRadius.sm),
         ),
       ),
 
@@ -392,7 +403,7 @@ class AppTheme {
           color: AppColors.darkTextPrimary,
         ),
         shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(_radiusSm),
+          borderRadius: BorderRadius.circular(AppRadius.sm),
         ),
       ),
 
@@ -401,7 +412,7 @@ class AppTheme {
         backgroundColor: AppColors.darkSurface,
         shape: const RoundedRectangleBorder(
           borderRadius: BorderRadius.vertical(
-            top: Radius.circular(_radiusLg),
+            top: Radius.circular(AppRadius.lg),
           ),
         ),
       ),

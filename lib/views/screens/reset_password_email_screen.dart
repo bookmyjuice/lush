@@ -31,7 +31,7 @@ class _ResetPasswordEmailScreenState extends State<ResetPasswordEmailScreen> {
   @override
   void initState() {
     super.initState();
-    Future.delayed(Duration.zero, () {
+    Future<void>.delayed(Duration.zero, () {
       final args = ModalRoute.of(context)?.settings.arguments as Map<String, dynamic>?;
       if (args != null && args['email'] != null) {
         setState(() => _email = args['email'].toString());
@@ -52,7 +52,7 @@ class _ResetPasswordEmailScreenState extends State<ResetPasswordEmailScreen> {
       _resendCountdown = 30;
       _canResend = false;
     });
-    Future.delayed(Duration(seconds: 30), () {
+    Future<void>.delayed(Duration(seconds: 30), () {
       if (mounted) setState(() => _canResend = true);
     });
   }
@@ -115,7 +115,7 @@ class _ResetPasswordEmailScreenState extends State<ResetPasswordEmailScreen> {
 
     if (response.contains('Success') || response.contains('reset')) {
       _showToast('Password Reset', 'Your password has been updated successfully', ToastificationType.success);
-      Future.delayed(Duration(seconds: 1), () {
+      Future<void>.delayed(Duration(seconds: 1), () {
         Navigator.pushNamedAndRemoveUntil(context, '/login', (route) => false);
       });
     } else {

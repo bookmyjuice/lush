@@ -3,6 +3,10 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:lush/bloc/AuthBloc/auth_bloc.dart';
 import 'package:lush/bloc/AuthBloc/auth_events.dart';
+import 'package:lush/theme/app_colors.dart';
+import 'package:lush/theme/app_spacing.dart';
+import 'package:lush/theme/app_text_styles.dart';
+import 'package:lush/theme/app_theme.dart';
 import 'package:lush/utils/back_button_handler.dart';
 import 'package:lush/views/models/google_sign_in.dart';
 
@@ -38,42 +42,40 @@ class SignupMethodSelectionScreenState
 
       body: SafeArea(
         child: SingleChildScrollView(
-          padding: const EdgeInsets.all(24.0),
+          padding: const EdgeInsets.all(AppSpacing.lg),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
-              const SizedBox(height: 40),
+              const SizedBox(height: AppSpacing.xl),
               // App Logo
               Image.asset(
                 'assets/bmjlogo.png',
                 height: 120,
                 width: 240,
               ),
-              const SizedBox(height: 30),
+              const SizedBox(height: AppSpacing.lg + 6),
               // Title
-              const Text(
+              Text(
                 'Create Your Account',
-                style: TextStyle(
-                  fontSize: 28,
+                style: AppTextStyles.textTheme.headlineMedium?.copyWith(
                   fontWeight: FontWeight.bold,
                 ),
               ),
-              const SizedBox(height: 10),
-              const Text(
+              const SizedBox(height: AppSpacing.sm),
+              Text(
                 'Choose your preferred signup method',
-                style: TextStyle(
-                  fontSize: 16,
-                  color: Colors.grey,
+                style: AppTextStyles.textTheme.bodyLarge?.copyWith(
+                  color: AppColors.darkGrey,
                 ),
                 textAlign: TextAlign.center,
               ),
-              const SizedBox(height: 50),
+              const SizedBox(height: AppSpacing.xl + 18),
               // Email Signup Button
               _buildSignupButton(
                 iconData: Icons.email_outlined,
                 label: 'Sign up with Email',
                 subtitle: 'Enter your email address',
-                color: Colors.blue,
+                color: AppColors.info,
                 onTap: () {
                   BlocProvider.of<AuthenticationBloc>(context).add(
                     const ChooseSignupMethod(method: 'email'),
@@ -81,13 +83,13 @@ class SignupMethodSelectionScreenState
                   Navigator.pushNamed(context, '/email-signup');
                 },
               ),
-              const SizedBox(height: 16),
+              const SizedBox(height: AppSpacing.md),
               // Phone Signup Button
               _buildSignupButton(
                 iconData: Icons.phone_outlined,
                 label: 'Sign up with Phone',
                 subtitle: 'Enter your mobile number',
-                color: Colors.green,
+                color: AppColors.success,
                 onTap: () {
                   BlocProvider.of<AuthenticationBloc>(context).add(
                     const ChooseSignupMethod(method: 'phone'),
@@ -95,12 +97,12 @@ class SignupMethodSelectionScreenState
                   Navigator.pushNamed(context, '/phone-signup');
                 },
               ),
-              const SizedBox(height: 16),
+              const SizedBox(height: AppSpacing.md),
               // Google Signup Button
               _buildGoogleSignupButton(
                 label: 'Sign up with Google',
                 subtitle: 'Quick signup with your Google account',
-                color: Colors.red,
+                color: AppColors.error,
                 onTap: () async {
                   // 1. Show loading indicator
                   if (!context.mounted) return;
@@ -109,7 +111,7 @@ class SignupMethodSelectionScreenState
                     barrierDismissible: false,
                     builder: (ctx) => const Center(
                       child: CircularProgressIndicator(
-                        color: Color(0xFFFF8C42),
+                        color: AppColors.primaryOrange,
                       ),
                     ),
                   );
@@ -139,7 +141,7 @@ class SignupMethodSelectionScreenState
                   }
                 },
               ),
-              const SizedBox(height: 40),
+              const SizedBox(height: AppSpacing.xl),
               // Already have account
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
@@ -152,7 +154,7 @@ class SignupMethodSelectionScreenState
                     child: const Text(
                       'Login',
                       style: TextStyle(
-                        color: Colors.amber,
+                        color: AppColors.primaryOrange,
                         fontWeight: FontWeight.bold,
                       ),
                     ),
@@ -176,43 +178,41 @@ class SignupMethodSelectionScreenState
   }) {
     return InkWell(
       onTap: onTap,
-      borderRadius: BorderRadius.circular(12),
+      borderRadius: BorderRadius.circular(AppRadius.md),
       child: Container(
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.all(AppSpacing.md),
         decoration: BoxDecoration(
-          border: Border.all(color: Colors.grey.shade300),
-          borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: AppColors.lightDivider),
+          borderRadius: BorderRadius.circular(AppRadius.md),
         ),
         child: Row(
           children: [
             Icon(iconData, size: 32, color: color),
-            const SizedBox(width: 16),
+            const SizedBox(width: AppSpacing.md),
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
                     label,
-                    style: const TextStyle(
-                      fontSize: 16,
+                    style: AppTextStyles.textTheme.titleMedium?.copyWith(
                       fontWeight: FontWeight.bold,
                     ),
                   ),
-                  const SizedBox(height: 4),
+                  const SizedBox(height: AppSpacing.xs),
                   Text(
                     subtitle,
-                    style: const TextStyle(
-                      fontSize: 13,
-                      color: Colors.grey,
+                    style: AppTextStyles.textTheme.bodyMedium?.copyWith(
+                      color: AppColors.darkGrey,
                     ),
                   ),
                 ],
               ),
             ),
-            const Icon(
+            Icon(
               Icons.arrow_forward_ios,
               size: 18,
-              color: Colors.grey,
+              color: AppColors.darkGrey,
             ),
           ],
         ),
@@ -228,43 +228,41 @@ class SignupMethodSelectionScreenState
   }) {
     return InkWell(
       onTap: onTap,
-      borderRadius: BorderRadius.circular(12),
+      borderRadius: BorderRadius.circular(AppRadius.md),
       child: Container(
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.all(AppSpacing.md),
         decoration: BoxDecoration(
-          border: Border.all(color: Colors.grey.shade300),
-          borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: AppColors.lightDivider),
+          borderRadius: BorderRadius.circular(AppRadius.md),
         ),
         child: Row(
           children: [
-            const FaIcon(FontAwesomeIcons.google, size: 32, color: Colors.red),
-            const SizedBox(width: 16),
+            const FaIcon(FontAwesomeIcons.google, size: 32, color: AppColors.error),
+            const SizedBox(width: AppSpacing.md),
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
                     label,
-                    style: const TextStyle(
-                      fontSize: 16,
+                    style: AppTextStyles.textTheme.titleMedium?.copyWith(
                       fontWeight: FontWeight.bold,
                     ),
                   ),
-                  const SizedBox(height: 4),
+                  const SizedBox(height: AppSpacing.xs),
                   Text(
                     subtitle,
-                    style: const TextStyle(
-                      fontSize: 13,
-                      color: Colors.grey,
+                    style: AppTextStyles.textTheme.bodyMedium?.copyWith(
+                      color: AppColors.darkGrey,
                     ),
                   ),
                 ],
               ),
             ),
-            const Icon(
+            Icon(
               Icons.arrow_forward_ios,
               size: 18,
-              color: Colors.grey,
+              color: AppColors.darkGrey,
             ),
           ],
         ),

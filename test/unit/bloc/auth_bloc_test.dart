@@ -469,7 +469,7 @@ void main() {
     blocTest<AuthenticationBloc, AuthenticationState>(
       'GoogleSignIn login_success emits AuthenticationSuccess',
       build: () {
-        when(() => mockRepo.googleSignIn_()).thenAnswer((_) async => {
+        when(() => mockRepo.googleSignIn()).thenAnswer((_) async => {
           'type': 'login_success',
           'token': 'mock-token',
         });
@@ -483,7 +483,7 @@ void main() {
     blocTest<AuthenticationBloc, AuthenticationState>(
       'GoogleSignIn link_required emits GoogleLinkRequired',
       build: () {
-        when(() => mockRepo.googleSignIn_()).thenAnswer((_) async => {
+        when(() => mockRepo.googleSignIn()).thenAnswer((_) async => {
           'type': 'link_required',
           'googleEmail': 'test@google.com',
           'googleFirstName': 'Test',
@@ -500,7 +500,7 @@ void main() {
     blocTest<AuthenticationBloc, AuthenticationState>(
       'GoogleSignIn signup_required emits SignUpStarted',
       build: () {
-        when(() => mockRepo.googleSignIn_()).thenAnswer((_) async => {
+        when(() => mockRepo.googleSignIn()).thenAnswer((_) async => {
           'type': 'signup_required',
           'user': createTestUser(),
         });
@@ -514,7 +514,7 @@ void main() {
     blocTest<AuthenticationBloc, AuthenticationState>(
       'GoogleSignIn failure emits SignUpFailed',
       build: () {
-        when(() => mockRepo.googleSignIn_())
+        when(() => mockRepo.googleSignIn())
             .thenAnswer((_) async => 'Google Sign-In cancelled');
         return AuthenticationBloc(repo: mockRepo);
       },
@@ -525,7 +525,7 @@ void main() {
     blocTest<AuthenticationBloc, AuthenticationState>(
       'GoogleSignIn null result emits SignUpFailed',
       build: () {
-        when(() => mockRepo.googleSignIn_()).thenAnswer((_) async => null);
+        when(() => mockRepo.googleSignIn()).thenAnswer((_) async => null);
         return AuthenticationBloc(repo: mockRepo);
       },
       act: (bloc) => bloc.add(const GoogleSignIn()),

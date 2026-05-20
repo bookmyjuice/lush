@@ -3,6 +3,11 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:lush/bloc/AuthBloc/auth_bloc.dart';
 import 'package:lush/bloc/AuthBloc/auth_events.dart';
 import 'package:lush/bloc/AuthBloc/auth_state.dart';
+import 'package:lush/theme/app_colors.dart';
+import 'package:lush/theme/app_spacing.dart';
+import 'package:lush/theme/app_text_styles.dart';
+import 'package:lush/theme/app_theme.dart';
+import 'package:lush/widgets/app_text_field.dart';
 import 'package:lush/utils/back_button_handler.dart';
 import 'package:toastification/toastification.dart';
 
@@ -69,7 +74,7 @@ class EmailSignupScreenState extends State<EmailSignupScreen> {
       child: Scaffold(
       appBar: AppBar(
         title: const Text('Sign up with Email'),
-        backgroundColor: Colors.amber,
+        backgroundColor: AppColors.primaryOrange,
         centerTitle: true,
       ),
       body: BlocListener<AuthenticationBloc, AuthenticationState>(
@@ -90,11 +95,11 @@ class EmailSignupScreenState extends State<EmailSignupScreen> {
         },
         child: SafeArea(
           child: SingleChildScrollView(
-            padding: const EdgeInsets.all(24.0),
+            padding: const EdgeInsets.all(AppSpacing.lg),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const SizedBox(height: 20),
+                const SizedBox(height: AppSpacing.lg),
                 const Text(
                   'Enter your email address',
                   style: TextStyle(
@@ -102,57 +107,48 @@ class EmailSignupScreenState extends State<EmailSignupScreen> {
                     fontWeight: FontWeight.bold,
                   ),
                 ),
-                const SizedBox(height: 10),
-                const Text(
+                const SizedBox(height: AppSpacing.sm),
+                Text(
                   'We\'ll send you a verification code to confirm your email address.',
-                  style: TextStyle(
-                    fontSize: 16,
-                    color: Colors.grey,
+                  style: AppTextStyles.textTheme.bodyLarge?.copyWith(
+                    color: AppColors.darkGrey,
                   ),
                 ),
-                const SizedBox(height: 40),
+                const SizedBox(height: AppSpacing.xl),
                 Form(
                   key: _formKey,
-                  child: TextFormField(
+                  child: AppTextField(
                     controller: _emailController,
+                    label: 'Email Address',
+                    hint: 'your.email@example.com',
+                    prefixIcon: Icons.email_outlined,
                     keyboardType: TextInputType.emailAddress,
-                    textInputAction: TextInputAction.done,
                     validator: (value) {
                       if (value == null || value.isEmpty) {
                         return 'Email is required';
                       }
-                      if (!RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$')
-                          .hasMatch(value)) {
+                      if (!isValidEmail(value)) {
                         return 'Please enter a valid email';
                       }
                       return null;
                     },
-                    decoration: InputDecoration(
-                      labelText: 'Email Address',
-                      prefixIcon: const Icon(Icons.email_outlined),
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      hintText: 'your.email@example.com',
-                    ),
-                    onFieldSubmitted: (_) => _onContinue(),
                   ),
                 ),
-                const SizedBox(height: 30),
+                const SizedBox(height: AppSpacing.lg + 6),
                 SizedBox(
                   width: double.infinity,
                   height: 50,
                   child: ElevatedButton(
                     onPressed: _isLoading ? null : _onContinue,
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.amber,
+                      backgroundColor: AppColors.primaryOrange,
                       shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
+                        borderRadius: BorderRadius.circular(AppRadius.md),
                       ),
                     ),
                     child: _isLoading
                         ? const CircularProgressIndicator(
-                            color: Colors.white,
+                            color: AppColors.white,
                           )
                         : const Text(
                             'Continue',
@@ -163,7 +159,7 @@ class EmailSignupScreenState extends State<EmailSignupScreen> {
                           ),
                   ),
                 ),
-                const SizedBox(height: 20),
+                const SizedBox(height: AppSpacing.lg),
                 Center(
                   child: TextButton(
                     onPressed: () {

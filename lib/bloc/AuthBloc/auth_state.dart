@@ -14,20 +14,20 @@ class AuthenticationInitiated extends AuthenticationState {
 }
 
 class AutoLoginFailed extends AuthenticationState {
-  final String toast_message, toast_heading;
+  final String toastMessage, toastHeading;
 
-  const AutoLoginFailed({required this.toast_message, required this.toast_heading});
+  const AutoLoginFailed({required this.toastMessage, required this.toastHeading});
   @override
-  List<Object?> get props => [toast_heading, toast_message];
+  List<Object?> get props => [toastHeading, toastMessage];
 }
 
 class LogInFailed extends AuthenticationState {
-  final String toast_message, toast_heading;
+  final String toastMessage, toastHeading;
 
-  const LogInFailed({required this.toast_message, required this.toast_heading});
+  const LogInFailed({required this.toastMessage, required this.toastHeading});
 
   @override
-  List<Object?> get props => [toast_heading, toast_message];
+  List<Object?> get props => [toastHeading, toastMessage];
 }
 
 class AuthenticationSuccess extends AuthenticationState {
@@ -50,20 +50,20 @@ class AuthenticationInProgress extends AuthenticationState {
 }
 
 class InternetIssue extends AuthenticationState {
-  final String toast_message, toast_heading;
+  final String toastMessage, toastHeading;
 
-  const InternetIssue({required this.toast_message, required this.toast_heading});
+  const InternetIssue({required this.toastMessage, required this.toastHeading});
   @override
-  List<Object?> get props => [toast_heading, toast_message];
+  List<Object?> get props => [toastHeading, toastMessage];
 }
 
 class SignUpFailed extends AuthenticationState {
-  final String error_heading, error;
+  final String errorHeading, error;
 
-  const SignUpFailed({required this.error_heading, required this.error});
+  const SignUpFailed({required this.errorHeading, required this.error});
 
   @override
-  List<Object?> get props => [error_heading, error];
+  List<Object?> get props => [errorHeading, error];
 }
 
 class SignUpStarted extends AuthenticationState {

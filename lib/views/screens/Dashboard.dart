@@ -14,8 +14,6 @@ import 'package:lush/services/secure_storage_service.dart';
 import 'package:lush/services/subscription_service_v2.dart';
 import 'package:lush/theme/app_colors.dart';
 import 'package:lush/theme/app_text_styles.dart';
-
-import 'package:lush/utils/back_button_handler.dart';
 import 'package:lush/views/models/subscription.dart';
 import 'package:lush/views/models/user.dart';
 import 'package:lush/views/widgets/shimmer_subscription_card.dart';
@@ -23,7 +21,6 @@ import 'package:url_launcher/url_launcher.dart';
 
 import '../widgets/cart_icon.dart';
 import '../widgets/subscription_info_card.dart';
-
 
 /// Defines the display mode of the Dashboard.
 ///
@@ -49,11 +46,14 @@ class HomePage2State extends State<Dashboard> with TickerProviderStateMixin {
   List<Widget> listViews = <Widget>[];
   final ScrollController scrollController = ScrollController();
   double topBarOpacity = 0.1;
-  
+
   // Subscription data
   final SubscriptionService _subscriptionService = SubscriptionService();
   Subscription? _subscription;
   bool _isLoadingSubscription = false;
+
+  // Track current carousel index
+  int _currentCarouselIndex = 0;
 
   @override
   void initState() {
@@ -68,7 +68,7 @@ class HomePage2State extends State<Dashboard> with TickerProviderStateMixin {
 
     // Load cart data
     context.read<CartBloc>().add(LoadCart());
-    
+
     // Load subscription data
     _loadSubscriptionData();
 
@@ -97,9 +97,6 @@ class HomePage2State extends State<Dashboard> with TickerProviderStateMixin {
     super.initState();
   }
 
-  // Track current carousel index
-  int _currentCarouselIndex = 0;
-
   // Load subscription data from backend
   Future<void> _loadSubscriptionData() async {
     setState(() {
@@ -109,9 +106,10 @@ class HomePage2State extends State<Dashboard> with TickerProviderStateMixin {
     try {
       final secureStorage = SecureStorageService();
       final token = await secureStorage.getAuthToken();
-      
+
       if (token != null && token.isNotEmpty) {
-        final subscriptions = await _subscriptionService.getMySubscriptions(token);
+        final subscriptions =
+            await _subscriptionService.getMySubscriptions(token);
         setState(() {
           _subscription = subscriptions.isNotEmpty ? subscriptions.first : null;
           _isLoadingSubscription = false;
@@ -137,13 +135,13 @@ class HomePage2State extends State<Dashboard> with TickerProviderStateMixin {
           await widget.userRepository.getSubscriptionPageUrl();
       if (mounted) {
         Navigator.pushNamed(context, '/subscriptions',
-            arguments: SubscriptionPageUrlArgument(
-                premium_page_url: urls["premium"]!,
-                signature_page_url: urls["signature"]!,
-                delight_page_url: urls["delight"]!));
+                arguments: SubscriptionPageUrlArgument(
+                    premiumPageUrl: urls["premium"]!,
+                    signaturePageUrl: urls["signature"]!,
+                    delightPageUrl: urls["delight"]!));
+
       }
     } catch (e) {
-      // Handle error silently or show user-friendly message
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
@@ -154,37 +152,7 @@ class HomePage2State extends State<Dashboard> with TickerProviderStateMixin {
   }
 
   void addAllListData() {
-    listViews.clear(); // Clear previous views
-
-    // Add Welcome Header with improved animation
-    // listViews.add(
-    //   Padding(
-    //     padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 12.h),
-    //     child: AnimatedBuilder(
-    //       animation: animationController,
-    //       builder: (context, child) {
-    //         return SlideTransition(
-    //           position: Tween<Offset>(
-    //             begin: const Offset(0, -0.5),
-    //             end: Offset.zero,
-    //           ).animate(CurvedAnimation(
-    //             parent: animationController,
-    //             curve: const Interval(0.0, 0.2, curve: Curves.easeOutCubic),
-    //           )),
-    //           child: FadeTransition(
-    //             opacity: Tween<double>(begin: 0.0, end: 1.0).animate(
-    //               CurvedAnimation(
-    //                 parent: animationController,
-    //                 curve: const Interval(0.0, 0.2, curve: Curves.easeOutCubic),
-    //               ),
-    //             ),
-    //             child: WelcomeHeader(user: widget.userRepository.user),
-    //           ),
-    //         );
-    //       },
-    //     ),
-    //   ),
-    // );
+    listViews.clear();
 
     // Add Featured Promotions Carousel
     listViews.add(
@@ -311,25 +279,24 @@ class HomePage2State extends State<Dashboard> with TickerProviderStateMixin {
                     : SubscriptionInfoCard(
                         subscription: _subscription,
                         onTap: () {
-                          // Navigate to subscription details if exists
                           if (_subscription != null) {
                             // Navigate to details
                           }
                         },
                         onManageTap: () async {
                           if (_subscription != null) {
-                            // Navigate to manage subscription
-                            Map<String, String> urls =
-                                await widget.userRepository.getSubscriptionPageUrl();
+                            Map<String, String> urls = await widget
+                                .userRepository
+                                .getSubscriptionPageUrl();
                             if (mounted) {
                               Navigator.pushNamed(context, '/subscriptions',
-                                  arguments: SubscriptionPageUrlArgument(
-                                      premium_page_url: urls["premium"]!,
-                                      signature_page_url: urls["signature"]!,
-                                      delight_page_url: urls["delight"]!));
+                                    arguments: SubscriptionPageUrlArgument(
+                                        premiumPageUrl: urls["premium"]!,
+                                        signaturePageUrl: urls["signature"]!,
+                                        delightPageUrl: urls["delight"]!));
+
                             }
                           } else {
-                            // No subscription, navigate to subscribe
                             _navigateToSubscriptions();
                           }
                         },
@@ -357,7 +324,6 @@ class HomePage2State extends State<Dashboard> with TickerProviderStateMixin {
               ),
               child: Column(
                 children: [
-                  // Section Title
                   Padding(
                     padding: EdgeInsets.only(bottom: 16.h),
                     child: Row(
@@ -403,11 +369,8 @@ class HomePage2State extends State<Dashboard> with TickerProviderStateMixin {
                       ],
                     ),
                   ),
-
-                  // Navigation Cards
                   Row(
                     children: [
-                      // One-Time Order Card
                       Expanded(
                         child: GestureDetector(
                           onTap: () {
@@ -430,7 +393,8 @@ class HomePage2State extends State<Dashboard> with TickerProviderStateMixin {
                               borderRadius: BorderRadius.circular(20.r),
                               boxShadow: [
                                 BoxShadow(
-                                  color: Color(0xFF667eea).withValues(alpha: 0.4),
+                                  color:
+                                      Color(0xFF667eea).withValues(alpha: 0.4),
                                   blurRadius: 12,
                                   offset: Offset(0, 8),
                                 ),
@@ -442,7 +406,8 @@ class HomePage2State extends State<Dashboard> with TickerProviderStateMixin {
                                 Container(
                                   padding: EdgeInsets.all(12.w),
                                   decoration: BoxDecoration(
-                                    color: Colors.white.withValues(alpha: 0.2),
+                                    color:
+                                        Colors.white.withValues(alpha: 0.2),
                                     borderRadius: BorderRadius.circular(12.r),
                                   ),
                                   child: Icon(
@@ -483,8 +448,6 @@ class HomePage2State extends State<Dashboard> with TickerProviderStateMixin {
                           ),
                         ),
                       ),
-
-                      // Subscription Plans Card
                       Expanded(
                         child: GestureDetector(
                           onTap: () {
@@ -507,7 +470,8 @@ class HomePage2State extends State<Dashboard> with TickerProviderStateMixin {
                               borderRadius: BorderRadius.circular(20.r),
                               boxShadow: [
                                 BoxShadow(
-                                  color: Color(0xFF11998e).withValues(alpha: 0.4),
+                                  color:
+                                      Color(0xFF11998e).withValues(alpha: 0.4),
                                   blurRadius: 12,
                                   offset: Offset(0, 8),
                                 ),
@@ -519,7 +483,8 @@ class HomePage2State extends State<Dashboard> with TickerProviderStateMixin {
                                 Container(
                                   padding: EdgeInsets.all(12.w),
                                   decoration: BoxDecoration(
-                                    color: Colors.white.withValues(alpha: 0.2),
+                                    color:
+                                        Colors.white.withValues(alpha: 0.2),
                                     borderRadius: BorderRadius.circular(12.r),
                                   ),
                                   child: Icon(
@@ -682,7 +647,8 @@ class HomePage2State extends State<Dashboard> with TickerProviderStateMixin {
             children: [
               Row(
                 children: [
-                  Icon(Icons.local_fire_department, color: AppColors.white, size: 28.sp),
+                  Icon(Icons.local_fire_department,
+                      color: AppColors.white, size: 28.sp),
                   SizedBox(width: 8.w),
                   Text(
                     'Fresh Juice, Daily Delivery!',
@@ -709,7 +675,8 @@ class HomePage2State extends State<Dashboard> with TickerProviderStateMixin {
                   },
                   style: OutlinedButton.styleFrom(
                     foregroundColor: AppColors.white,
-                    side: const BorderSide(color: AppColors.white, width: 1.5),
+                    side:
+                        const BorderSide(color: AppColors.white, width: 1.5),
                     padding: EdgeInsets.symmetric(vertical: 14.h),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(12.r),
@@ -732,7 +699,6 @@ class HomePage2State extends State<Dashboard> with TickerProviderStateMixin {
 
   @override
   Widget build(BuildContext context) {
-    // Public mode: show dashboard without auth check
     if (widget.mode == DashboardMode.public) {
       return Container(
         color: AppColors.lightBackground,
@@ -749,7 +715,6 @@ class HomePage2State extends State<Dashboard> with TickerProviderStateMixin {
       );
     }
 
-    // Full mode: authenticate first
     return BlocBuilder<AuthenticationBloc, AuthenticationState>(
       builder: (context, state) {
         if (state is AuthenticationSuccess) {
@@ -801,7 +766,6 @@ class HomePage2State extends State<Dashboard> with TickerProviderStateMixin {
         } else {
           return RefreshIndicator(
               onRefresh: () async {
-                // Add refresh logic here
                 setState(() {
                   listViews.clear();
                   addAllListData();
@@ -852,7 +816,8 @@ class HomePage2State extends State<Dashboard> with TickerProviderStateMixin {
       actions: [
         TextButton.icon(
           onPressed: () => _showLoginPrompt(context),
-          icon: Icon(Icons.login, color: AppColors.primaryOrange, size: 18.sp),
+          icon:
+              Icon(Icons.login, color: AppColors.primaryOrange, size: 18.sp),
           label: Text(
             'Login',
             style: AppTextStyles.textTheme.labelLarge?.copyWith(
@@ -1058,7 +1023,6 @@ class HomePage2State extends State<Dashboard> with TickerProviderStateMixin {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 SizedBox(height: 40.h),
-                // Enhanced avatar with shadow
                 Container(
                   decoration: BoxDecoration(
                     shape: BoxShape.circle,
@@ -1086,7 +1050,6 @@ class HomePage2State extends State<Dashboard> with TickerProviderStateMixin {
                   ),
                 ),
                 SizedBox(height: 16.h),
-                // User name with better formatting
                 Text(
                   user.getFirstName.toString().length +
                               user.getLastName.toString().length >
@@ -1107,7 +1070,6 @@ class HomePage2State extends State<Dashboard> with TickerProviderStateMixin {
                   ),
                 ),
                 SizedBox(height: 4.h),
-                // #6 UX: Logged in as indicator
                 Text(
                   "Logged in as ${user.getEmail}",
                   style: TextStyle(
@@ -1116,7 +1078,6 @@ class HomePage2State extends State<Dashboard> with TickerProviderStateMixin {
                   ),
                 ),
                 SizedBox(height: 8.h),
-                // User phone with icon
                 Row(
                   children: [
                     Icon(
@@ -1135,7 +1096,6 @@ class HomePage2State extends State<Dashboard> with TickerProviderStateMixin {
                   ],
                 ),
                 SizedBox(height: 12.h),
-                // Premium badge with enhanced design
                 Container(
                   padding:
                       EdgeInsets.symmetric(horizontal: 12.w, vertical: 6.h),
@@ -1171,10 +1131,8 @@ class HomePage2State extends State<Dashboard> with TickerProviderStateMixin {
             ),
           ),
 
-          // Enhanced menu items with better spacing and visual feedback
           SizedBox(height: 8.h),
 
-          // Account section
           Padding(
             padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 8.h),
             child: Text(
@@ -1210,10 +1168,11 @@ class HomePage2State extends State<Dashboard> with TickerProviderStateMixin {
               mounted
                   ? Navigator.pushNamed(context, '/subscriptions',
                       arguments: SubscriptionPageUrlArgument(
-                          premium_page_url: urls["premium"]!,
-                          signature_page_url: urls["signature"]!,
-                          delight_page_url: urls["delight"]!))
-                  : Future.delayed(Duration(seconds: 1));
+                          premiumPageUrl: urls["premium"]!,
+                          signaturePageUrl: urls["signature"]!,
+                          delightPageUrl: urls["delight"]!))
+
+                  : Future<void>.delayed(const Duration(seconds: 1));
             },
           ),
 
@@ -1226,7 +1185,6 @@ class HomePage2State extends State<Dashboard> with TickerProviderStateMixin {
             },
           ),
 
-          // Shopping section
           Padding(
             padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 8.h),
             child: Text(
@@ -1258,7 +1216,6 @@ class HomePage2State extends State<Dashboard> with TickerProviderStateMixin {
             },
           ),
 
-          // Preferences section
           Padding(
             padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 8.h),
             child: Text(
@@ -1300,7 +1257,6 @@ class HomePage2State extends State<Dashboard> with TickerProviderStateMixin {
             title: "Logout",
             subtitle: "Sign out",
             onTap: () {
-              // Show confirmation dialog
               showDialog(
                 context: context,
                 builder: (context) => AlertDialog(
@@ -1382,8 +1338,9 @@ class HomePage2State extends State<Dashboard> with TickerProviderStateMixin {
                         style: TextStyle(
                           fontSize: 16.sp,
                           fontWeight: FontWeight.w600,
-                          color:
-                              isDestructive ? AppColors.error : AppColors.lightTextPrimary,
+                          color: isDestructive
+                              ? AppColors.error
+                              : AppColors.lightTextPrimary,
                         ),
                       ),
                       SizedBox(height: 2.h),
@@ -1415,9 +1372,8 @@ class HomePage2State extends State<Dashboard> with TickerProviderStateMixin {
     Navigator.pushNamed(context, '/cart');
   }
 
-  // Build promotion card for carousel
-  Widget _buildPromotionCard(String title, String description, String subtitle,
-      Color color, IconData icon) {
+  Widget _buildPromotionCard(String title, String description,
+      String subtitle, Color color, IconData icon) {
     return Container(
       margin: EdgeInsets.symmetric(horizontal: 4.w),
       decoration: BoxDecoration(
@@ -1453,7 +1409,7 @@ class HomePage2State extends State<Dashboard> with TickerProviderStateMixin {
             padding: EdgeInsets.all(16.w),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisSize: MainAxisSize.min, // Use minimum space needed
+              mainAxisSize: MainAxisSize.min,
               children: [
                 Container(
                   padding:
@@ -1497,23 +1453,17 @@ class HomePage2State extends State<Dashboard> with TickerProviderStateMixin {
                   height: 32.h,
                   child: ElevatedButton(
                     onPressed: () {
-                      // Handle promotion action
                       if (title == 'Special Offer') {
-                        // Navigate to subscription screen
                         _navigateToSubscriptions();
-                      } else if (title == 'Healthy Combo') {
-                        // Navigate to menu
-                        Navigator.pushNamed(context, '/menu');
                       } else {
-                        // Navigate to menu for all products
                         Navigator.pushNamed(context, '/menu');
                       }
                     },
                     style: ElevatedButton.styleFrom(
                       backgroundColor: AppColors.white,
                       foregroundColor: color,
-                      padding:
-                          EdgeInsets.symmetric(horizontal: 12.w, vertical: 0),
+                      padding: EdgeInsets.symmetric(
+                          horizontal: 12.w, vertical: 0),
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(16.r),
                       ),
@@ -1571,10 +1521,11 @@ class HomePage2State extends State<Dashboard> with TickerProviderStateMixin {
                     mounted
                         ? Navigator.pushNamed(context, '/subscriptions',
                             arguments: SubscriptionPageUrlArgument(
-                                premium_page_url: urls["premium"]!,
-                                signature_page_url: urls["signature"]!,
-                                delight_page_url: urls["delight"]!))
-                        : Future.delayed(Duration(seconds: 1));
+                                premiumPageUrl: urls["premium"]!,
+                                signaturePageUrl: urls["signature"]!,
+                                delightPageUrl: urls["delight"]!))
+
+                        : Future<void>.delayed(const Duration(seconds: 1));
                   }),
               _buildNavItem(
                 icon: Icons.menu_book_rounded,
@@ -1589,7 +1540,7 @@ class HomePage2State extends State<Dashboard> with TickerProviderStateMixin {
                 onTap: () async {
                   final user =
                       context.read<AuthenticationBloc>().userRepository.user;
-                  final String phoneNumber = '+919650606820';
+                  const String phoneNumber = '+919650606820';
                   final String message =
                       'Hello, I need help with my account. \n'
                       'Customer ID: ${user.id}\n'

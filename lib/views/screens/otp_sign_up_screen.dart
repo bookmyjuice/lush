@@ -23,7 +23,7 @@ class OTPSignUpScreenState extends State<OTPSignUpScreen> {
   void initState() {
     super.initState();
     // Start resend countdown (30 seconds)
-    Future.delayed(const Duration(seconds: 30), () {
+    Future<void>.delayed(const Duration(seconds: 30), () {
       if (mounted) {
         setState(() {
           resendCountdown = 0;
@@ -43,7 +43,7 @@ class OTPSignUpScreenState extends State<OTPSignUpScreen> {
     setState(() {
       resendCountdown = 30;
     });
-    Future.delayed(const Duration(seconds: 30), () {
+    Future<void>.delayed(const Duration(seconds: 30), () {
       if (mounted) {
         setState(() {
           resendCountdown = 0;
