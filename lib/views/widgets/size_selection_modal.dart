@@ -4,7 +4,7 @@ import '../models/item.dart';
 
 class SizeSelectionModal extends StatefulWidget {
   final Item item;
-  final Function(ItemPrice selectedPrice) onPriceSelected;
+  final void Function(ItemPrice selectedPrice) onPriceSelected;
 
   const SizeSelectionModal({
     super.key,

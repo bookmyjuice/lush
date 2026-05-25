@@ -107,7 +107,7 @@ class _DayWiseScheduleScreenState extends State<DayWiseScheduleScreen> {
               decoration: BoxDecoration(
                 color: AppColors.white,
                 borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: AppColors.lightDivider!),
+                border: Border.all(color: AppColors.lightDivider),
                 boxShadow: [
                   BoxShadow(
                     color: AppColors.nearlyBlack.withValues(alpha: 0.05),
@@ -302,7 +302,7 @@ class _DayWiseScheduleScreenState extends State<DayWiseScheduleScreen> {
 
   Widget _buildJuiceDropdown({
     required Map<String, dynamic>? value,
-    required Function(Map<String, dynamic>?) onChanged,
+    required void Function(Map<String, dynamic>?) onChanged,
     required String hint,
   }) {
     return DropdownButtonFormField<Map<String, dynamic>>(

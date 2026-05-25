@@ -147,13 +147,13 @@ class DynamicItem {
       status: (json['status'] ?? '') as String,
       unit: (json['unit'] ?? '') as String,
       itemFamilyId: (json['itemFamilyId'] ?? '') as String,
-      enabledInPortal: json['enabledInPortal'] as bool?? false,
-      enabledForCheckout: json['enabledForCheckout'] as bool ?? false,
-      isGiftable: json['isGiftable'] as bool ?? false,
-      isShippable: json['isShippable'] as bool ?? false,
-      deleted: json['deleted'] as bool ?? false,
-      category: json['category'] as String ?? '',
-      subcategory: json['subcategory'] as String ?? '',
+      enabledInPortal: json['enabledInPortal'] as bool? ?? false,
+      enabledForCheckout: json['enabledForCheckout'] as bool? ?? false,
+      isGiftable: json['isGiftable'] as bool? ?? false,
+      isShippable: json['isShippable'] as bool? ?? false,
+      deleted: json['deleted'] as bool? ?? false,
+      category: json['category'] as String? ?? '',
+      subcategory: json['subcategory'] as String? ?? '',
       benefits: json.containsKey('benefits') && json['benefits'] is List
           ? List<String>.from(json['benefits'] as Iterable)
           : [],
@@ -164,10 +164,10 @@ class DynamicItem {
           ? List<String>.from(json['tags'] as Iterable)
           : [],
       servingSize: servingSize,
-      shelfLife: json['shelfLife'] as String ?? '',
-      preparationTime: json['preparationTime'] as String ?? '',
-      temperature: json['temperature'] as String ?? '',
-      popularity: json['popularity'] as int ?? 0,
+      shelfLife: json['shelfLife'] as String? ?? '',
+      preparationTime: json['preparationTime'] as String? ?? '',
+      temperature: json['temperature'] as String? ?? '',
+      popularity: json['popularity'] as int? ?? 0,
       itemPrices: itemPrices.map((ip) {
         if (ip is Map && ip.containsKey('price')) {
           // Create a new map with price divided by 100

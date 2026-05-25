@@ -27,9 +27,6 @@ class AuthenticationBloc extends Bloc<AuthenticationEvent, AuthenticationState> 
   // BUG FIX 11: Loading guard to prevent double-tap sending multiple OTPs
   bool _isSendingOTP = false;
 
-  // BUG FIX 9: Track OTP send timestamp for client-side expiry
-  DateTime? _otpSentAt;
-
   AuthenticationBloc({UserRepository? repo})
       : userRepository = repo ?? getIt.get(),
         super(AuthenticationInProgress()) {
@@ -147,8 +144,6 @@ class AuthenticationBloc extends Bloc<AuthenticationEvent, AuthenticationState> 
         final errorMsg = result.replaceFirst('Error: ', '');
         emit(OTPSendFailed(error: errorMsg));
       } else {
-        // BUG FIX 9: Track OTP send timestamp for client-side expiry
-        _otpSentAt = DateTime.now();
         emit(OTPSent());
       }
     });
@@ -182,8 +177,6 @@ class AuthenticationBloc extends Bloc<AuthenticationEvent, AuthenticationState> 
           final errorMsg = result.replaceFirst('Error: ', '');
           emit(OTPSendFailed(error: errorMsg));
         } else {
-          // BUG FIX 9: Track OTP send timestamp for client-side expiry
-          _otpSentAt = DateTime.now();
           emit(OTPSent());
         }
       } else {

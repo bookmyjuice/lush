@@ -1,6 +1,9 @@
+import 'dart:convert';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/foundation.dart';
+import 'package:http/http.dart' as http;
 import 'package:lush/services/local_notification_service.dart';
+import 'package:lush/services/secure_storage_service.dart';
 
 /// BR-060/061/062 extension: FCM push notification service.
 /// Acts as a secondary layer on top of LocalNotificationService.
@@ -58,7 +61,8 @@ class FirebaseNotificationService {
           debugPrint(
               '📬 FCM token refreshed: ${newToken.substring(0, 20)}...');
         }
-        // TODO: Upload new token to bmjServer when authenticated
+        // Upload new token to bmjServer when authenticated
+        uploadTokenToServer(null);  // null = use cached auth token
       });
 
       // 4. Handle foreground messages → show local notification
@@ -125,14 +129,61 @@ class FirebaseNotificationService {
 
   /// Upload the current FCM token to bmjServer.
   /// Should be called after authentication, when the user is logged in.
-  Future<bool> uploadTokenToServer(String authToken) async {
+  Future<bool> uploadTokenToServer(String? authToken) async {
     if (_fcmToken == null) return false;
-    // This would make an API call to bmjServer:
-    // POST /api/auth/fcm-token { "fcmToken": _fcmToken }
-    // For now we just return true as a placeholder.
-    if (kDebugMode) {
-      debugPrint('📬 Would upload FCM token to server');
+
+    try {
+      // Get auth token from secure storage if not provided
+      String? token = authToken;
+      if (token == null) {
+        try {
+          final secureStorage = SecureStorageService();
+          token = await secureStorage.getAuthToken();
+        } catch (_) {
+          // Secure storage not available or not authenticated
+        }
+      }
+
+      if (token == null || token.isEmpty) {
+        if (kDebugMode) {
+          debugPrint('📬 Cannot upload FCM token: not authenticated');
+        }
+        return false;
+      }
+
+      // Get base URL from user repository configuration
+      final baseUrl = const String.fromEnvironment(
+        'API_BASE_URL',
+        defaultValue: 'http://10.0.2.2:8080',
+      );
+
+      final response = await http.post(
+        Uri.parse('$baseUrl/api/v1/notifications/fcm-token'),
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $token',
+        },
+        body: jsonEncode({
+          'fcmToken': _fcmToken,
+        }),
+      );
+
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        if (kDebugMode) {
+          debugPrint('📬 FCM token uploaded successfully');
+        }
+        return true;
+      } else {
+        if (kDebugMode) {
+          debugPrint('📬 Failed to upload FCM token: ${response.statusCode} ${response.body}');
+        }
+        return false;
+      }
+    } catch (e) {
+      if (kDebugMode) {
+        debugPrint('📬 Error uploading FCM token: $e');
+      }
+      return false;
     }
-    return true;
   }
 }

@@ -96,12 +96,14 @@ class SendOTP extends AuthenticationEvent {
 
 class VerifyOTP extends AuthenticationEvent {
   final String otp;
+  final String phone;
 
-  const VerifyOTP({required this.otp});
+  const VerifyOTP({required this.otp, required this.phone});
 
   @override
-  List<Object> get props => [otp];
+  List<Object> get props => [otp, phone];
 }
+
 
 class ResendOTP extends AuthenticationEvent {
   const ResendOTP();

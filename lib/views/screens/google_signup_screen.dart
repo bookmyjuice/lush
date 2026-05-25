@@ -170,6 +170,8 @@ class GoogleSignupScreenState extends State<GoogleSignupScreen> {
       body: BlocConsumer<AuthenticationBloc, AuthenticationState>(
         listener: (context, state) {
           if (state is SignUpSuccessful) {
+            // BUG FIX: Reset loading state before navigating
+            setState(() => _isLoading = false);
             toastification.show(
               title: const Text('Account Created!'),
               description: const Text('Welcome to BookMyJuice'),

@@ -1,14 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:hexcolor/hexcolor.dart' as hex;
 import '../../theme.dart';
-import 'package:webview_flutter/webview_flutter.dart';
-// Import for Android features
-// Import for iOS features
-
-import '../models/subscription_plan.dart';
 
 class SubscriptionPlanCard extends StatelessWidget {
-  final SubscriptionPlan plan;
+  final Map<String, dynamic> plan;
   final AnimationController? animationController;
   final Animation<double>? animation;
 
@@ -19,69 +14,18 @@ class SubscriptionPlanCard extends StatelessWidget {
     this.animation,
   });
 
-  Future<void> _launchPricingPage(BuildContext context) async {
-    if (plan.pricingPageUrl.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content:
-              Text('Pricing page URL not available. Please try again later.'),
-          duration: Duration(seconds: 2),
-        ),
-      );
-      return;
-    }
-
-    try {
-      // Create a WebViewController
-      final WebViewController controller = WebViewController()
-        ..setJavaScriptMode(JavaScriptMode.unrestricted)
-        ..setBackgroundColor(const Color(0x00000000))
-        ..setNavigationDelegate(
-          NavigationDelegate(
-            onProgress: (int progress) {
-              // Update loading bar
-              print('WebView is loading (progress : $progress%)');
-            },
-            onPageStarted: (String url) {
-              print('Page started loading: $url');
-            },
-            onPageFinished: (String url) {
-              print('Page finished loading: $url');
-            },
-            onWebResourceError: (WebResourceError error) {
-              print('Webview error: ${error.description}');
-            },
-          ),
-        )
-        ..loadRequest(Uri.parse(plan.pricingPageUrl));
-
-      // Open the pricing page in a WebView instead of an external browser
-      Navigator.of(context).push(
-        MaterialPageRoute(
-          builder: (context) => Scaffold(
-            appBar: AppBar(
-              title: Text('${plan.name} Subscription'),
-              backgroundColor: LushTheme.nearlyDarkBlue,
-              foregroundColor: Colors.white,
-            ),
-            body: WebViewWidget(controller: controller),
-          ),
-        ),
-      );
-    } catch (e) {
-      print('Error launching WebView: $e');
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Error opening subscription page: $e'),
-          duration: const Duration(seconds: 3),
-          backgroundColor: Colors.red,
-        ),
-      );
-    }
+  void _navigateToPlans(BuildContext context) {
+    Navigator.of(context).pushNamed('/plan-selection');
   }
 
   @override
   Widget build(BuildContext context) {
+    final startColor = (plan['startColor'] as String?) ?? '#FF9800';
+    final endColor = (plan['endColor'] as String?) ?? '#FF5722';
+    final planName = (plan['name'] as String?) ?? '';
+    final planDescription = (plan['description'] as String?) ?? '';
+    final planPrice = (plan['price'] as String?) ?? '0';
+
     return AnimatedBuilder(
       animation: animationController!,
       builder: (BuildContext context, Widget? child) {
@@ -98,9 +42,9 @@ class SubscriptionPlanCard extends StatelessWidget {
               child: Container(
                 decoration: BoxDecoration(
                   gradient: LinearGradient(
-                    colors: [
-                      hex.HexColor(plan.startColor),
-                      hex.HexColor(plan.endColor),
+                      colors: [
+                        hex.HexColor(startColor),
+                        hex.HexColor(endColor),
                     ],
                     begin: Alignment.topLeft,
                     end: Alignment.bottomRight,
@@ -117,7 +61,7 @@ class SubscriptionPlanCard extends StatelessWidget {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            plan.name,
+                            planName,
                             style: const TextStyle(
                               color: Colors.white,
                               fontSize: 22,
@@ -127,7 +71,7 @@ class SubscriptionPlanCard extends StatelessWidget {
                           ),
                           const SizedBox(height: 8),
                           Text(
-                            plan.description,
+                            planDescription,
                             style: const TextStyle(
                               color: Colors.white,
                               fontSize: 14,
@@ -136,7 +80,7 @@ class SubscriptionPlanCard extends StatelessWidget {
                           ),
                           const SizedBox(height: 16),
                           Text(
-                            '₹${plan.price} / month',
+                            '\u20B9$planPrice / month',
                             style: const TextStyle(
                               color: Colors.white,
                               fontSize: 18,
@@ -154,7 +98,9 @@ class SubscriptionPlanCard extends StatelessWidget {
                           horizontal: 16, vertical: 8),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
-                        children: plan.features
+                        children: ((plan['features'] as List<dynamic>?)
+                                    ?.cast<String>() ??
+                                <String>[])
                             .map((feature) => Padding(
                                   padding: const EdgeInsets.only(bottom: 8),
                                   child: Row(
@@ -185,10 +131,10 @@ class SubscriptionPlanCard extends StatelessWidget {
                       child: SizedBox(
                         width: double.infinity,
                         child: ElevatedButton(
-                          onPressed: () => _launchPricingPage(context),
+                          onPressed: () => _navigateToPlans(context),
                           style: ElevatedButton.styleFrom(
                             backgroundColor: Colors.white,
-                            foregroundColor: hex.HexColor(plan.endColor),
+                            foregroundColor: hex.HexColor(endColor),
                             padding: const EdgeInsets.symmetric(vertical: 12),
                             shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(30),

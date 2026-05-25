@@ -13,13 +13,15 @@ import '../models/cart_item.dart';
 import '../widgets/shimmer_cart_item.dart';
 import '../../utils/haptic_feedback.dart';
 
-
 /// Cart Screen - FR-CART-001 to FR-CART-004
 /// - FR-CART-001: View cart items with quantity
 /// - FR-CART-002: Increment/Decrement quantity
 /// - FR-CART-003: Remove items from cart
-/// - FR-CART-004: Show subtotal, tax, and total
-/// - FR-DEL-008: Delivery address and slot selection before checkout
+/// - FR-CART-004: Show subtotal
+/// - FR-DEL-008: Delivery address selection before checkout
+/// Pricing (tax, grand total) is managed entirely in Chargebee.
+/// The mobile app never calculates prices locally.
+/// Delivery slot selection uses time-window based scheduling.
 class CartScreen extends StatefulWidget {
   const CartScreen({super.key});
 
@@ -28,15 +30,8 @@ class CartScreen extends StatefulWidget {
 }
 
 class CartScreenState extends State<CartScreen> {
-  // Tax rate (5% GST)
-  static const double _taxRate = 0.05;
-  // Delivery fee (free above ₹500)
-  static const double _deliveryFee = 50.0;
-  static const double _freeDeliveryThreshold = 500.0;
-
   // Delivery selection state
   Map<String, dynamic>? _selectedAddress;
-  Map<String, dynamic>? _selectedSlot;
 
   Future<void> _navigateToAddressSelection() async {
     final result = await Navigator.pushNamed(
@@ -46,18 +41,6 @@ class CartScreenState extends State<CartScreen> {
     if (result != null && result is Map<String, dynamic>) {
       setState(() {
         _selectedAddress = result;
-      });
-    }
-  }
-
-  Future<void> _navigateToSlotSelection() async {
-    final result = await Navigator.pushNamed(
-      context,
-      '/delivery-slot-selection',
-    );
-    if (result != null && result is Map<String, dynamic>) {
-      setState(() {
-        _selectedSlot = result;
       });
     }
   }
@@ -179,7 +162,6 @@ class CartScreenState extends State<CartScreen> {
                         SizedBox(width: 16.w),
                         ElevatedButton(
                           onPressed: () {
-                            // Clear cart and try again
                             final cartBloc = context.read<CartBloc>();
                             cartBloc.add(ClearCart());
                             Future<void>.delayed(
@@ -413,20 +395,14 @@ class CartScreenState extends State<CartScreen> {
   }
 
   Widget _buildCheckoutSection(BuildContext context, List<CartItem> items) {
-    // Calculate totals
+    // Subtotal reflects locally-cached Chargebee price data.
+    // Final pricing (tax, grand total) is managed entirely
+    // in Chargebee and displayed on the Chargebee Hosted Page during checkout.
+    // The mobile app never calculates prices locally.
     final subtotal = items.fold<double>(
       0,
       (sum, item) => sum + item.totalPrice,
     );
-    
-    // Tax calculation (5% GST)
-    final tax = subtotal * _taxRate;
-    
-    // Delivery fee (free above ₹500)
-    final deliveryFee = subtotal >= _freeDeliveryThreshold ? 0.0 : _deliveryFee;
-    
-    // Final total
-    final total = subtotal + tax + deliveryFee;
 
     return Container(
       padding: EdgeInsets.all(16.r),
@@ -503,104 +479,24 @@ class CartScreenState extends State<CartScreen> {
               ),
             ),
           ),
-          // Delivery Slot Section (FR-DEL-008)
-          InkWell(
-            onTap: _navigateToSlotSelection,
-            child: Container(
-              padding: EdgeInsets.all(12.r),
-              margin: EdgeInsets.only(bottom: 12.h),
-              decoration: BoxDecoration(
-                color: AppColors.lightGrey.withAlpha(80),
-                borderRadius: BorderRadius.circular(12.r),
-                border: Border.all(
-                  color: _selectedSlot != null
-                      ? AppColors.success
-                      : AppColors.lightDivider,
-                ),
-              ),
-              child: Row(
-                children: [
-                  Icon(
-                    _selectedSlot != null
-                        ? Icons.check_circle
-                        : Icons.schedule_outlined,
-                    color: _selectedSlot != null
-                        ? AppColors.success
-                        : AppColors.primaryOrange,
-                    size: 24.r,
-                  ),
-                  SizedBox(width: 12.w),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          _selectedSlot != null
-                              ? 'Delivery: ${_selectedSlot!['slot']!['startTime'] ?? ''} - ${_selectedSlot!['slot']!['endTime'] ?? ''}'
-                              : 'Select Delivery Slot',
-                          style: TextStyle(
-                            fontSize: 14.sp,
-                            fontWeight: FontWeight.w600,
-                            color: AppColors.lightTextPrimary,
-                          ),
-                        ),
-                        if (_selectedSlot != null)
-                          Text(
-                            'Available delivery time',
-                            style: TextStyle(
-                              fontSize: 12.sp,
-                              color: AppColors.lightTextSecondary,
-                            ),
-                          ),
-                      ],
-                    ),
-                  ),
-                  const Icon(
-                    Icons.chevron_right,
-                    color: AppColors.lightTextSecondary,
-                  ),
-                ],
-              ),
-            ),
-          ),
-          // Price Breakdown
+          // Delivery slot selection uses time-window based scheduling.
+
+          // Price Breakdown — only subtotal is shown locally.
+          // Tax and grand total are displayed on the
+          // Chargebee Hosted Page during checkout.
           _buildPriceRow(
             context,
             label: 'Subtotal',
             amount: subtotal,
           ),
-          SizedBox(height: 8.h),
-          _buildPriceRow(
-            context,
-            label: 'Tax (5% GST)',
-            amount: tax,
-          ),
-          SizedBox(height: 8.h),
-          _buildPriceRow(
-            context,
-            label: 'Delivery Fee',
-            amount: deliveryFee,
-            isFree: deliveryFee == 0,
-          ),
-          if (subtotal < _freeDeliveryThreshold)
-            Padding(
-              padding: EdgeInsets.only(bottom: 8.h),
-              child: Text(
-                'Add ₹${(_freeDeliveryThreshold - subtotal).toStringAsFixed(0)} more for FREE delivery',
-                style: TextStyle(
-                  fontSize: 12.sp,
-                  color: AppColors.primaryOrangeDark,
-                  fontWeight: FontWeight.w500,
-                ),
-              ),
-            ),
+
           Divider(height: 24.h, color: AppColors.lightDivider),
           // Total Amount
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Text(
-                'Total Amount',
+                'Subtotal',
                 style: TextStyle(
                   fontSize: 18.sp,
                   fontWeight: FontWeight.bold,
@@ -608,7 +504,7 @@ class CartScreenState extends State<CartScreen> {
                 ),
               ),
               Text(
-                '₹${total.toStringAsFixed(0)}',
+                '₹${subtotal.toStringAsFixed(0)}',
                 style: TextStyle(
                   fontSize: 22.sp,
                   fontWeight: FontWeight.bold,
@@ -616,6 +512,20 @@ class CartScreenState extends State<CartScreen> {
                 ),
               ),
             ],
+          ),
+          SizedBox(height: 8.h),
+          // Tax and final total are calculated in Chargebee
+          // and displayed on the secure checkout page.
+          Padding(
+            padding: EdgeInsets.only(bottom: 8.h),
+            child: Text(
+              'Taxes will be calculated at checkout',
+              style: TextStyle(
+                fontSize: 12.sp,
+                color: AppColors.lightTextSecondary,
+                fontStyle: FontStyle.italic,
+              ),
+            ),
           ),
           SizedBox(height: 16.h),
           // Checkout Button
@@ -625,20 +535,11 @@ class CartScreenState extends State<CartScreen> {
             child: ElevatedButton(
               onPressed: items.isNotEmpty
                   ? () async {
-                      // Validate delivery selections
+                      // Validate delivery address selection
                       if (_selectedAddress == null) {
                         ScaffoldMessenger.of(context).showSnackBar(
                           const SnackBar(
                             content: Text('Please select a delivery address'),
-                            backgroundColor: AppColors.error,
-                          ),
-                        );
-                        return;
-                      }
-                      if (_selectedSlot == null) {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(
-                            content: Text('Please select a delivery slot'),
                             backgroundColor: AppColors.error,
                           ),
                         );
@@ -667,15 +568,30 @@ class CartScreenState extends State<CartScreen> {
                           );
                         }
                       } catch (e) {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(
-                            content: Text('Checkout error: $e'),
-                            backgroundColor: AppColors.error,
-                          ),
-                        );
+                        // Handle 409 CART_TYPE_CONFLICT and other errors
+                        final errorMsg = e.toString();
+                        if (errorMsg.contains('409') || errorMsg.contains('CART_TYPE_CONFLICT')) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(
+                              content: Text(
+                                'Mixed cart items detected. '
+                                'Please checkout subscription and one-time items separately.',
+                              ),
+                              backgroundColor: AppColors.error,
+                              duration: Duration(seconds: 4),
+                            ),
+                          );
+                        } else {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              content: Text('Checkout error: $e'),
+                              backgroundColor: AppColors.error,
+                            ),
+                          );
+                        }
                       }
                     }
-                  : null,
+                  : null, // Button disabled for empty cart
               style: ElevatedButton.styleFrom(
                 backgroundColor: AppColors.primaryOrange,
                 foregroundColor: AppColors.white,
@@ -739,24 +655,21 @@ class CartScreenState extends State<CartScreen> {
   }
 
   void _updateQuantity(BuildContext context, CartItem cartItem, int change) {
-    // Add haptic feedback
     HapticFeedbackUtil.lightFeedback();
-    
+
     final newQuantity = cartItem.quantity + change;
 
     if (newQuantity <= 0) {
-      // Remove item if quantity becomes zero
       HapticFeedbackUtil.mediumFeedback();
       context.read<CartBloc>().add(RemoveFromCart(cartItem));
     } else {
-      // Update quantity
       final updatedItem = cartItem.copyWith(quantity: newQuantity);
       context.read<CartBloc>().add(UpdateCartItem(updatedItem));
     }
   }
 
   void _showClearCartDialog(BuildContext context) {
-    showDialog(
+    showDialog<bool?>(
       context: context,
       builder: (context) => AlertDialog(
         title: const Text('Clear Cart'),

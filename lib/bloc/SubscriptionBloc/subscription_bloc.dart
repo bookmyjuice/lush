@@ -6,7 +6,30 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../UserRepository/user_repository.dart';
 import '../../get_it.dart';
-import '../../views/models/subscription_plan.dart';
+// Inline replacement for deleted subscription_plan.dart model
+class SubscriptionPlan {
+  final String id;
+  final String name;
+  final String description;
+  final String pricingPageUrl;
+  final String startColor;
+  final String endColor;
+  final String imagePath;
+  final List<String> features;
+  final int planID;
+
+  const SubscriptionPlan({
+    required this.id,
+    required this.name,
+    this.description = '',
+    this.pricingPageUrl = '',
+    this.startColor = '#FF9800',
+    this.endColor = '#FF5722',
+    this.imagePath = 'assets/subscription.png',
+    this.features = const [],
+    required this.planID,
+  });
+}
 
 // Events
 abstract class SubscriptionEvent extends Equatable {

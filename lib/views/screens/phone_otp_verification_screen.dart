@@ -6,7 +6,6 @@ import 'package:lush/get_it.dart';
 import 'package:lush/bloc/AuthBloc/auth_events.dart';
 import 'package:lush/bloc/AuthBloc/auth_state.dart';
 import 'package:lush/utils/back_button_handler.dart';
-import 'package:lush/views/models/firebase_phone_auth.dart';
 import 'package:pin_input_text_field/pin_input_text_field.dart';
 import 'package:toastification/toastification.dart';
 
@@ -35,7 +34,6 @@ class PhoneOtpVerificationScreenState
   bool _canResend = false;
   bool _isGoogleSignup = false;
   bool _isLoginFlow = false;
-  bool _isLoading = false;
   bool _isFirebaseAuth = false;
   String? _verificationId;
 
@@ -113,7 +111,6 @@ class PhoneOtpVerificationScreenState
     if (_isFirebaseAuth) {
       // Firebase Phone Auth flow - dispatch to BLoC which handles Firebase verification
       // The BlocListener handles success/failure and navigation
-      setState(() => _isLoading = true);
       BlocProvider.of<AuthenticationBloc>(context).add(
         VerifyFirebaseOtp(verificationId: _verificationId ?? '', smsCode: otp),
       );
@@ -123,18 +120,15 @@ class PhoneOtpVerificationScreenState
     } else {
       // Signup flow (backend OTP) - use BLoC for verification
       BlocProvider.of<AuthenticationBloc>(context).add(
-        VerifyOTP(otp: otp),
+        VerifyOTP(otp: otp, phone: _phone ?? ''),
       );
     }
+
   }
 
   Future<void> _attemptPhoneLogin(String otp) async {
-    setState(() => _isLoading = true);
-
     final userRepository = getIt.get<UserRepository>();
     final result = await userRepository.loginViaPhoneOtp(_phone!, otp);
-
-    setState(() => _isLoading = false);
 
     if (result['type'] == 'login_success') {
       // User exists - login successful
@@ -201,7 +195,6 @@ class PhoneOtpVerificationScreenState
         listener: (context, state) async {
           // --- Firebase Phone Auth verification ---
           if (state is FirebasePhoneVerified) {
-            setState(() => _isLoading = false);
 
             if (_isLoginFlow) {
               // Firebase + Login flow: phone verified, but backend still needs authentication
@@ -245,7 +238,6 @@ class PhoneOtpVerificationScreenState
           }
 
           if (state is FirebasePhoneVerificationFailed) {
-            setState(() => _isLoading = false);
             toastification.show(
               title: const Text('Firebase Verification Failed'),
               description: Text(state.error),

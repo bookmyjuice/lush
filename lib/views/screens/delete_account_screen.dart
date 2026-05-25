@@ -63,7 +63,7 @@ class _DeleteAccountScreenState extends State<DeleteAccountScreen> {
   }
 
   void _showConfirmationDialog() {
-    showDialog(
+    showDialog<bool?>(
       context: context,
       builder: (context) => AlertDialog(
         title: const Text('Delete Account'),

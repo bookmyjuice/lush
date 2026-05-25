@@ -31,8 +31,8 @@ class GooglePhoneEntryScreenState extends State<GooglePhoneEntryScreen> {
     final args = ModalRoute.of(context)?.settings.arguments as Map<String, dynamic>?;
     if (args != null) {
       _email = args['email'] as String;
-      _firstNameController.text = args['firstName'] as String ?? '';
-      _lastNameController.text = args['lastName'] as String ?? '';
+      _firstNameController.text = args['firstName'] as String? ?? '';
+      _lastNameController.text = args['lastName'] as String? ?? '';
     } else {
       Navigator.pop(context);
     }

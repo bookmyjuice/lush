@@ -9,18 +9,19 @@ import 'package:lush/bloc/AuthBloc/auth_state.dart';
 import 'package:lush/bloc/CartBloc/cart_bloc.dart';
 import 'package:lush/bloc/CartBloc/cart_event.dart';
 import 'package:lush/get_it.dart';
-import 'package:lush/main.dart';
+// import 'package:lush/main.dart';
 import 'package:lush/services/secure_storage_service.dart';
 import 'package:lush/services/subscription_service_v2.dart';
 import 'package:lush/theme/app_colors.dart';
 import 'package:lush/theme/app_text_styles.dart';
-import 'package:lush/views/models/subscription.dart';
 import 'package:lush/views/models/user.dart';
 import 'package:lush/views/widgets/shimmer_subscription_card.dart';
+import 'package:toastification/toastification.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import '../widgets/cart_icon.dart';
 import '../widgets/subscription_info_card.dart';
+
 
 /// Defines the display mode of the Dashboard.
 ///
@@ -31,8 +32,16 @@ enum DashboardMode { full, public }
 class Dashboard extends StatefulWidget {
   final UserRepository userRepository = getIt.get();
   final DashboardMode mode;
+  final String? toastHeading;
+  final String? toastMessage;
 
-  Dashboard({super.key, this.mode = DashboardMode.full});
+  Dashboard({
+    super.key,
+    this.mode = DashboardMode.full,
+    this.toastHeading,
+    this.toastMessage,
+  });
+
 
   @override
   HomePage2State createState() => HomePage2State();
@@ -49,7 +58,7 @@ class HomePage2State extends State<Dashboard> with TickerProviderStateMixin {
 
   // Subscription data
   final SubscriptionService _subscriptionService = SubscriptionService();
-  Subscription? _subscription;
+  Map<String, dynamic>? _subscription;
   bool _isLoadingSubscription = false;
 
   // Track current carousel index
@@ -94,8 +103,43 @@ class HomePage2State extends State<Dashboard> with TickerProviderStateMixin {
         }
       }
     });
+
+    // Show toast if widget has toastHeading/toastMessage (from AuthWrapper)
+    if (widget.toastHeading != null && widget.toastMessage != null) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) {
+          toastification.show(
+            context: context,
+            title: Text(widget.toastHeading!,
+                style: const TextStyle(fontWeight: FontWeight.bold)),
+            description: Text(widget.toastMessage!),
+            type: ToastificationType.info,
+            style: ToastificationStyle.flatColored,
+            autoCloseDuration: const Duration(seconds: 4),
+            icon: const Icon(Icons.notifications_active,
+                color: AppColors.primaryOrange),
+            primaryColor: AppColors.primaryOrange,
+            backgroundColor: AppColors.white,
+            foregroundColor: AppColors.lightTextPrimary,
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+            borderRadius: BorderRadius.circular(12),
+            boxShadow: const [
+              BoxShadow(
+                color: Color(0x33000000),
+                blurRadius: 8,
+                offset: Offset(0, 4),
+              ),
+            ],
+            showProgressBar: true,
+            closeOnClick: true,
+          );
+        }
+      });
+    }
+
     super.initState();
   }
+
 
   // Load subscription data from backend
   Future<void> _loadSubscriptionData() async {
@@ -130,24 +174,11 @@ class HomePage2State extends State<Dashboard> with TickerProviderStateMixin {
   }
 
   void _navigateToSubscriptions() async {
-    try {
-      Map<String, String> urls =
-          await widget.userRepository.getSubscriptionPageUrl();
-      if (mounted) {
-        Navigator.pushNamed(context, '/subscriptions',
-                arguments: SubscriptionPageUrlArgument(
-                    premiumPageUrl: urls["premium"]!,
-                    signaturePageUrl: urls["signature"]!,
-                    delightPageUrl: urls["delight"]!));
-
-      }
-    } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-              content: Text('Unable to load subscriptions. Please try again.')),
-        );
-      }
+    // BUG-007 FIX: Redirect to native subscription management screen
+    // instead of Chargebee hosted pricing pages (which are deprecated - returns 410 GONE).
+    // Per NATIVE_BILLING_FLOW.md: all plan discovery and management is native.
+    if (mounted) {
+      Navigator.pushNamed(context, '/manage-subscriptions');
     }
   }
 
@@ -176,7 +207,7 @@ class HomePage2State extends State<Dashboard> with TickerProviderStateMixin {
                     child: Row(
                       children: [
                         Text(
-                          'Featured Offers',
+                          '🍊 Featured Offers',
                           style: TextStyle(
                             fontSize: 18.sp,
                             fontWeight: FontWeight.bold,
@@ -284,20 +315,9 @@ class HomePage2State extends State<Dashboard> with TickerProviderStateMixin {
                           }
                         },
                         onManageTap: () async {
-                          if (_subscription != null) {
-                            Map<String, String> urls = await widget
-                                .userRepository
-                                .getSubscriptionPageUrl();
-                            if (mounted) {
-                              Navigator.pushNamed(context, '/subscriptions',
-                                    arguments: SubscriptionPageUrlArgument(
-                                        premiumPageUrl: urls["premium"]!,
-                                        signaturePageUrl: urls["signature"]!,
-                                        delightPageUrl: urls["delight"]!));
-
-                            }
-                          } else {
-                            _navigateToSubscriptions();
+                          // BUG-007 FIX: Navigate to native subscription management
+                          if (mounted) {
+                            Navigator.pushNamed(context, '/manage-subscriptions');
                           }
                         },
                       ),
@@ -345,7 +365,7 @@ class HomePage2State extends State<Dashboard> with TickerProviderStateMixin {
                         Padding(
                           padding: EdgeInsets.symmetric(horizontal: 12.w),
                           child: Text(
-                            'Choose Your Experience',
+                            '✨ Choose Your Experience',
                             style: TextStyle(
                               fontSize: 18.sp,
                               fontWeight: FontWeight.bold,
@@ -384,8 +404,8 @@ class HomePage2State extends State<Dashboard> with TickerProviderStateMixin {
                             decoration: BoxDecoration(
                               gradient: LinearGradient(
                                 colors: [
-                                  Color(0xFF667eea),
-                                  Color(0xFF764ba2),
+                                  AppColors.primaryOrange,
+                                  AppColors.gradientEnd,
                                 ],
                                 begin: Alignment.topLeft,
                                 end: Alignment.bottomRight,
@@ -394,7 +414,7 @@ class HomePage2State extends State<Dashboard> with TickerProviderStateMixin {
                               boxShadow: [
                                 BoxShadow(
                                   color:
-                                      Color(0xFF667eea).withValues(alpha: 0.4),
+                                      AppColors.primaryOrange.withValues(alpha: 0.4),
                                   blurRadius: 12,
                                   offset: Offset(0, 8),
                                 ),
@@ -461,8 +481,8 @@ class HomePage2State extends State<Dashboard> with TickerProviderStateMixin {
                             decoration: BoxDecoration(
                               gradient: LinearGradient(
                                 colors: [
-                                  Color(0xFF11998e),
-                                  Color(0xFF38ef7d),
+                                  AppColors.secondaryTeal,
+                                  AppColors.gradientStart,
                                 ],
                                 begin: Alignment.topLeft,
                                 end: Alignment.bottomRight,
@@ -471,7 +491,7 @@ class HomePage2State extends State<Dashboard> with TickerProviderStateMixin {
                               boxShadow: [
                                 BoxShadow(
                                   color:
-                                      Color(0xFF11998e).withValues(alpha: 0.4),
+                                      AppColors.secondaryTeal.withValues(alpha: 0.4),
                                   blurRadius: 12,
                                   offset: Offset(0, 8),
                                 ),
@@ -543,7 +563,7 @@ class HomePage2State extends State<Dashboard> with TickerProviderStateMixin {
 
   /// Shows a login prompt bottom sheet for unauthenticated users.
   void _showLoginPrompt(BuildContext context) {
-    showModalBottomSheet(
+    showModalBottomSheet<dynamic>(
       context: context,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
@@ -569,7 +589,7 @@ class HomePage2State extends State<Dashboard> with TickerProviderStateMixin {
             ),
             SizedBox(height: 16.h),
             Text(
-              'Welcome to BookMyJuice!',
+                      '🧃 Welcome to BookMyJuice!',
               style: AppTextStyles.textTheme.titleLarge?.copyWith(
                 color: AppColors.lightTextPrimary,
               ),
@@ -624,6 +644,7 @@ class HomePage2State extends State<Dashboard> with TickerProviderStateMixin {
   }
 
   /// Builds a login/signup card for public mode
+  // ignore: unused_element
   Widget _buildLoginPromoCard(BuildContext context) {
     return Padding(
       padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 12.h),
@@ -634,7 +655,7 @@ class HomePage2State extends State<Dashboard> with TickerProviderStateMixin {
         ),
         child: Container(
           decoration: BoxDecoration(
-            gradient: LinearGradient(
+            gradient: const LinearGradient(
               colors: [AppColors.primaryOrange, AppColors.primaryOrangeDark],
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
@@ -651,7 +672,7 @@ class HomePage2State extends State<Dashboard> with TickerProviderStateMixin {
                       color: AppColors.white, size: 28.sp),
                   SizedBox(width: 8.w),
                   Text(
-                    'Fresh Juice, Daily Delivery!',
+                    '🧃 Fresh Juice, Daily Delivery!',
                     style: AppTextStyles.textTheme.titleMedium?.copyWith(
                       color: AppColors.white,
                       fontWeight: FontWeight.bold,
@@ -750,11 +771,11 @@ class HomePage2State extends State<Dashboard> with TickerProviderStateMixin {
               children: [
                 CircularProgressIndicator(
                   valueColor:
-                      AlwaysStoppedAnimation<Color>(AppColors.info),
+                      AlwaysStoppedAnimation<Color>(AppColors.primaryOrange),
                 ),
                 SizedBox(height: 16.h),
                 Text(
-                  'Loading your fresh juices...',
+                  '🍹 Loading your fresh juices...',
                   style: TextStyle(
                     fontSize: 16.sp,
                     color: AppColors.lightTextSecondary,
@@ -901,11 +922,11 @@ class HomePage2State extends State<Dashboard> with TickerProviderStateMixin {
         duration: const Duration(milliseconds: 200),
         opacity: topBarOpacity,
         child: Text(
-          'BookMyJuice',
+          '🧃 BookMyJuice',
           style: TextStyle(
             fontSize: 20.sp,
             fontWeight: FontWeight.bold,
-            color: AppColors.info,
+            color: AppColors.primaryOrange,
           ),
         ),
       ),
@@ -914,13 +935,13 @@ class HomePage2State extends State<Dashboard> with TickerProviderStateMixin {
         builder: (context) => Container(
           margin: EdgeInsets.all(8.w),
           decoration: BoxDecoration(
-            color: AppColors.info.withValues(alpha: 0.1),
+            color: AppColors.primaryOrange.withValues(alpha: 0.1),
             borderRadius: BorderRadius.circular(12.r),
           ),
           child: IconButton(
             icon: Icon(
               Icons.menu_rounded,
-              color: AppColors.info,
+              color: AppColors.primaryOrange,
               size: 24.sp,
             ),
             onPressed: () {
@@ -939,13 +960,13 @@ class HomePage2State extends State<Dashboard> with TickerProviderStateMixin {
             children: [
               CartIcon(
                 onTap: () => _handleCartTap(context),
-                iconColor: AppColors.info,
-                backgroundColor: AppColors.info.withValues(alpha: 0.1),
+                iconColor: AppColors.primaryOrange,
+                backgroundColor: AppColors.primaryOrange.withValues(alpha: 0.1),
               ),
               SizedBox(width: 8.w),
               PopupMenuButton<String>(
                 icon: Icon(Icons.more_vert,
-                    color: AppColors.info, size: 22.sp),
+                    color: AppColors.primaryOrange, size: 22.sp),
                 onSelected: (value) {
                   switch (value) {
                     case 'subscriptions':
@@ -1005,15 +1026,15 @@ class HomePage2State extends State<Dashboard> with TickerProviderStateMixin {
             decoration: BoxDecoration(
               gradient: LinearGradient(
                 colors: [
-                  AppColors.info,
-                  Color(0xFF3F51B5),
+                  AppColors.primaryOrange,
+                  AppColors.gradientEnd,
                 ],
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
               ),
               boxShadow: [
                 BoxShadow(
-                  color: AppColors.info.withValues(alpha: 0.3),
+                  color: AppColors.primaryOrange.withValues(alpha: 0.3),
                   blurRadius: 10,
                   offset: const Offset(0, 4),
                 ),
@@ -1044,18 +1065,14 @@ class HomePage2State extends State<Dashboard> with TickerProviderStateMixin {
                       style: TextStyle(
                         fontSize: 32.sp,
                         fontWeight: FontWeight.bold,
-                        color: AppColors.info,
+                        color: AppColors.primaryOrange,
                       ),
                     ),
                   ),
                 ),
                 SizedBox(height: 16.h),
                 Text(
-                  user.getFirstName.toString().length +
-                              user.getLastName.toString().length >
-                          8
-                      ? "Welcome ${user.getFirstName}!"
-                      : "Welcome ${user.getFirstName} ${user.getLastName}!",
+                  '🍊 ${user.getFirstName} ${user.getLastName}',
                   style: TextStyle(
                     fontSize: 20.sp,
                     fontWeight: FontWeight.bold,
@@ -1162,17 +1179,10 @@ class HomePage2State extends State<Dashboard> with TickerProviderStateMixin {
             icon: Icons.subscriptions_outlined,
             title: "Subscriptions",
             subtitle: "Manage your plans",
-            onTap: () async {
-              Map<String, String> urls =
-                  await widget.userRepository.getSubscriptionPageUrl();
-              mounted
-                  ? Navigator.pushNamed(context, '/subscriptions',
-                      arguments: SubscriptionPageUrlArgument(
-                          premiumPageUrl: urls["premium"]!,
-                          signaturePageUrl: urls["signature"]!,
-                          delightPageUrl: urls["delight"]!))
-
-                  : Future<void>.delayed(const Duration(seconds: 1));
+            onTap: () {
+              // BUG-007 FIX: Redirect to native subscription management screen
+              // instead of deprecated Chargebee hosted pricing pages.
+              Navigator.pushNamed(context, '/manage-subscriptions');
             },
           ),
 
@@ -1257,7 +1267,7 @@ class HomePage2State extends State<Dashboard> with TickerProviderStateMixin {
             title: "Logout",
             subtitle: "Sign out",
             onTap: () {
-              showDialog(
+              showDialog<bool?>(
                 context: context,
                 builder: (context) => AlertDialog(
                   title: Text('Logout'),
@@ -1318,14 +1328,14 @@ class HomePage2State extends State<Dashboard> with TickerProviderStateMixin {
                   decoration: BoxDecoration(
                     color: isDestructive
                         ? AppColors.error.withValues(alpha: 0.1)
-                        : AppColors.info.withValues(alpha: 0.1),
+                        : AppColors.primaryOrange.withValues(alpha: 0.1),
                     borderRadius: BorderRadius.circular(10.r),
                   ),
                   child: Icon(
                     icon,
                     size: 20.sp,
                     color: iconColor ??
-                        (isDestructive ? AppColors.error : AppColors.info),
+                        (isDestructive ? AppColors.error : AppColors.primaryOrange),
                   ),
                 ),
                 SizedBox(width: 16.w),
@@ -1515,17 +1525,9 @@ class HomePage2State extends State<Dashboard> with TickerProviderStateMixin {
                   icon: Icons.subscriptions_rounded,
                   label: 'Plans',
                   isSelected: false,
-                  onTap: () async {
-                    Map<String, String> urls =
-                        await widget.userRepository.getSubscriptionPageUrl();
-                    mounted
-                        ? Navigator.pushNamed(context, '/subscriptions',
-                            arguments: SubscriptionPageUrlArgument(
-                                premiumPageUrl: urls["premium"]!,
-                                signaturePageUrl: urls["signature"]!,
-                                delightPageUrl: urls["delight"]!))
-
-                        : Future<void>.delayed(const Duration(seconds: 1));
+                  onTap: () {
+                    // BUG-007 FIX: Redirect to native subscription management screen
+                    Navigator.pushNamed(context, '/manage-subscriptions');
                   }),
               _buildNavItem(
                 icon: Icons.menu_book_rounded,

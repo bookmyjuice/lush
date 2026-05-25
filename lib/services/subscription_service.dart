@@ -47,13 +47,13 @@ class SubscriptionService {
     try {
       final headers = await _getHeaders();
       final response = await http.get(
-        Uri.parse('$baseUrl/api/subscriptions'),
+        Uri.parse('$baseUrl/api/subscriptions/my'),
         headers: headers,
       );
 
       if (response.statusCode == 200) {
         final data = json.decode(response.body);
-        return List<Map<String, dynamic>>.from((data['data'] as List?) ?? []);
+        return List<Map<String, dynamic>>.from((data['subscriptions'] as List?) ?? []);
       } else if (response.statusCode == 401) {
         throw Exception('Unauthorized: Please login again');
       } else {
@@ -177,24 +177,4 @@ class SubscriptionService {
     }
   }
 
-  /// Get pricing page URL for customer
-  Future<String> getPricingPageUrl() async {
-    try {
-      final headers = await _getHeaders();
-      final response = await http.get(
-        Uri.parse('$baseUrl/api/subscriptions/pricing-page'),
-        headers: headers,
-      );
-
-      if (response.statusCode == 200) {
-        final data = json.decode(response.body);
-        return data['url'] as String;
-      } else {
-        throw Exception('Failed to get pricing page: ${response.statusCode}');
-      }
-    } catch (e) {
-      print('Error getting pricing page: $e');
-      rethrow;
-    }
-  }
 }

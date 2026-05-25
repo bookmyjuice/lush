@@ -41,10 +41,10 @@ class AddressEntryScreenState extends State<AddressEntryScreen> {
     super.didChangeDependencies();
     final args = ModalRoute.of(context)?.settings.arguments as Map<String, dynamic>?;
     if (args != null) {
-      _email = args['email'] as String;
-      _phone = args['phone'] as String;
-      _firstName = args['firstName'] as String;
-      _lastName = args['lastName'] as String;
+      _email = args['email'] as String?;
+      _phone = args['phone'] as String?;
+      _firstName = args['firstName'] as String?;
+      _lastName = args['lastName'] as String?;
 
       // Pre-fill name if available (from Google signup)
       if (_firstName != null && _firstName!.isNotEmpty) {

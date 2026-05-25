@@ -3,9 +3,41 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:integration_test/integration_test.dart';
 import 'package:lush/main.dart';
 import 'package:lush/services/subscription_service.dart';
-import 'package:lush/views/models/subscription.dart';
 import 'package:lush/views/widgets/subscription_info_card.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+
+/// Helper to create a mock subscription map (SubscriptionInfoCard takes Map<String, dynamic>?)
+Map<String, dynamic> _createMockSubscription({
+  required String id,
+  required String customerId,
+  required String planId,
+  required String status,
+  required String billingPeriod,
+  required String billingPeriodUnit,
+  int? currentTermStart,
+  int? currentTermEnd,
+  int? nextBillingAt,
+  int? createdAt,
+  int? updatedAt,
+  List<Map<String, dynamic>>? items,
+  bool? renewed,
+}) {
+  return {
+    'id': id,
+    'customerId': customerId,
+    'planId': planId,
+    'status': status,
+    'billingPeriod': billingPeriod,
+    'billingPeriodUnit': billingPeriodUnit,
+    if (currentTermStart != null) 'currentTermStart': currentTermStart,
+    if (currentTermEnd != null) 'currentTermEnd': currentTermEnd,
+    if (nextBillingAt != null) 'nextBillingAt': nextBillingAt,
+    if (createdAt != null) 'createdAt': createdAt,
+    if (updatedAt != null) 'updatedAt': updatedAt,
+    if (items != null) 'items': items,
+    if (renewed != null) 'renewed': renewed,
+  };
+}
 
 /// Integration tests for Subscription Card on Dashboard
 /// Tests the complete flow from data fetching to UI display
@@ -48,7 +80,7 @@ void main() {
       await prefs.setString('token', 'test_token_123');
 
       // Mock subscription data
-      final mockSubscription = Subscription(
+      final mockSubscription = _createMockSubscription(
         id: 'sub_123',
         customerId: 'cust_123',
         planId: 'premium-plan-monthly',
@@ -66,7 +98,7 @@ void main() {
             1000,
         createdAt: DateTime.now().millisecondsSinceEpoch ~/ 1000,
         updatedAt: DateTime.now().millisecondsSinceEpoch ~/ 1000,
-        items: [],
+        items: <Map<String, dynamic>>[],
         renewed: false,
       );
 
@@ -120,7 +152,7 @@ void main() {
     testWidgets('Subscription card displays correct status colors',
         (WidgetTester tester) async {
       // Test Active status (green)
-      final activeSubscription = Subscription(
+      final activeSubscription = _createMockSubscription(
         id: 'sub_123',
         customerId: 'cust_123',
         planId: 'premium-plan',
@@ -146,7 +178,7 @@ void main() {
       expect(find.text('ACTIVE'), findsOneWidget);
 
       // Test Paused status (orange)
-      final pausedSubscription = Subscription(
+      final pausedSubscription = _createMockSubscription(
         id: 'sub_123',
         customerId: 'cust_123',
         planId: 'premium-plan',
@@ -177,7 +209,7 @@ void main() {
         (WidgetTester tester) async {
       // Arrange: Create subscription with specific dates
       final now = DateTime(2026, 3, 27);
-      final subscription = Subscription(
+      final subscription = _createMockSubscription(
         id: 'sub_123',
         customerId: 'cust_123',
         planId: 'premium-plan',
@@ -212,7 +244,7 @@ void main() {
         (WidgetTester tester) async {
       // Arrange
       bool manageCalled = false;
-      final subscription = Subscription(
+      final subscription = _createMockSubscription(
         id: 'sub_123',
         customerId: 'cust_123',
         planId: 'premium-plan',
@@ -290,116 +322,10 @@ void main() {
       // Note: Actual API call testing would require mocking HTTP client
       // This test verifies the service can be instantiated
     });
-
-    // Test 9: Subscription model parses JSON correctly
-    test('Subscription model parses JSON correctly', () {
-      // Arrange: Create mock JSON
-      final json = {
-        'id': 'sub_123',
-        'customerId': 'cust_123',
-        'planId': 'premium-plan-monthly',
-        'status': 'active',
-        'billingPeriod': '2999',
-        'billingPeriodUnit': 'month',
-        'currentTermStart': 1711555200,
-        'currentTermEnd': 1714147200,
-        'nextBillingAt': 1714147200,
-        'createdAt': 1711555200,
-        'updatedAt': 1711555200,
-        'items': [],
-        'renewed': false,
-      };
-
-      // Act: Parse JSON
-      final subscription = Subscription.fromJson(json);
-
-      // Assert: All fields should be parsed correctly
-      expect(subscription.id, 'sub_123');
-      expect(subscription.customerId, 'cust_123');
-      expect(subscription.planId, 'premium-plan-monthly');
-      expect(subscription.status, 'active');
-      expect(subscription.billingPeriod, '2999');
-      expect(subscription.billingPeriodUnit, 'month');
-    });
-
-    // Test 10: Subscription helper methods format data correctly
-    test('Subscription helper methods format data correctly', () {
-      // Arrange: Create subscription with specific dates
-      final now = DateTime(2026, 3, 27);
-      final subscription = Subscription(
-        id: 'sub_123',
-        customerId: 'cust_123',
-        planId: 'premium-plan',
-        status: 'active',
-        billingPeriod: '2999',
-        billingPeriodUnit: 'month',
-        currentTermStart: now.millisecondsSinceEpoch ~/ 1000,
-        currentTermEnd: now.add(const Duration(days: 30)).millisecondsSinceEpoch ~/ 1000,
-        nextBillingAt: now.add(const Duration(days: 30)).millisecondsSinceEpoch ~/ 1000,
-      );
-
-      // Act & Assert: Helper methods should format correctly
-      expect(subscription.getStartDate(), contains('27/3/2026'));
-      expect(subscription.getBillingPeriodString(), '₹2999 / Monthly');
-      expect(subscription.getStatusText(), 'ACTIVE');
-      expect(subscription.getStatusColor(), 'FF4CAF50'); // Green for active
-    });
-
-    // Test 11: Subscription status colors for different statuses
-    test('Subscription status colors are correct for all statuses', () {
-      // Test all status types
-      expect(
-        Subscription(
-          id: 'sub_1',
-          customerId: 'cust_1',
-          planId: 'plan_1',
-          status: 'active',
-          billingPeriod: '100',
-          billingPeriodUnit: 'month',
-        ).getStatusColor(),
-        'FF4CAF50', // Green
-      );
-
-      expect(
-        Subscription(
-          id: 'sub_2',
-          customerId: 'cust_2',
-          planId: 'plan_1',
-          status: 'paused',
-          billingPeriod: '100',
-          billingPeriodUnit: 'month',
-        ).getStatusColor(),
-        'FFFFC107', // Yellow/Orange
-      );
-
-      expect(
-        Subscription(
-          id: 'sub_3',
-          customerId: 'cust_3',
-          planId: 'plan_1',
-          status: 'cancelled',
-          billingPeriod: '100',
-          billingPeriodUnit: 'month',
-        ).getStatusColor(),
-        'FFF44336', // Red
-      );
-
-      expect(
-        Subscription(
-          id: 'sub_4',
-          customerId: 'cust_4',
-          planId: 'plan_1',
-          status: 'expired',
-          billingPeriod: '100',
-          billingPeriodUnit: 'month',
-        ).getStatusColor(),
-        'FF9E9E9E', // Grey
-      );
-    });
   });
 
   group('Dashboard Subscription Integration Tests', () {
-    // Test 12: Dashboard loads subscription data on init
+    // Test 9: Dashboard loads subscription data on init
     testWidgets('Dashboard loads subscription data on initialization',
         (WidgetTester tester) async {
       // Arrange: Set up mock token
@@ -419,7 +345,7 @@ void main() {
       expect(find.byType(CircularProgressIndicator), findsOneWidget);
     });
 
-    // Test 13: Dashboard handles subscription load errors
+    // Test 10: Dashboard handles subscription load errors
     testWidgets('Dashboard handles subscription load errors gracefully',
         (WidgetTester tester) async {
       // Arrange: Set up mock token but no backend

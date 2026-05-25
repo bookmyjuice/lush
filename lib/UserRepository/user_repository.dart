@@ -237,7 +237,8 @@ class UserRepository {
     ];
   }
 
-  /// BR-006: Auto-login checks token validity only.
+  /// BR-006: Auto-login decodes JWT locally to check token validity.
+  /// JWT expiration is 30 days (2592000000ms). No network call is made.
   /// Expired or missing token requires manual re-login via login screen.
   /// No credential storage or silent re-authentication.
   Future<bool> autoLogin() async {
@@ -247,30 +248,53 @@ class UserRepository {
       userLoggedIn = false;
       return false;
     }
-    return autologinWithToken();
-  }
-
-  Future<bool> autologinWithToken() async {
-    ioc.badCertificateCallback =
-        (X509Certificate cert, String host, int port) => true;
-    final http = IOClient(ioc);
-    final response =
-        await http.get(Uri.parse('$server/api/auth/autologin'), headers: {
-      'authorization': 'Bearer $token',
-      'Accept': 'application/json',
-      'Content-Type': 'application/json',
-    },);
-    final body = const Utf8Decoder().convert(response.bodyBytes);
-    final String res = json.decode(body)['message'] as String;
-    if (res == 'ok') {
+    try {
+      // Decode JWT locally to check expiry without network call
+      final parts = token.split('.');
+      if (parts.length != 3) {
+        await _secureStorage.deleteAuthToken();
+        userLoggedIn = false;
+        return false;
+      }
+      // Pad base64 payload for decoding
+      String payload = parts[1];
+      payload = payload.padRight(payload.length + (4 - payload.length % 4) % 4, '=');
+      payload = payload.replaceAll('-', '+').replaceAll('_', '/');
+      final decoded = utf8.decode(base64.decode(payload));
+      final Map<String, dynamic> claims = json.decode(decoded) as Map<String, dynamic>;
+      
+      // Check expiration
+      final exp = claims['exp'] as int?;
+      if (exp == null) {
+        await _secureStorage.deleteAuthToken();
+        userLoggedIn = false;
+        return false;
+      }
+      final expiryTime = DateTime.fromMillisecondsSinceEpoch(exp * 1000, isUtc: true);
+      if (DateTime.now().toUtc().isAfter(expiryTime)) {
+        // Token expired
+        await _secureStorage.deleteAuthToken();
+        userLoggedIn = false;
+        return false;
+      }
+      
+      // Token is valid — set user and fetch details from server
       userLoggedIn = true;
       await getUserDetailsFromServer();
       return true;
-    } else {
+    } catch (e) {
+      debugPrint('Auto-login JWT decode failed: $e');
       await _secureStorage.deleteAuthToken();
       userLoggedIn = false;
       return false;
     }
+  }
+
+  /// BR-006: No longer makes network call. Kept for backward compatibility.
+  /// All token validation is done locally in autoLogin().
+  @Deprecated('Use autoLogin() which decodes JWT locally')
+  Future<bool> autologinWithToken() async {
+    return autoLogin();
   }
 
   Future<bool> login(String username_, String pwd, bool remember) async {
@@ -291,6 +315,7 @@ class UserRepository {
         final accessToken = json.decode(body)['accessToken'] as String;
         await _secureStorage.saveAuthToken(accessToken);
         token = accessToken;
+        userLoggedIn = true;
         getUserDetailsFromServer();
         return true;
       } else {
@@ -882,10 +907,14 @@ class UserRepository {
           // User found - login successful
           final token = body['accessToken'] as String?;
           if (token != null) {
+            // Save token to SecureStorage for auto-login persistence
+            await _secureStorage.saveAuthToken(token);
             final prefs = await _prefs;
             prefs.setString('token', token);
             this.token = token;
-            return {'type': 'login_success', 'token': token};
+            userLoggedIn = true;
+            await getUserDetailsFromServer();
+            return {'type': 'login_success', 'token': token, 'user': user};
           }
         }
       }

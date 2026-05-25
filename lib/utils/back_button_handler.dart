@@ -78,6 +78,7 @@ class BackButtonHandler {
   /// [child] is the screen content.
   static Widget wrapWithPopScope({
     required bool canPop,
+    // ignore: strict_raw_type
     required PopInvokedWithResultCallback onPopInvokedWithResult,
     required Widget child,
   }) {

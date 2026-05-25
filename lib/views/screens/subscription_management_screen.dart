@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:lush/services/local_notification_service.dart';
 import 'package:lush/services/subscription_service.dart';
 import 'package:lush/utils/back_button_handler.dart';
-import 'package:webview_flutter/webview_flutter.dart';
+import 'package:lush/views/screens/plan_selection_screen.dart';
 
 /// BR-041 to BR-046: Subscription management with 9 PM IST cutoff,
 /// confirmation dialogs, state refetch, and local notifications.
@@ -232,23 +232,8 @@ class _SubscriptionManagementScreenState
   }
 
   Future<void> _browseSubscriptionPlans() async {
-    try {
-      final pricingUrl = await _subscriptionService.getPricingPageUrl();
-
-      if (mounted) {
-        Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (context) => _ChargebeeWebView(url: pricingUrl),
-          ),
-        );
-      }
-    } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Failed to load pricing page: $e')),
-        );
-      }
+    if (mounted) {
+      Navigator.pushNamed(context, PlanSelectionScreen.routeName);
     }
   }
 
@@ -468,58 +453,5 @@ class _SubscriptionManagementScreenState
       ),
     );
 
-  }
-}
-
-class _ChargebeeWebView extends StatefulWidget {
-  final String url;
-
-  const _ChargebeeWebView({required this.url});
-
-  @override
-  State<_ChargebeeWebView> createState() => _ChargebeeWebViewState();
-}
-
-class _ChargebeeWebViewState extends State<_ChargebeeWebView> {
-  late WebViewController _controller;
-  int _loadingProgress = 0;
-
-  @override
-  void initState() {
-    super.initState();
-    _controller = WebViewController()
-      ..setJavaScriptMode(JavaScriptMode.unrestricted)
-      ..setNavigationDelegate(
-        NavigationDelegate(
-          onProgress: (int progress) {
-            setState(() {
-              _loadingProgress = progress;
-            });
-          },
-          onPageFinished: (String url) {
-            setState(() {
-              _loadingProgress = 100;
-            });
-          },
-        ),
-      )
-      ..loadRequest(Uri.parse(widget.url));
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Subscription Plans'),
-        actions: [
-          if (_loadingProgress < 100)
-            const Padding(
-              padding: EdgeInsets.all(16.0),
-              child: CircularProgressIndicator(color: Colors.white),
-            ),
-        ],
-      ),
-      body: WebViewWidget(controller: _controller),
-    );
   }
 }

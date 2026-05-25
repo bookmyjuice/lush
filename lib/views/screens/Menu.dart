@@ -7,7 +7,6 @@ import 'package:lush/views/models/item_list_view.dart';
 import 'package:lush/services/item_service.dart';
 import 'package:lush/views/widgets/filter_options.dart';
 import 'package:lush/theme/app_colors.dart';
-import 'package:lush/theme/app_text_styles.dart';
 
 class Menu extends StatefulWidget {
   const Menu({super.key});
@@ -34,11 +33,6 @@ class MenuState extends State<Menu> with TickerProviderStateMixin {
 
   // Type selection
   final String _selectedType = 'CHARGE'; // Default to one-time purchases
-  final List<String> _types = [
-    'CHARGE',
-    'PLAN',
-    'ADDON'
-  ]; // One-time, Subscription, Add-on
 
   @override
   void initState() {

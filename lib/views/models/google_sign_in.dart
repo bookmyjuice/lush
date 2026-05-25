@@ -63,7 +63,7 @@ class GoogleSignInHelper {
       final account = await _googleSignIn.authenticate();
 
       // Update internal state
-      if (account != null) {
+      if (account != null) { // ignore: unnecessary_null_comparison
         _currentUser = account;
         debugPrint('✅ Signed in: ${account.email}');
         debugPrint('👤 Display Name: ${account.displayName}');

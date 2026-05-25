@@ -2,7 +2,6 @@ import 'dart:convert';
 
 import 'package:http/http.dart' as http;
 import 'package:lush/config/api_config.dart';
-import 'package:lush/views/models/subscription.dart';
 
 /// Service for fetching and managing subscription data
 class SubscriptionService {
@@ -13,7 +12,7 @@ class SubscriptionService {
   final String _baseUrl = ApiConfig.baseUrl;
 
   /// Get all subscriptions for the current user
-  Future<List<Subscription>> getMySubscriptions(String token) async {
+  Future<List<Map<String, dynamic>>> getMySubscriptions(String token) async {
     try {
       final response = await http.get(
         Uri.parse('$_baseUrl/api/subscriptions/my'),
@@ -28,7 +27,7 @@ class SubscriptionService {
         final data = json.decode(response.body);
         if (data['subscriptions'] != null && data['subscriptions'] is List) {
           return (data['subscriptions'] as List)
-              .map((json) => Subscription.fromJson(json as Map<String, dynamic>))
+              .map((json) => Map<String, dynamic>.from(json as Map))
               .toList();
         }
         return [];
@@ -42,7 +41,7 @@ class SubscriptionService {
   }
 
   /// Get specific subscription details
-  Future<Subscription?> getSubscription(String token, String subscriptionId) async {
+  Future<Map<String, dynamic>?> getSubscription(String token, String subscriptionId) async {
     try {
       final response = await http.get(
         Uri.parse('$_baseUrl/api/subscriptions/$subscriptionId'),
@@ -55,7 +54,7 @@ class SubscriptionService {
       if (response.statusCode == 200) {
         final data = json.decode(response.body);
         if (data['data'] != null) {
-          return Subscription.fromJson(data['data'] as Map<String, dynamic>);
+          return Map<String, dynamic>.from(data['data'] as Map);
         }
         return null;
       } else {

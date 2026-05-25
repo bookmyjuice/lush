@@ -158,6 +158,7 @@ class AddressSelectionScreenState extends State<AddressSelectionScreen> {
         iconTheme: const IconThemeData(color: AppColors.lightTextPrimary),
       ),
       body: _buildBody(),
+      // Multi-address support: Always show "Add New Address" FAB.
       floatingActionButton: FloatingActionButton.extended(
         onPressed: _navigateToAddAddress,
         backgroundColor: AppColors.primaryOrange,

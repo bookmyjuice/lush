@@ -1,10 +1,11 @@
-﻿import 'package:flutter_local_notifications/flutter_local_notifications.dart';
+import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:timezone/data/latest_all.dart' as tz_data;
 import 'package:timezone/timezone.dart' as tz;
 
-/// BR-060/061/062: Local notification service for MVP.
-/// Uses flutter_local_notifications (local-only, no FCM).
-/// Triggered by the Flutter app after it receives confirmed state from bmjServer.
+/// BR-060/061/062: Local notification service for displaying notifications
+/// received via FCM server push. Uses flutter_local_notifications to show
+/// notifications on the device when the app is in the foreground.
+/// Triggered by FirebaseNotificationService on receiving FCM messages.
 class LocalNotificationService {
   static final LocalNotificationService _instance = LocalNotificationService._internal();
   factory LocalNotificationService() => _instance;

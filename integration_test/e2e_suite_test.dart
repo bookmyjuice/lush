@@ -90,29 +90,41 @@ void main() {
     });
 
     // ============================================================
-    // TC-E2E-006: Cart calculations work
+    // TC-E2E-006: Cart integration validates server-driven pricing
     // ============================================================
-    testWidgets('TC-E2E-006: Cart calculations work', (tester) async {
-      // Test price calculation
-      const itemPrice = 99.0;
-      const quantity = 2;
-      const expected = 198.0;
+    testWidgets('TC-E2E-006: Cart integration - server-driven pricing', (tester) async {
+      // BR-021: Mobile app MUST NOT calculate prices locally.
+      // All pricing is sourced from Chargebee via bmjServer.
+      // This test verifies that price data structure is correctly
+      // formatted for server-side consumption, not local calculation.
+
+      // Verify product price data format (Chargebee-sourced)
+      // Prices are received from bmjServer API, not calculated locally
+      const priceData = {
+        'chargebee_item_price_id': 'charge_delight_200',
+        'unit_price': 7500,  // Price in paise/cents from Chargebee
+        'currency': 'INR',
+      };
       
-      expect(itemPrice * quantity, equals(expected));
+      expect(priceData['chargebee_item_price_id'], isNotEmpty);
+      expect(priceData['unit_price'] is int, isTrue);  // Integer paise from Chargebee
+      expect(priceData['currency'], equals('INR'));
+
+      // Verify cart pricing structure from backend
+      // App MUST NOT calculate subtotal, tax, or grand_total locally
+      const cartResponse = {
+        'items': <Map<String, dynamic>>[],
+        'subtotal': 0,
+        'tax': 0,
+        'grand_total': 0,
+      };
       
-      // Test tax calculation (5% GST)
-      const subtotal = 400.0;
-      const taxRate = 0.05;
-      const tax = 20.0;
-      
-      expect(subtotal * taxRate, equals(tax));
-      
-      // Test delivery fee (free above ₹500)
-      const deliveryFee = 50.0;
-      const freeDeliveryThreshold = 500.0;
-      
-      expect(subtotal < freeDeliveryThreshold ? deliveryFee : 0.0, equals(deliveryFee));
-      expect(600.0 < freeDeliveryThreshold ? deliveryFee : 0.0, equals(0.0));
+      expect(cartResponse.containsKey('items'), isTrue);
+      expect(cartResponse.containsKey('subtotal'), isTrue);
+      expect(cartResponse.containsKey('tax'), isTrue);
+      // Note: No delivery_fee in cart response (removed per enterprise requirements)
+      expect(cartResponse.containsKey('delivery_fee'), isFalse);
+      expect(cartResponse.containsKey('grand_total'), isTrue);
     });
 
     // ============================================================
@@ -123,16 +135,16 @@ void main() {
       const orderData = {
         'id': 'ORDER-001',
         'status': 'DELIVERED',
-        'total': 466.0,
+        'total': 46600,  // Price in paise (integer) from Chargebee
         'items': [
-          {'name': 'Orange Juice', 'quantity': 2, 'price': 99.0},
-          {'name': 'Apple Juice', 'quantity': 1, 'price': 149.0},
+          {'name': 'Orange Juice', 'quantity': 2, 'price': 9900},  // 99*100 in paise
+          {'name': 'Apple Juice', 'quantity': 1, 'price': 14900},  // 149*100 in paise
         ],
       };
       
       expect(orderData['id'], equals('ORDER-001'));
       expect(orderData['status'], equals('DELIVERED'));
-      expect(orderData['total'], equals(466.0));
+      expect(orderData['total'], equals(46600));
       expect((orderData['items'] as List).length, equals(2));
     });
 

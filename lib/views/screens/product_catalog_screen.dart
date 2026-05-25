@@ -3,6 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:lush/bloc/CartBloc/cart_bloc.dart';
 import 'package:lush/bloc/CartBloc/cart_event.dart';
 import 'package:lush/bloc/ProductCatalogBloc/product_catalog_bloc.dart' hide AddToCart;
+import 'package:lush/theme/app_colors.dart';
 // import 'package:lush/utils/haptic_feedback.dart';
 import 'package:lush/views/models/cart_item.dart';
 import 'package:lush/views/models/item.dart';
@@ -46,7 +47,7 @@ class ProductCatalogScreenState extends State<ProductCatalogScreen> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Our Products'),
-        backgroundColor: const Color(0xFFFF8C42),
+        backgroundColor: AppColors.primaryOrange,
         elevation: 0,
         actions: [
           // Cart icon
@@ -196,7 +197,7 @@ class ProductCatalogScreenState extends State<ProductCatalogScreen> {
             borderSide: BorderSide.none,
           ),
           filled: true,
-          fillColor: const Color(0xFFF5F5F5),
+          fillColor: AppColors.lightGrey,
           contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
         ),
         onChanged: (value) {
@@ -244,12 +245,12 @@ class ProductCatalogScreenState extends State<ProductCatalogScreen> {
                           FilterByCategory(category: category),
                         );
                   },
-                  backgroundColor: const Color(0xFFF5F5F5),
-                  selectedColor: const Color(0xFFFF8C42).withValues(alpha: 0.3),
-                  checkmarkColor: const Color(0xFFFF8C42),
+                  backgroundColor: AppColors.lightGrey,
+                  selectedColor: AppColors.primaryOrange.withValues(alpha: 0.3),
+                  checkmarkColor: AppColors.primaryOrange,
                   labelStyle: TextStyle(
                     color: isSelected
-                        ? const Color(0xFFFF8C42)
+                        ? AppColors.primaryOrange
                         : Colors.grey.shade700,
                     fontWeight:
                         isSelected ? FontWeight.bold : FontWeight.normal,
@@ -299,12 +300,12 @@ class ProductCatalogScreenState extends State<ProductCatalogScreen> {
                           FilterBySize(size: size),
                         );
                   },
-                  backgroundColor: const Color(0xFFF5F5F5),
-                  selectedColor: const Color(0xFFFF8C42).withValues(alpha: 0.3),
-                  checkmarkColor: const Color(0xFFFF8C42),
+                  backgroundColor: AppColors.lightGrey,
+                  selectedColor: AppColors.primaryOrange.withValues(alpha: 0.3),
+                  checkmarkColor: AppColors.primaryOrange,
                   labelStyle: TextStyle(
                     color: isSelected
-                        ? const Color(0xFFFF8C42)
+                        ? AppColors.primaryOrange
                         : Colors.grey.shade700,
                     fontWeight:
                         isSelected ? FontWeight.bold : FontWeight.normal,
@@ -453,7 +454,7 @@ class ProductCatalogScreenState extends State<ProductCatalogScreen> {
                         style: const TextStyle(
                           fontSize: 18,
                           fontWeight: FontWeight.bold,
-                          color: Color(0xFFFF8C42),
+                          color: AppColors.primaryOrange,
                         ),
                       )
                     else
@@ -471,7 +472,7 @@ class ProductCatalogScreenState extends State<ProductCatalogScreen> {
                         Icons.add_circle,
                         size: 32,
                       ),
-                      color: const Color(0xFFFF8C42),
+                      color: AppColors.primaryOrange,
                       onPressed: () {
                         _showSizeSelectionDialog(item);
                       },
@@ -487,7 +488,7 @@ class ProductCatalogScreenState extends State<ProductCatalogScreen> {
   }
 
   void _showSizeSelectionDialog(CatalogItem item) {
-    showModalBottomSheet(
+    showModalBottomSheet<dynamic>(
       context: context,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
@@ -535,7 +536,7 @@ class ProductCatalogScreenState extends State<ProductCatalogScreen> {
                       subtitle: Text(
                         '₹${price.price?.toStringAsFixed(2) ?? '0.00'}',
                         style: const TextStyle(
-                          color: Color(0xFFFF8C42),
+                          color: AppColors.primaryOrange,
                           fontWeight: FontWeight.bold,
                         ),
                       ),
@@ -547,7 +548,7 @@ class ProductCatalogScreenState extends State<ProductCatalogScreen> {
                             selectedPrice = value;
                           });
                         },
-                        activeColor: const Color(0xFFFF8C42),
+                        activeColor: AppColors.primaryOrange,
                       ),
                       onTap: () {
                         setModalState(() {
@@ -587,14 +588,14 @@ class ProductCatalogScreenState extends State<ProductCatalogScreen> {
                                   content: Text(
                                     '${item.name} (${selectedPrice!.name}) added to cart',
                                   ),
-                                  backgroundColor: const Color(0xFF4CAF50),
+                                  backgroundColor: AppColors.success,
                                   behavior: SnackBarBehavior.floating,
                                 ),
                               );
                             }
                           : null,
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: const Color(0xFFFF8C42),
+                        backgroundColor: AppColors.primaryOrange,
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(12),
                         ),
@@ -623,19 +624,19 @@ class ProductCatalogScreenState extends State<ProductCatalogScreen> {
     if (hexColor.length == 6) {
       return Color(int.parse('0xFF$hexColor'));
     }
-    return const Color(0xFFFF8C42); // Default orange
+    return AppColors.primaryOrange; // Default orange
   }
 
   Color _getCategoryColor(String category) {
     switch (category.toLowerCase()) {
       case 'delight':
-        return const Color(0xFF4CAF50); // Green
+        return AppColors.success; // Green
       case 'signature':
-        return const Color(0xFF2196F3); // Blue
+        return AppColors.info; // Blue
       case 'premium':
-        return const Color(0xFF9C27B0); // Purple
+        return AppColors.primaryOrangeDark; // Dark orange
       default:
-        return const Color(0xFFFF8C42); // Orange
+        return AppColors.primaryOrange; // Orange
     }
   }
 }

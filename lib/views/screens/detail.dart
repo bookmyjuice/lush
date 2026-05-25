@@ -1,7 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:lush/UserRepository/user_repository.dart';
-import 'package:lush/get_it.dart';
-import 'package:lush/main.dart';
 import 'package:lush/views/models/model.dart';
 import 'package:toastification/toastification.dart';
 
@@ -254,29 +251,9 @@ class _DetailPageState extends State<DetailPage> {
             ),
             Align(
               child: InkWell(
-                onTap: () async {
+                onTap: () {
                   // Subscribe - Navigate to subscription plans
-                  try {
-                    final userRepository = getIt.get<UserRepository>();
-                    final urls = await userRepository.getSubscriptionPageUrl();
-
-                    if (mounted) {
-                      Navigator.pushNamed(context, '/subscriptions',
-                        arguments: SubscriptionPageUrlArgument(
-                          premiumPageUrl: urls['premium'] ?? '',
-                          signaturePageUrl: urls['signature'] ?? '',
-                          delightPageUrl: urls['delight'] ?? '',
-                        ),
-                      );
-                    }
-                  } catch (e) {
-                    toastification.show(
-                      type: ToastificationType.error,
-                      title: const Text('Unable to load subscriptions'),
-                      description: Text('Error: $e'),
-                      alignment: Alignment.topCenter,
-                    );
-                  }
+                  Navigator.pushNamed(context, '/plan-selection');
                 },
                 child: Container(
                   margin: const EdgeInsets.only(top: 20),

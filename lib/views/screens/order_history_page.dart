@@ -4,7 +4,6 @@ import '../../UserRepository/user_repository.dart';
 import '../widgets/app_card.dart';
 import '../models/order.dart';
 import 'package:lush/theme/app_colors.dart';
-import 'package:lush/theme/app_text_styles.dart';
 
 class OrderHistoryPage extends StatefulWidget {
   const OrderHistoryPage({super.key});

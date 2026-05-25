@@ -331,7 +331,7 @@ void main() {
             .thenAnswer((_) async => 'OTP_VERIFIED');
         return AuthenticationBloc(repo: mockRepo);
       },
-      act: (bloc) => bloc.add(const VerifyOTP(otp: '123456')),
+      act: (bloc) => bloc.add(const VerifyOTP(otp: '123456', phone: '')),
       expect: () => [
         isA<PhoneVerified>(),
         isA<OTPVerificationSuccess>(),
@@ -345,7 +345,7 @@ void main() {
             .thenAnswer((_) async => 'Error: Invalid OTP');
         return AuthenticationBloc(repo: mockRepo);
       },
-      act: (bloc) => bloc.add(const VerifyOTP(otp: 'wrong')),
+      act: (bloc) => bloc.add(const VerifyOTP(otp: 'wrong', phone: '')),
       expect: () => [
         isA<OTPVerificationFailed>(),
       ],

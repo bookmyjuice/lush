@@ -62,8 +62,15 @@ class OTPSignUpScreenState extends State<OTPSignUpScreen> {
       return;
     }
 
+    // Retrieve phone number from BLoC state
+    String phone = '';
+    final authState = context.read<AuthenticationBloc>().state;
+    if (authState is PhoneEntered) {
+      phone = authState.phone;
+    }
+
     BlocProvider.of<AuthenticationBloc>(context).add(
-      VerifyOTP(otp: otpController.text),
+      VerifyOTP(otp: otpController.text, phone: phone),
     );
   }
 

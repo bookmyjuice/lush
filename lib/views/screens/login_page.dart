@@ -104,7 +104,7 @@ class LoginPageState extends State<LoginPage>
           if ((state is LogInFailed) && !_dialogShown) {
             _dialogShown = true;
             toastification.show(
-              closeButton: ToastCloseButton(),
+              closeButton: const ToastCloseButton(),
               title: const Text('Login Failed'),
               description:
                   const Text('Please check your credentials and try again.'),
@@ -114,7 +114,7 @@ class LoginPageState extends State<LoginPage>
           if (state is SignUpFailed) {
             _dialogShown = true;
             toastification.show(
-              closeButton: ToastCloseButton(),
+              closeButton: const ToastCloseButton(),
               title: Text(state.errorHeading),
               description: Text(state.error),
               type: ToastificationType.error,
@@ -123,7 +123,7 @@ class LoginPageState extends State<LoginPage>
           if (state is AutoLoginFailed) {
             _dialogShown = true;
             toastification.show(
-              closeButton: ToastCloseButton(),
+              closeButton: const ToastCloseButton(),
               title: const Text('Session Expired'),
               description: const Text('Please sign in to continue.'),
               type: ToastificationType.error,
@@ -151,9 +151,9 @@ class LoginPageState extends State<LoginPage>
                   child: Image.asset('assets/bmjlogo.png'),
                 ),
                 const SizedBox(height: AppSpacing.xs),
-                Text(
+                const Text(
                   'Fresh Juices, Delivered Daily',
-                  style: TextStyle(fontSize: 14, color: AppColors.white.withOpacity(0.9),
+                  style: TextStyle(fontSize: 14, color: AppColors.white70,
                     fontWeight: FontWeight.w500,
                   ),
                 ),
@@ -235,7 +235,8 @@ class LoginPageState extends State<LoginPage>
             const SizedBox(height: AppSpacing.xs),
             Text(
               'Sign in to your account',
-              style: TextStyle(fontSize: 14, color: AppColors.white.withOpacity(0.8),
+              style: const TextStyle(fontSize: 14, color: AppColors.white70,
+                fontWeight: FontWeight.w500,
               ),
               textAlign: TextAlign.center,
             ),
@@ -575,7 +576,7 @@ class LoginPageState extends State<LoginPage>
 
     try {
       // Show loading indicator
-      showDialog(
+      showDialog<bool?>(
         context: context,
         barrierDismissible: false,
         builder: (ctx) => const Center(

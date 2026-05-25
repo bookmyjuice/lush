@@ -44,7 +44,7 @@ class ItemCardView extends StatelessWidget {
         return;
       }
 
-      showModalBottomSheet(
+      showModalBottomSheet<dynamic>(
         context: context,
         isScrollControlled: true,
         backgroundColor: Colors.transparent,

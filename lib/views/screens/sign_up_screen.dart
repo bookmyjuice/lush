@@ -45,9 +45,6 @@ class SignUpScreenState extends State<SignUpScreen> {
   bool _obscurePassword = true;
   bool _obscureConfirmPassword = true;
 
-  // Password strength
-  bool _passwordMeetsRequirements = false;
-
   @override
   void initState() {
     super.initState();
@@ -248,9 +245,7 @@ class SignUpScreenState extends State<SignUpScreen> {
                       ),
                       controller: _passwordController,
                       onChanged: (value) {
-                        setState(() {
-                          _passwordMeetsRequirements = isValidPassword(value);
-                        });
+                        // Password validation is handled by validator
                       },
                       validator: (value) {
                         if (value == null || value.isEmpty) {

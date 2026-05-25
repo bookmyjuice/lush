@@ -34,7 +34,7 @@ class AppTextField extends StatelessWidget {
   final String? Function(String?)? validator;
   final TextEditingController? controller;
   final bool readOnly;
-  final Function(String)? onChanged;
+  final void Function(String)? onChanged;
   final List<TextInputFormatter>? inputFormatters;
   final int? maxLength;
   final int? maxLines;

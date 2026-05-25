@@ -1,15 +1,15 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import '../../theme.dart';
 
 class FilterOptions extends StatelessWidget {
   final String selectedCategory;
   final List<String> categories;
-  final Function(String) onCategoryChanged;
+  final void Function(String) onCategoryChanged;
 
   final String selectedSize;
   final List<String> sizes;
-  final Function(String) onSizeChanged;
+  final void Function(String) onSizeChanged;
 
   const FilterOptions({
     super.key,
@@ -182,7 +182,7 @@ class FilterOptions extends StatelessWidget {
     String localCategory = selectedCategory;
     String localSize = selectedSize;
 
-    showDialog(
+    showDialog<void>(
       context: context,
       builder: (context) => StatefulBuilder(builder: (context, setState) {
         return AlertDialog(
@@ -336,7 +336,7 @@ class FilterOptions extends StatelessWidget {
   }
 
   void _showCategorySelectionDialog(BuildContext context) {
-    showDialog(
+    showDialog<void>(
       context: context,
       builder: (context) => AlertDialog(
         title: Row(
@@ -428,7 +428,7 @@ class FilterOptions extends StatelessWidget {
   }
 
   void _showSizeSelectionDialog(BuildContext context) {
-    showDialog(
+    showDialog<void>(
       context: context,
       builder: (context) => AlertDialog(
         title: Row(

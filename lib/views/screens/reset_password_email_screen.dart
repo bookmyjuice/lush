@@ -5,7 +5,6 @@ import 'package:flutter_pw_validator/flutter_pw_validator.dart';
 import 'package:lush/UserRepository/user_repository.dart';
 import 'package:toastification/toastification.dart';
 import 'package:lush/theme/app_colors.dart';
-import 'package:lush/theme/app_text_styles.dart';
 
 /// BR-009 Method 2: Reset password via email verification code
 /// Flow: Enter code → Verify → Enter new password → Submit
@@ -303,7 +302,7 @@ class _ResetPasswordEmailScreenState extends State<ResetPasswordEmailScreen> {
         children: [
           Icon(Icons.check_circle_outline, size: 16, color: Colors.grey),
           SizedBox(width: 8),
-          Text(text, style: TextStyle(fontSize: 13, color: AppColors.lightTextSecondary!, fontFamily: 'Roboto')),
+          Text(text, style: TextStyle(fontSize: 13, color: AppColors.lightTextSecondary, fontFamily: 'Roboto')),
         ],
       ),
     );

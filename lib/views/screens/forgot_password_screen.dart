@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:lush/theme/app_colors.dart';
 import 'package:lush/UserRepository/user_repository.dart';
-import 'package:lush/widgets/app_text_field.dart' hide AppColors;
+import 'package:lush/widgets/app_text_field.dart';
 import 'package:toastification/toastification.dart';
 
 /// BR-009: Forgot Password - Choose reset method (mobile OTP or email OTP)
@@ -278,7 +278,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
   }
 
   void _showContactSupportDialog(BuildContext context) {
-    showDialog(
+    showDialog<void>(
       context: context,
       builder: (context) => AlertDialog(
         title: Text('Contact Support'),

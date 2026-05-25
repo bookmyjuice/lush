@@ -5,7 +5,6 @@ import 'package:lush/get_it.dart';
 import 'package:lush/views/models/firebase_phone_auth.dart';
 import 'package:toastification/toastification.dart';
 import 'package:lush/theme/app_colors.dart';
-import 'package:lush/theme/app_text_styles.dart';
 
 /// BR-011: Phone Sign-In Screen
 /// User enters phone number, receives OTP via backend or Firebase, then either logs in or starts signup
@@ -169,7 +168,7 @@ class _PhoneLoginScreenState extends State<PhoneLoginScreen> {
                     ),
                     enabledBorder: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(12),
-                      borderSide: BorderSide(color: AppColors.lightDivider!),
+                      borderSide: BorderSide(color: AppColors.lightDivider),
                     ),
                     focusedBorder: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(12),

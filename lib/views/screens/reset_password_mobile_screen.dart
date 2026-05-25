@@ -302,7 +302,7 @@ class _ResetPasswordMobileScreenState extends State<ResetPasswordMobileScreen> {
         children: [
           Icon(Icons.check_circle_outline, size: 16, color: Colors.grey),
           SizedBox(width: 8),
-          Text(text, style: TextStyle(fontSize: 13, color: AppColors.lightTextSecondary!, fontFamily: 'Roboto')),
+          Text(text, style: TextStyle(fontSize: 13, color: AppColors.lightTextSecondary, fontFamily: 'Roboto')),
         ],
       ),
     );

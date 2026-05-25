@@ -1,13 +1,34 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 
 import '../../theme.dart';
-import '../models/subscription.dart';
 import 'app_card.dart';
+
+/// Formats an epoch-seconds value to a readable date string.
+String _formatEpochToDate(dynamic epochValue) {
+  if (epochValue == null) return '--';
+  final epoch = (epochValue is int) ? epochValue : int.tryParse(epochValue.toString()) ?? 0;
+  if (epoch == 0) return '--';
+  final date = DateTime.fromMillisecondsSinceEpoch(epoch * 1000);
+  return '${date.day}/${date.month}/${date.year}';
+}
+
+/// Computes a human-readable billing period string from map fields.
+String _getBillingPeriodString(Map<String, dynamic> sub) {
+  final period = sub['billingPeriod'];
+  final unit = sub['billingPeriodUnit'];
+  if (period == null || unit == null) return '';
+  final p = period is int ? period : int.tryParse(period.toString()) ?? 0;
+  final u = unit.toString().toLowerCase();
+  if (u == 'day') return 'Every ${p}d';
+  if (u == 'month') return 'Every ${p}mo';
+  if (u == 'week') return 'Every ${p}w';
+  return 'Period: $p $u';
+}
 
 /// Enhanced subscription card that displays real subscription data
 class SubscriptionInfoCard extends StatelessWidget {
-  final Subscription? subscription;
+  final Map<String, dynamic>? subscription;
   final VoidCallback? onTap;
   final VoidCallback? onManageTap;
 
@@ -45,9 +66,9 @@ class SubscriptionInfoCard extends StatelessWidget {
                         Expanded(
                           child: Text(
                             hasSubscription
-                                ? subscription!.planId.isNotEmpty
-                                    ? subscription!.planId
-                                    : 'Subscription Plan'
+                                ? (subscription!['planId']?.toString().isNotEmpty == true
+                                    ? subscription!['planId'].toString()
+                                    : 'Subscription Plan')
                                 : 'No Subscription',
                             style: TextStyle(
                               fontSize: 16.sp,
@@ -62,7 +83,7 @@ class SubscriptionInfoCard extends StatelessWidget {
                     SizedBox(height: 4.h),
                     if (hasSubscription)
                       Text(
-                        subscription!.getBillingPeriodString(),
+                        _getBillingPeriodString(subscription!),
                         style: TextStyle(
                           fontSize: 12.sp,
                           color: LushTheme.lightText,
@@ -84,7 +105,7 @@ class SubscriptionInfoCard extends StatelessWidget {
                 ),
                 child: Text(
                   hasSubscription
-                      ? subscription!.getStatusText()
+                      ? (subscription!['status']?.toString().toUpperCase() ?? 'ACTIVE')
                       : 'INACTIVE',
                   style: TextStyle(
                     fontSize: 12.sp,
@@ -103,20 +124,20 @@ class SubscriptionInfoCard extends StatelessWidget {
             _buildDetailRow(
               icon: Icons.calendar_today,
               label: 'Started',
-              value: subscription!.getStartDate(),
+              value: _formatEpochToDate(subscription!['currentTermStart']),
             ),
             SizedBox(height: 8.h),
             _buildDetailRow(
               icon: Icons.event_available,
               label: 'Ends On',
-              value: subscription!.getEndDate(),
+              value: _formatEpochToDate(subscription!['currentTermEnd']),
             ),
             SizedBox(height: 8.h),
-            if (subscription!.nextBillingAt != null)
+            if (subscription!['nextBillingAt'] != null)
               _buildDetailRow(
                 icon: Icons.payment,
                 label: 'Next Billing',
-                value: subscription!.getNextBillingDate(),
+                value: _formatEpochToDate(subscription!['nextBillingAt']),
               ),
           ] else ...[
             // No subscription message
@@ -227,8 +248,8 @@ class SubscriptionInfoCard extends StatelessWidget {
 
   Color _getStatusColor() {
     if (subscription == null) return LushTheme.grey;
-
-    switch (subscription!.status.toLowerCase()) {
+    final status = (subscription!['status']?.toString() ?? '').toLowerCase();
+    switch (status) {
       case 'active':
         return Colors.green;
       case 'paused':

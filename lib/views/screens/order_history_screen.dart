@@ -1,4 +1,4 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:lush/services/order_service.dart';
 import 'package:shimmer/shimmer.dart';
@@ -183,7 +183,7 @@ class _OrderHistoryScreenState extends State<OrderHistoryScreen> {
       child: InkWell(
         onTap: () async {
           // Show order details
-          showDialog(
+          showDialog<void>(
             context: context,
             builder: (context) => _OrderDetailsDialog(
               orderService: _orderService,

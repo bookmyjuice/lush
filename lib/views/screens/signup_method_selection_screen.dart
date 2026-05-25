@@ -106,7 +106,7 @@ class SignupMethodSelectionScreenState
                 onTap: () async {
                   // 1. Show loading indicator
                   if (!context.mounted) return;
-                  showDialog(
+                  showDialog<bool?>(
                     context: context,
                     barrierDismissible: false,
                     builder: (ctx) => const Center(

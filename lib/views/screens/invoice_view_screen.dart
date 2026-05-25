@@ -1,4 +1,4 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:lush/services/invoice_service.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -56,7 +56,7 @@ class _InvoiceViewScreenState extends State<InvoiceViewScreen> {
 
   Future<void> _downloadPdf(String invoiceId) async {
     try {
-      showDialog(
+      showDialog<void>(
         context: context,
         barrierDismissible: false,
         builder: (context) => const Center(child: CircularProgressIndicator()),
@@ -65,7 +65,7 @@ class _InvoiceViewScreenState extends State<InvoiceViewScreen> {
       final pdfUrl = await _invoiceService.getInvoicePdfUrl(invoiceId);
       Navigator.pop(context); // Close loading dialog
 
-      if (pdfUrl != null && pdfUrl.isNotEmpty) {
+      if (pdfUrl.isNotEmpty == true) {
         final uri = Uri.parse(pdfUrl);
         if (await canLaunchUrl(uri)) {
           await launchUrl(uri, mode: LaunchMode.externalApplication);
@@ -83,7 +83,7 @@ class _InvoiceViewScreenState extends State<InvoiceViewScreen> {
 
   Future<void> _sendEmail(String invoiceId) async {
     try {
-      showDialog(
+      showDialog<void>(
         context: context,
         barrierDismissible: false,
         builder: (context) => const Center(child: CircularProgressIndicator()),
@@ -208,7 +208,6 @@ class _InvoiceViewScreenState extends State<InvoiceViewScreen> {
     final status = invoice['status']?.toString().toUpperCase() ?? 'UNKNOWN';
     final total = _formatCurrency(invoice['total']);
     final amountDue = _formatCurrency(invoice['amountDue'] ?? 0);
-    final amountPaid = _formatCurrency(invoice['amountPaid'] ?? 0);
     final date = _formatDate(invoice['date']);
     final dueDate = _formatDate(invoice['dueDate']);
 
@@ -367,7 +366,7 @@ class _InvoiceViewScreenState extends State<InvoiceViewScreen> {
                 ] else ...[
                   TextButton(
                     onPressed: () {
-                      showDialog(
+                      showDialog<void>(
                         context: context,
                         builder: (context) => _InvoiceDetailsDialog(
                           invoiceService: _invoiceService,

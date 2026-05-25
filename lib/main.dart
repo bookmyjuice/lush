@@ -57,6 +57,7 @@ import 'views/screens/reset_password_mobile_screen.dart';
 // New unified signup flow screens
 import 'views/screens/signup_method_selection_screen.dart';
 import 'views/screens/subscription_management_screen.dart';
+import 'views/screens/plan_selection_screen.dart';
 import 'views/screens/dashboard.dart'; // For DashboardMode
 import 'views/screens/address_selection_screen.dart';
 import 'views/screens/delivery_slot_selection_screen.dart';
@@ -282,6 +283,7 @@ class BookMyJuiceApp extends StatelessWidget {
                     toastMessage: '', toastHeading: ''),
                 '/dashboard': (_) => Dashboard(),
                 '/product-catalog': (_) => ProductCatalogScreen(),
+                '/plan-selection': (_) => const PlanSelectionScreen(),
               },
               onGenerateRoute: (settings) {
                 if (settings.name == '/myaccount') {
@@ -289,15 +291,7 @@ class BookMyJuiceApp extends StatelessWidget {
                     return MyAccountPage(settings.arguments as String);
                   });
                 }
-                if (settings.name == '/subscriptions') {
-                  return MaterialPageRoute(
-                    builder: (_) {
-                      return Subscription(
-                        settings.arguments as SubscriptionPageUrlArgument,
-                      );
-                    },
-                  );
-                } else if (settings.name == "/productDetails") {
+                if (settings.name == "/productDetails") {
                   return MaterialPageRoute(
                     builder: (_) {
                       return DetailPage(
@@ -387,13 +381,15 @@ class AuthWrapper extends StatelessWidget {
           );
         }
 
-        // ── AutoLoginFailed: Show login page with toast message ──
-        // BUG FIX 7: Instead of silently showing public dashboard, redirect
-        // to login page with the failure message so user can sign in manually.
+        // ── AutoLoginFailed: Show dashboard with toast notification ──
+        // REQUIREMENT 1&2: Dashboard is the default landing page for all users.
+        // Auto-login failure shows a toast on the dashboard instead of blocking
+        // the user with a login screen.
         if (state is AutoLoginFailed) {
-          return LoginPage(
-            toastMessage: state.toastMessage,
+          return Dashboard(
+            mode: DashboardMode.public,
             toastHeading: state.toastHeading,
+            toastMessage: state.toastMessage,
           );
         }
 
@@ -402,17 +398,19 @@ class AuthWrapper extends StatelessWidget {
           return Dashboard(mode: DashboardMode.public);
         }
 
-        // ── SignUpSuccessful: Go to login page to sign in with new credentials ──
-        // BUG FIX 7: Show login page after successful signup instead of public dashboard
+        // ── SignUpSuccessful: Show dashboard with success toast ──
+        // REQUIREMENT 1&2: After signup, user lands on dashboard (not login page).
         if (state is SignUpSuccessful) {
-          return const LoginPage(
-            toastMessage: 'Please sign in with your new account',
+          return Dashboard(
+            mode: DashboardMode.public,
             toastHeading: 'Registration Successful!',
+            toastMessage: 'Welcome to BookMyJuice! Start exploring fresh juices.',
           );
         }
 
         // ── Loading / LoggedOut / default: Show public dashboard ──
         return Dashboard(mode: DashboardMode.public);
+
       },
     );
   }
@@ -430,15 +428,6 @@ class MyAccountPageUrl {
 
   MyAccountPageUrl(this.url);
 }
-
-class SubscriptionPageUrlArgument {
-  final String premiumPageUrl, signaturePageUrl, delightPageUrl;
-  SubscriptionPageUrlArgument(
-      {required this.premiumPageUrl,
-      required this.signaturePageUrl,
-      required this.delightPageUrl});
-}
-
 
 class SignUpScreenArguments {
   // final user user;

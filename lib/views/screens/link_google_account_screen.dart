@@ -33,7 +33,6 @@ class _LinkGoogleAccountScreenState extends State<LinkGoogleAccountScreen> {
   final _otpController = TextEditingController();
   bool _isLoading = false;
   bool _otpSent = false;
-  bool _otpVerified = false;
   int _resendCountdown = 30;
   bool _canResend = false;
   final _userRepository = UserRepository();
@@ -85,7 +84,6 @@ class _LinkGoogleAccountScreenState extends State<LinkGoogleAccountScreen> {
     setState(() => _isLoading = false);
 
     if (response.contains('Success') || response.contains('verified')) {
-      setState(() => _otpVerified = true);
       _linkAccount();
     } else {
       _showToast('Invalid OTP', response, ToastificationType.error);
@@ -205,7 +203,7 @@ class _LinkGoogleAccountScreenState extends State<LinkGoogleAccountScreen> {
                     ),
                     enabledBorder: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(12),
-                      borderSide: BorderSide(color: AppColors.lightDivider!),
+                      borderSide: BorderSide(color: AppColors.lightDivider),
                     ),
                     focusedBorder: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(12),
@@ -244,7 +242,7 @@ class _LinkGoogleAccountScreenState extends State<LinkGoogleAccountScreen> {
                       ),
                       enabledBorder: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(12),
-                        borderSide: BorderSide(color: AppColors.lightDivider!),
+                        borderSide: BorderSide(color: AppColors.lightDivider),
                       ),
                       focusedBorder: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(12),
