@@ -48,6 +48,12 @@ dependencies:
   intl: ^0.20.2
   # Sentry error tracking
   sentry_flutter: ^8.10.0
+  # Referral sharing
+  share_plus: ^10.1.0
+  # Firebase Analytics
+  firebase_analytics: ^11.3.0
+  # Structured logging
+  logger: ^2.0.0
 
 dev_dependencies:
   flutter_test:

@@ -47,6 +47,8 @@ import 'views/screens/link_google_account_screen.dart';
 import 'views/screens/my_account_page.dart';
 import 'views/screens/notifications.dart';
 import 'views/screens/order_history_screen.dart';
+import 'views/screens/order/order_detail_screen.dart';
+import 'views/screens/referral/referral_screen.dart';
 import 'views/screens/phone_entry_after_email_screen.dart';
 import 'views/screens/phone_login_screen.dart';
 import 'views/screens/phone_otp_verification_screen.dart';
@@ -61,6 +63,11 @@ import 'views/screens/plan_selection_screen.dart';
 import 'views/screens/dashboard.dart'; // For DashboardMode
 import 'views/screens/address_selection_screen.dart';
 import 'views/screens/delivery_slot_selection_screen.dart';
+import 'views/screens/subscription/subscription_family_screen.dart';
+import 'views/screens/subscription/subscription_plan_screen.dart';
+import 'views/screens/subscription/subscription_schedule_screen.dart';
+import 'views/screens/subscription/subscription_summary_screen.dart';
+import 'views/models/subscription_selection.dart';
 
 void main() async {
   // 1. MUST be the first thing called
@@ -261,6 +268,7 @@ class BookMyJuiceApp extends StatelessWidget {
                     const SubscriptionManagementScreen(),
                 '/order-history': (_) => const OrderHistoryScreen(),
                 '/invoices': (_) => const InvoiceViewScreen(),
+                '/referral': (_) => const ReferralScreen(),
                 // New unified signup flow routes
                 '/signup-method-selection': (_) =>
                     const SignupMethodSelectionScreen(),
@@ -327,6 +335,32 @@ class BookMyJuiceApp extends StatelessWidget {
                 } else if (settings.name == '/home') {
                   return MaterialPageRoute(
                     builder: (_) => Dashboard(),
+                  );
+                } else if (settings.name == '/subscription-family') {
+                  return MaterialPageRoute(
+                    builder: (_) => const SubscriptionFamilyScreen(),
+                  );
+                } else if (settings.name == '/subscription-plan') {
+                  return MaterialPageRoute(
+                    builder: (_) => SubscriptionPlanScreen(
+                      family: settings.arguments as String,
+                    ),
+                  );
+                } else if (settings.name == '/subscription-schedule') {
+                  return MaterialPageRoute(
+                    builder: (_) => SubscriptionScheduleScreen(
+                      selection: settings.arguments as SubscriptionSelection,
+                    ),
+                  );
+                } else if (settings.name == '/subscription-summary') {
+                  return MaterialPageRoute(
+                    builder: (_) => SubscriptionSummaryScreen(
+                      selection: settings.arguments as SubscriptionSelection,
+                    ),
+                  );
+                } else if (settings.name == '/order-detail') {
+                  return MaterialPageRoute(
+                    builder: (_) => const OrderDetailScreen(),
                   );
                 } else {
                   return null;

@@ -1,19 +1,21 @@
 class User {
-  User(
-      {required this.id,
-      required this.email,
-      required this.phone,
-      required this.role,
-      required this.firstName,
-      required this.lastName,
-      required this.password,
-      required this.address,
-      required this.city,
-      required this.country,
-      required this.extendedAddr,
-      required this.extendedAddr2,
-      required this.state,
-      required this.zip});
+  User({
+    required this.id,
+    required this.email,
+    required this.phone,
+    required this.role,
+    required this.firstName,
+    required this.lastName,
+    required this.password,
+    required this.address,
+    required this.city,
+    required this.country,
+    required this.extendedAddr,
+    required this.extendedAddr2,
+    required this.state,
+    required this.zip,
+    this.referralCode,
+  });
   User.blank(
       this.address,
       this.city,
@@ -28,7 +30,8 @@ class User {
       this.phone,
       this.role,
       this.state,
-      this.zip);
+      this.zip,
+      this.referralCode);
   String id;
   String email;
   String phone;
@@ -43,6 +46,7 @@ class User {
   String state;
   String country;
   String zip;
+  String? referralCode;
   String roles = "user";
   String get getId => id;
 
@@ -113,6 +117,7 @@ class User {
         'city': city,
         'state': state,
         'country': country,
-        'zip': zip
+        'zip': zip,
+        'referralCode': referralCode,
       };
 }

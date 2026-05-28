@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../../theme.dart';
+import 'package:lush/theme/app_colors.dart';
 import '../models/item.dart';
 
 class SizeSelectionModal extends StatefulWidget {
@@ -74,7 +74,7 @@ class _SizeSelectionModalState extends State<SizeSelectionModal> {
                           style: const TextStyle(
                             fontSize: 18,
                             fontWeight: FontWeight.bold,
-                            color: LushTheme.darkerText,
+                            color: AppColors.lightTextPrimary,
                           ),
                         ),
                       ),
@@ -91,7 +91,7 @@ class _SizeSelectionModalState extends State<SizeSelectionModal> {
                     widget.item.description ?? 'Choose your size/variety',
                     style: const TextStyle(
                       fontSize: 14,
-                      color: LushTheme.lightText,
+                      color: AppColors.lightTextSecondary,
                     ),
                   ),
                 ],
@@ -115,7 +115,7 @@ class _SizeSelectionModalState extends State<SizeSelectionModal> {
                       style: TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.bold,
-                        color: LushTheme.darkerText,
+                        color: AppColors.lightTextPrimary,
                       ),
                     ),
                     const SizedBox(height: 8),
@@ -123,7 +123,7 @@ class _SizeSelectionModalState extends State<SizeSelectionModal> {
                       'This item doesn\'t have any size or price options configured.',
                       textAlign: TextAlign.center,
                       style: TextStyle(
-                        color: LushTheme.lightText,
+                        color: AppColors.lightTextSecondary,
                       ),
                     ),
                   ],
@@ -192,7 +192,7 @@ class _SizeSelectionModalState extends State<SizeSelectionModal> {
                                       fontSize: 16,
                                       color: isSelected
                                           ? Colors.orange
-                                          : LushTheme.darkerText,
+                                          : AppColors.lightTextPrimary,
                                     ),
                                   ),
                                   if (price.description != null)
@@ -200,7 +200,7 @@ class _SizeSelectionModalState extends State<SizeSelectionModal> {
                                       price.description!,
                                       style: const TextStyle(
                                         fontSize: 12,
-                                        color: LushTheme.lightText,
+                                        color: AppColors.lightTextSecondary,
                                       ),
                                     ),
                                 ],
@@ -224,7 +224,7 @@ class _SizeSelectionModalState extends State<SizeSelectionModal> {
                                   fontSize: 14,
                                   color: isSelected
                                       ? Colors.white
-                                      : LushTheme.darkerText,
+                                      : AppColors.lightTextPrimary,
                                 ),
                               ),
                             ),
@@ -264,7 +264,7 @@ class _SizeSelectionModalState extends State<SizeSelectionModal> {
                             style: const TextStyle(
                               fontWeight: FontWeight.w500,
                               fontSize: 14,
-                              color: LushTheme.darkerText,
+                              color: AppColors.lightTextPrimary,
                             ),
                           ),
                           Text(

@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:hexcolor/hexcolor.dart' as hex;
-import '../../theme.dart';
+import 'package:lush/theme/app_text_styles.dart';
 
 class SubscriptionPlanCard extends StatelessWidget {
   final Map<String, dynamic> plan;
@@ -66,7 +66,7 @@ class SubscriptionPlanCard extends StatelessWidget {
                               color: Colors.white,
                               fontSize: 22,
                               fontWeight: FontWeight.bold,
-                              fontFamily: LushTheme.fontName,
+                              fontFamily: AppTextStyles.fontFamily,
                             ),
                           ),
                           const SizedBox(height: 8),
@@ -75,7 +75,7 @@ class SubscriptionPlanCard extends StatelessWidget {
                             style: const TextStyle(
                               color: Colors.white,
                               fontSize: 14,
-                              fontFamily: LushTheme.fontName,
+                              fontFamily: AppTextStyles.fontFamily,
                             ),
                           ),
                           const SizedBox(height: 16),
@@ -85,7 +85,7 @@ class SubscriptionPlanCard extends StatelessWidget {
                               color: Colors.white,
                               fontSize: 18,
                               fontWeight: FontWeight.bold,
-                              fontFamily: LushTheme.fontName,
+                              fontFamily: AppTextStyles.fontFamily,
                             ),
                           ),
                         ],
@@ -114,7 +114,7 @@ class SubscriptionPlanCard extends StatelessWidget {
                                           style: const TextStyle(
                                             color: Colors.white,
                                             fontSize: 14,
-                                            fontFamily: LushTheme.fontName,
+                                            fontFamily: AppTextStyles.fontFamily,
                                           ),
                                         ),
                                       ),
@@ -145,7 +145,7 @@ class SubscriptionPlanCard extends StatelessWidget {
                             style: TextStyle(
                               fontSize: 16,
                               fontWeight: FontWeight.bold,
-                              fontFamily: LushTheme.fontName,
+                              fontFamily: AppTextStyles.fontFamily,
                             ),
                           ),
                         ),

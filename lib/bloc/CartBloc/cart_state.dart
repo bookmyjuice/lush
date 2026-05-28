@@ -27,3 +27,12 @@ class CartError extends CartState {
   @override
   List<Object?> get props => [message];
 }
+
+class OrderPlaced extends CartState {
+  final String orderId;
+
+  const OrderPlaced(this.orderId);
+
+  @override
+  List<Object?> get props => [orderId];
+}

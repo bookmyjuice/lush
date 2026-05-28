@@ -1,19 +1,12 @@
 import 'package:flutter/material.dart';
-import '../../theme.dart';
+import 'package:lush/theme/app_colors.dart';
 
+/// Theme extensions providing convenient access to commonly used colors
+/// from the AppColors design system.
 extension ThemeExtensions on BuildContext {
-  Color get lightGray => LushTheme.nearlyWhite;
-  Color get primaryColor => LushTheme.nearlyBlue;
-  Color get backgroundColor => LushTheme.background;
-  Color get textColor => LushTheme.darkerText;
-  Color get lightTextColor => LushTheme.lightText;
-}
-
-class AppSpacing {
-  static const double xs = 4.0;
-  static const double sm = 8.0;
-  static const double md = 16.0;
-  static const double lg = 24.0;
-  static const double xl = 32.0;
-  static const double xxl = 48.0;
+  Color get lightGray => AppColors.offWhite;
+  Color get primaryColor => AppColors.info;
+  Color get backgroundColor => AppColors.lightBackground;
+  Color get textColor => AppColors.lightTextPrimary;
+  Color get lightTextColor => AppColors.lightTextSecondary;
 }

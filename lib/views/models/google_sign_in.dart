@@ -59,17 +59,14 @@ class GoogleSignInHelper {
 
       debugPrint('🔑 Calling authenticate() to show account picker...');
       
-      // authenticate() shows the account picker on Android
+      // authenticate() shows the account picker on Android.
+      // Returns non-nullable GoogleSignInAccount in google_sign_in 7.x.
       final account = await _googleSignIn.authenticate();
 
       // Update internal state
-      if (account != null) { // ignore: unnecessary_null_comparison
-        _currentUser = account;
-        debugPrint('✅ Signed in: ${account.email}');
-        debugPrint('👤 Display Name: ${account.displayName}');
-      } else {
-        debugPrint('⚠️ Google Sign-In: User cancelled or no account selected');
-      }
+      _currentUser = account;
+      debugPrint('✅ Signed in: ${account.email}');
+      debugPrint('👤 Display Name: ${account.displayName}');
 
       return account;
     } catch (e) {

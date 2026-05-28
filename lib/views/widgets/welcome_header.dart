@@ -1,9 +1,9 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:lush/UserRepository/user_repository.dart';
 import 'package:lush/get_it.dart';
+import 'package:lush/theme/app_colors.dart';
 import '../models/user.dart';
-import '../../theme.dart';
 
 class WelcomeHeader extends StatelessWidget {
   final User user;
@@ -26,8 +26,8 @@ class WelcomeHeader extends StatelessWidget {
         decoration: BoxDecoration(
           gradient: LinearGradient(
             colors: [
-              LushTheme.orangeAccent,
-              LushTheme.background,
+              AppColors.primaryOrange,
+              AppColors.lightBackground,
             ],
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
@@ -38,7 +38,7 @@ class WelcomeHeader extends StatelessWidget {
           children: [
             CircleAvatar(
               radius: 30.r,
-              backgroundColor: LushTheme.white,
+              backgroundColor: AppColors.white,
               child: Text(
                 user.firstName.isNotEmpty
                     ? user.firstName[0].toUpperCase()
@@ -46,7 +46,7 @@ class WelcomeHeader extends StatelessWidget {
                 style: TextStyle(
                   fontSize: 24.sp,
                   fontWeight: FontWeight.bold,
-                  color: LushTheme.nearlyDarkBlue,
+                  color: AppColors.secondaryTealDark,
                 ),
               ),
             ),
@@ -59,7 +59,7 @@ class WelcomeHeader extends StatelessWidget {
                     'Welcome back,',
                     style: TextStyle(
                       fontSize: 14.sp,
-                      color: LushTheme.lightText,
+                      color: AppColors.lightTextSecondary,
                     ),
                   ),
                   SizedBox(height: 4.h),
@@ -68,7 +68,7 @@ class WelcomeHeader extends StatelessWidget {
                     style: TextStyle(
                       fontSize: 24.sp,
                       fontWeight: FontWeight.bold,
-                      color: LushTheme.darkerText,
+                      color: AppColors.lightTextPrimary,
                     ),
                   ),
                   SizedBox(height: 4.h),
@@ -76,7 +76,7 @@ class WelcomeHeader extends StatelessWidget {
                     'Ready for your healthy juice today?',
                     style: TextStyle(
                       fontSize: 12.sp,
-                      color: LushTheme.lightText,
+                      color: AppColors.lightTextSecondary,
                     ),
                   ),
                 ],
@@ -85,12 +85,12 @@ class WelcomeHeader extends StatelessWidget {
             Container(
               padding: EdgeInsets.all(8.w),
               decoration: BoxDecoration(
-                color: LushTheme.nearlyBlue.withValues(alpha: 0.1),
+                color: AppColors.info.withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(12.r),
               ),
               child: Icon(
                 Icons.local_drink,
-                color: LushTheme.orangeAccent,
+                color: AppColors.primaryOrange,
                 size: 24.sp,
               ),
             ),
@@ -137,14 +137,14 @@ class _WelcomeHeaderShimmerState extends State<WelcomeHeaderShimmer>
         return Container(
           padding: EdgeInsets.all(20.w),
           decoration: BoxDecoration(
-            color: LushTheme.nearlyWhite,
+            color: AppColors.offWhite,
             borderRadius: BorderRadius.circular(16.r),
           ),
           child: Row(
             children: [
               CircleAvatar(
                 radius: 30.r,
-                backgroundColor: LushTheme.grey.withValues(alpha: _animation.value),
+                backgroundColor: AppColors.grey.withValues(alpha: _animation.value),
               ),
               SizedBox(width: 16.w),
               Expanded(
@@ -155,7 +155,7 @@ class _WelcomeHeaderShimmerState extends State<WelcomeHeaderShimmer>
                       height: 14.h,
                       width: 100.w,
                       decoration: BoxDecoration(
-                        color: LushTheme.grey.withValues(alpha: _animation.value),
+                        color: AppColors.grey.withValues(alpha: _animation.value),
                         borderRadius: BorderRadius.circular(7.r),
                       ),
                     ),
@@ -164,7 +164,7 @@ class _WelcomeHeaderShimmerState extends State<WelcomeHeaderShimmer>
                       height: 24.h,
                       width: 150.w,
                       decoration: BoxDecoration(
-                        color: LushTheme.grey.withValues(alpha: _animation.value),
+                        color: AppColors.grey.withValues(alpha: _animation.value),
                         borderRadius: BorderRadius.circular(12.r),
                       ),
                     ),
@@ -173,7 +173,7 @@ class _WelcomeHeaderShimmerState extends State<WelcomeHeaderShimmer>
                       height: 12.h,
                       width: 200.w,
                       decoration: BoxDecoration(
-                        color: LushTheme.grey.withValues(alpha: _animation.value),
+                        color: AppColors.grey.withValues(alpha: _animation.value),
                         borderRadius: BorderRadius.circular(6.r),
                       ),
                     ),

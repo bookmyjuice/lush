@@ -4,6 +4,8 @@ import 'package:http/http.dart' as http;
 import 'package:lush/config/api_config.dart';
 import 'package:lush/services/secure_storage_service.dart';
 
+import '../utils/app_logger.dart';
+
 class OrderService {
   static String get baseUrl => ApiConfig.baseUrl;
   final SecureStorageService _secureStorage = SecureStorageService();
@@ -38,7 +40,7 @@ class OrderService {
         throw Exception('Failed to load orders: ${response.statusCode}');
       }
     } catch (e) {
-      print('Error fetching orders: $e');
+      appLogger.e('Error fetching orders', error: e);
       rethrow;
     }
   }
@@ -59,7 +61,7 @@ class OrderService {
         throw Exception('Failed to load order details: ${response.statusCode}');
       }
     } catch (e) {
-      print('Error fetching order details: $e');
+      appLogger.e('Error fetching order details', error: e);
       rethrow;
     }
   }
@@ -80,7 +82,7 @@ class OrderService {
         throw Exception('Failed to load local orders: ${response.statusCode}');
       }
     } catch (e) {
-      print('Error fetching local orders: $e');
+      appLogger.e('Error fetching local orders', error: e);
       rethrow;
     }
   }
@@ -101,7 +103,7 @@ class OrderService {
         throw Exception('Failed to load local order: ${response.statusCode}');
       }
     } catch (e) {
-      print('Error fetching local order: $e');
+      appLogger.e('Error fetching local order', error: e);
       rethrow;
     }
   }

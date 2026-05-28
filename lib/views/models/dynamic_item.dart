@@ -74,18 +74,30 @@ class DynamicItem {
         (name.isNotEmpty || externalName.isNotEmpty);
   }
 
+  // Chargebee returns snake_case keys.
+  // camelCase fallback supports legacy internal API calls.
+  // Reference: docs/data_models_map.md
+  static bool _parseBool(dynamic value) {
+    if (value == null) return false;
+    if (value is bool) return value;
+    if (value is String) return value.toLowerCase() == 'true';
+    return false;
+  }
+
   // Create from API response
   static DynamicItem fromApiResponse(Map<String, dynamic> json) {
     // Extract item prices if available
     List<dynamic> itemPrices = [];
-    if (json.containsKey('itemPrices') && json['itemPrices'] is List) {
-      itemPrices = json['itemPrices'] as List<dynamic>;
+    final rawPrices = json['item_prices'] ?? json['itemPrices'];
+    if (rawPrices is List) {
+      itemPrices = rawPrices;
     }
 
-    // Extract metadata if available
+    // Extract metadata if available (Chargebee: 'metadata', legacy: 'metaData')
     Map<String, dynamic> metaData = {};
-    if (json.containsKey('metaData') && json['metaData'] is Map) {
-      metaData = Map<String, dynamic>.from(json['metaData'] as Map<dynamic, dynamic>);
+    final rawMeta = json['metadata'] ?? json['metaData'];
+    if (rawMeta is Map) {
+      metaData = Map<String, dynamic>.from(rawMeta);
     }
 
     // Extract colors from metadata or use defaults
@@ -115,7 +127,7 @@ class DynamicItem {
     // Extract meals/ingredients if available
     List<String> meals = [];
     if (json.containsKey('ingredients') && json['ingredients'] is List) {
-      meals = List<String>.from(json['ingredients'] as List);
+      meals = List<String>.from(json['ingredients'] as Iterable);
     } else if (metaData.containsKey('ingredients') &&
         metaData['ingredients'] is List) {
       meals = List<String>.from(metaData['ingredients'] as List);
@@ -136,7 +148,7 @@ class DynamicItem {
     return DynamicItem(
       itemID: (json['id'] ?? '') as String,
       name: (json['name'] ?? '') as String,
-      externalName: (json['externalName'] ?? '') as String,
+      externalName: (json['external_name'] ?? json['externalName'] ?? '') as String,
       description: (json['description'] ?? '') as String,
       imagePath: imagePath,
       startColor: startColor,
@@ -146,12 +158,12 @@ class DynamicItem {
       type: (json['type'] ?? '') as String,
       status: (json['status'] ?? '') as String,
       unit: (json['unit'] ?? '') as String,
-      itemFamilyId: (json['itemFamilyId'] ?? '') as String,
-      enabledInPortal: json['enabledInPortal'] as bool? ?? false,
-      enabledForCheckout: json['enabledForCheckout'] as bool? ?? false,
-      isGiftable: json['isGiftable'] as bool? ?? false,
-      isShippable: json['isShippable'] as bool? ?? false,
-      deleted: json['deleted'] as bool? ?? false,
+      itemFamilyId: (json['item_family_id'] ?? json['itemFamilyId'] ?? '') as String,
+      enabledInPortal: _parseBool(json['enabled_in_portal'] ?? json['enabledInPortal']),
+      enabledForCheckout: _parseBool(json['enabled_for_checkout'] ?? json['enabledForCheckout']),
+      isGiftable: _parseBool(json['giftable'] ?? json['isGiftable']),
+      isShippable: _parseBool(json['shippable'] ?? json['isShippable']),
+      deleted: _parseBool(json['deleted']),
       category: json['category'] as String? ?? '',
       subcategory: json['subcategory'] as String? ?? '',
       benefits: json.containsKey('benefits') && json['benefits'] is List
@@ -164,10 +176,10 @@ class DynamicItem {
           ? List<String>.from(json['tags'] as Iterable)
           : [],
       servingSize: servingSize,
-      shelfLife: json['shelfLife'] as String? ?? '',
-      preparationTime: json['preparationTime'] as String? ?? '',
-      temperature: json['temperature'] as String? ?? '',
-      popularity: json['popularity'] as int? ?? 0,
+      shelfLife: (json['shelf_life'] ?? json['shelfLife']) as String? ?? '',
+      preparationTime: (json['preparation_time'] ?? json['preparationTime']) as String? ?? '',
+      temperature: (json['temperature'] ?? '') as String? ?? '',
+      popularity: (json['popularity'] ?? 0) as int? ?? 0,
       itemPrices: itemPrices.map((ip) {
         if (ip is Map && ip.containsKey('price')) {
           // Create a new map with price divided by 100

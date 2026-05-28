@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 
-import '../../theme.dart';
+import 'package:lush/theme/app_colors.dart';
 import 'app_card.dart';
 
 /// Formats an epoch-seconds value to a readable date string.
@@ -60,7 +60,7 @@ class SubscriptionInfoCard extends StatelessWidget {
                         Icon(
                           Icons.auto_awesome,
                           size: 20.sp,
-                          color: LushTheme.nearlyBlue,
+                          color: AppColors.info,
                         ),
                         SizedBox(width: 8.w),
                         Expanded(
@@ -73,7 +73,7 @@ class SubscriptionInfoCard extends StatelessWidget {
                             style: TextStyle(
                               fontSize: 16.sp,
                               fontWeight: FontWeight.bold,
-                              color: LushTheme.darkerText,
+                              color: AppColors.lightTextPrimary,
                             ),
                             overflow: TextOverflow.ellipsis,
                           ),
@@ -86,7 +86,7 @@ class SubscriptionInfoCard extends StatelessWidget {
                         _getBillingPeriodString(subscription!),
                         style: TextStyle(
                           fontSize: 12.sp,
-                          color: LushTheme.lightText,
+                          color: AppColors.lightTextSecondary,
                         ),
                       ),
                   ],
@@ -147,14 +147,14 @@ class SubscriptionInfoCard extends StatelessWidget {
                   Icon(
                     Icons.shopping_bag_outlined,
                     size: 48.sp,
-                    color: LushTheme.grey.withValues(alpha: 0.5),
+                    color: AppColors.grey.withValues(alpha: 0.5),
                   ),
                   SizedBox(height: 12.h),
                   Text(
                     'No active subscription',
                     style: TextStyle(
                       fontSize: 14.sp,
-                      color: LushTheme.lightText,
+                      color: AppColors.lightTextSecondary,
                     ),
                   ),
                   SizedBox(height: 4.h),
@@ -162,7 +162,7 @@ class SubscriptionInfoCard extends StatelessWidget {
                     'Subscribe for regular deliveries',
                     style: TextStyle(
                       fontSize: 12.sp,
-                      color: LushTheme.lightText.withValues(alpha: 0.7),
+                      color: AppColors.lightTextSecondary.withValues(alpha: 0.7),
                     ),
                   ),
                 ],
@@ -185,8 +185,8 @@ class SubscriptionInfoCard extends StatelessWidget {
                 style: TextStyle(fontSize: 14.sp),
               ),
               style: OutlinedButton.styleFrom(
-                foregroundColor: LushTheme.nearlyBlue,
-                side: BorderSide(color: LushTheme.nearlyBlue, width: 1.5),
+                foregroundColor: AppColors.info,
+                side: BorderSide(color: AppColors.info, width: 1.5),
                 padding: EdgeInsets.symmetric(vertical: 12.h),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(12.r),
@@ -210,13 +210,13 @@ class SubscriptionInfoCard extends StatelessWidget {
           width: 32.w,
           height: 32.w,
           decoration: BoxDecoration(
-            color: LushTheme.nearlyBlue.withValues(alpha: 0.1),
+            color: AppColors.info.withValues(alpha: 0.1),
             borderRadius: BorderRadius.circular(8.r),
           ),
           child: Icon(
             icon,
             size: 18.sp,
-            color: LushTheme.nearlyBlue,
+            color: AppColors.info,
           ),
         ),
         SizedBox(width: 12.w),
@@ -228,7 +228,7 @@ class SubscriptionInfoCard extends StatelessWidget {
                 label,
                 style: TextStyle(
                   fontSize: 12.sp,
-                  color: LushTheme.lightText,
+                  color: AppColors.lightTextSecondary,
                 ),
               ),
               Text(
@@ -236,7 +236,7 @@ class SubscriptionInfoCard extends StatelessWidget {
                 style: TextStyle(
                   fontSize: 14.sp,
                   fontWeight: FontWeight.w600,
-                  color: LushTheme.darkerText,
+                  color: AppColors.lightTextPrimary,
                 ),
               ),
             ],
@@ -247,7 +247,7 @@ class SubscriptionInfoCard extends StatelessWidget {
   }
 
   Color _getStatusColor() {
-    if (subscription == null) return LushTheme.grey;
+    if (subscription == null) return AppColors.grey;
     final status = (subscription!['status']?.toString() ?? '').toLowerCase();
     switch (status) {
       case 'active':
@@ -259,7 +259,7 @@ class SubscriptionInfoCard extends StatelessWidget {
       case 'expired':
         return Colors.grey;
       default:
-        return LushTheme.nearlyBlue;
+        return AppColors.info;
     }
   }
 }

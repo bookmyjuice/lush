@@ -10,8 +10,7 @@ import 'package:lush/bloc/CartBloc/cart_bloc.dart';
 import 'package:lush/bloc/CartBloc/cart_event.dart';
 import 'package:lush/get_it.dart';
 // import 'package:lush/main.dart';
-import 'package:lush/services/secure_storage_service.dart';
-import 'package:lush/services/subscription_service_v2.dart';
+import 'package:lush/services/subscription_service.dart';
 import 'package:lush/theme/app_colors.dart';
 import 'package:lush/theme/app_text_styles.dart';
 import 'package:lush/views/models/user.dart';
@@ -20,6 +19,7 @@ import 'package:toastification/toastification.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import '../widgets/cart_icon.dart';
+import '../widgets/my_bottles_widget.dart';
 import '../widgets/subscription_info_card.dart';
 
 
@@ -56,8 +56,8 @@ class HomePage2State extends State<Dashboard> with TickerProviderStateMixin {
   final ScrollController scrollController = ScrollController();
   double topBarOpacity = 0.1;
 
-  // Subscription data
-  final SubscriptionService _subscriptionService = SubscriptionService();
+  // Subscription data (v1 — injected via get_it, per docs/subscription_service_map.md)
+  final SubscriptionService _subscriptionService = getIt.get<SubscriptionService>();
   Map<String, dynamic>? _subscription;
   bool _isLoadingSubscription = false;
 
@@ -141,29 +141,19 @@ class HomePage2State extends State<Dashboard> with TickerProviderStateMixin {
   }
 
 
-  // Load subscription data from backend
+  // Load subscription data from backend (v1 — token handled by SecureStorageService internally)
   Future<void> _loadSubscriptionData() async {
     setState(() {
       _isLoadingSubscription = true;
     });
 
     try {
-      final secureStorage = SecureStorageService();
-      final token = await secureStorage.getAuthToken();
-
-      if (token != null && token.isNotEmpty) {
-        final subscriptions =
-            await _subscriptionService.getMySubscriptions(token);
-        setState(() {
-          _subscription = subscriptions.isNotEmpty ? subscriptions.first : null;
-          _isLoadingSubscription = false;
-        });
-      } else {
-        setState(() {
-          _subscription = null;
-          _isLoadingSubscription = false;
-        });
-      }
+      final subscriptions =
+          await _subscriptionService.getMySubscriptions();
+      setState(() {
+        _subscription = subscriptions.isNotEmpty ? subscriptions.first : null;
+        _isLoadingSubscription = false;
+      });
     } catch (e) {
       print('Error loading subscription data: $e');
       setState(() {
@@ -173,12 +163,9 @@ class HomePage2State extends State<Dashboard> with TickerProviderStateMixin {
     }
   }
 
-  void _navigateToSubscriptions() async {
-    // BUG-007 FIX: Redirect to native subscription management screen
-    // instead of Chargebee hosted pricing pages (which are deprecated - returns 410 GONE).
-    // Per NATIVE_BILLING_FLOW.md: all plan discovery and management is native.
+  void _navigateToSubscriptions() {
     if (mounted) {
-      Navigator.pushNamed(context, '/manage-subscriptions');
+      Navigator.pushNamed(context, '/subscription-family');
     }
   }
 
@@ -643,81 +630,6 @@ class HomePage2State extends State<Dashboard> with TickerProviderStateMixin {
     );
   }
 
-  /// Builds a login/signup card for public mode
-  // ignore: unused_element
-  Widget _buildLoginPromoCard(BuildContext context) {
-    return Padding(
-      padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 12.h),
-      child: Card(
-        elevation: 4,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(16.r),
-        ),
-        child: Container(
-          decoration: BoxDecoration(
-            gradient: const LinearGradient(
-              colors: [AppColors.primaryOrange, AppColors.primaryOrangeDark],
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-            ),
-            borderRadius: BorderRadius.circular(16.r),
-          ),
-          padding: EdgeInsets.all(20.w),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                children: [
-                  Icon(Icons.local_fire_department,
-                      color: AppColors.white, size: 28.sp),
-                  SizedBox(width: 8.w),
-                  Text(
-                    '🧃 Fresh Juice, Daily Delivery!',
-                    style: AppTextStyles.textTheme.titleMedium?.copyWith(
-                      color: AppColors.white,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                ],
-              ),
-              SizedBox(height: 12.h),
-              Text(
-                'Sign up today and get 20% off your first subscription order.',
-                style: AppTextStyles.textTheme.bodyMedium?.copyWith(
-                  color: AppColors.white.withValues(alpha: 0.9),
-                ),
-              ),
-              SizedBox(height: 16.h),
-              SizedBox(
-                width: double.infinity,
-                child: OutlinedButton(
-                  onPressed: () {
-                    Navigator.pushNamed(context, '/login');
-                  },
-                  style: OutlinedButton.styleFrom(
-                    foregroundColor: AppColors.white,
-                    side:
-                        const BorderSide(color: AppColors.white, width: 1.5),
-                    padding: EdgeInsets.symmetric(vertical: 14.h),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12.r),
-                    ),
-                  ),
-                  child: Text(
-                    'Get Started',
-                    style: AppTextStyles.textTheme.labelLarge?.copyWith(
-                      color: AppColors.white,
-                    ),
-                  ),
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
   @override
   Widget build(BuildContext context) {
     if (widget.mode == DashboardMode.public) {
@@ -890,7 +802,7 @@ class HomePage2State extends State<Dashboard> with TickerProviderStateMixin {
                 icon: Icons.subscriptions_rounded,
                 label: 'Plans',
                 isSelected: false,
-                onTap: () => _showLoginPrompt(context),
+                onTap: () => Navigator.pushNamed(context, '/subscription-family'),
               ),
               _buildNavItem(
                 icon: Icons.menu_book_rounded,
@@ -1170,6 +1082,7 @@ class HomePage2State extends State<Dashboard> with TickerProviderStateMixin {
             onTap: () async {
               String selfServePageUrl =
                   await widget.userRepository.getSelfServePageUrl();
+              if (!context.mounted) return;
               Navigator.pushNamed(context, '/myaccount',
                   arguments: selfServePageUrl);
             },
@@ -1254,6 +1167,33 @@ class HomePage2State extends State<Dashboard> with TickerProviderStateMixin {
             subtitle: "App preferences",
             onTap: () {
               Navigator.pushNamed(context, '/settings');
+            },
+          ),
+
+          Padding(
+            padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 8.h),
+            child: Text(
+              'BOTTLES',
+              style: TextStyle(
+                fontSize: 12.sp,
+                fontWeight: FontWeight.w600,
+                color: AppColors.lightTextSecondary,
+                letterSpacing: 1.2,
+              ),
+            ),
+          ),
+
+          _buildDrawerItem(
+            icon: Icons.recycling,
+            title: "My Bottles",
+            subtitle: "Track reusable bottles",
+            onTap: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute<void>(
+                  builder: (_) => const MyBottlesScreen(),
+                ),
+              );
             },
           ),
 
@@ -1525,10 +1465,8 @@ class HomePage2State extends State<Dashboard> with TickerProviderStateMixin {
                   icon: Icons.subscriptions_rounded,
                   label: 'Plans',
                   isSelected: false,
-                  onTap: () {
-                    // BUG-007 FIX: Redirect to native subscription management screen
-                    Navigator.pushNamed(context, '/manage-subscriptions');
-                  }),
+                  onTap: () => Navigator.pushNamed(context, '/subscription-family'),
+                ),
               _buildNavItem(
                 icon: Icons.menu_book_rounded,
                 label: 'menu',
@@ -1591,14 +1529,14 @@ class HomePage2State extends State<Dashboard> with TickerProviderStateMixin {
           children: [
             Icon(
               icon,
-              color: isSelected ? AppColors.primaryOrange : Colors.grey,
+              color: isSelected ? AppColors.primaryOrange : AppColors.grey,
               size: 24.sp,
             ),
             SizedBox(height: 4.h),
             Text(
               label,
               style: TextStyle(
-                color: isSelected ? AppColors.primaryOrange : Colors.grey,
+                color: isSelected ? AppColors.primaryOrange : AppColors.grey,
                 fontSize: 12.sp,
                 fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
               ),

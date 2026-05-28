@@ -13,3 +13,4 @@ export 'package:lush/views/screens/address_screen.dart';
 export 'package:lush/views/screens/settings_page.dart';
 export 'package:lush/views/screens/order_history_page.dart';
 export 'package:lush/views/screens/cart_screen.dart';
+export 'package:lush/views/screens/referral/referral_screen.dart';

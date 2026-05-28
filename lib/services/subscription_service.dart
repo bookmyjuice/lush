@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:lush/config/api_config.dart';
 import 'package:lush/services/secure_storage_service.dart';
+import 'package:lush/utils/app_logger.dart';
 
 class SubscriptionService {
   static String get baseUrl => ApiConfig.baseUrl;
@@ -28,7 +29,6 @@ class SubscriptionService {
         Uri.parse('$baseUrl/api/subscriptions/pricing/plans'),
         headers: headers,
       );
-
       if (response.statusCode == 200) {
         final data = json.decode(response.body);
         return List<Map<String, dynamic>>.from((data['data'] as List?) ?? []);
@@ -37,7 +37,7 @@ class SubscriptionService {
             'Failed to load subscription plans: ${response.statusCode}');
       }
     } catch (e) {
-      print('Error fetching subscription plans: $e');
+      appLogger.e('Error fetching subscription plans', error: e);
       rethrow;
     }
   }
@@ -50,7 +50,6 @@ class SubscriptionService {
         Uri.parse('$baseUrl/api/subscriptions/my'),
         headers: headers,
       );
-
       if (response.statusCode == 200) {
         final data = json.decode(response.body);
         return List<Map<String, dynamic>>.from((data['subscriptions'] as List?) ?? []);
@@ -60,21 +59,19 @@ class SubscriptionService {
         throw Exception('Failed to load subscriptions: ${response.statusCode}');
       }
     } catch (e) {
-      print('Error fetching subscriptions: $e');
+      appLogger.e('Error fetching subscriptions', error: e);
       rethrow;
     }
   }
 
   /// Get specific subscription details
-  Future<Map<String, dynamic>> getSubscriptionDetails(
-      String subscriptionId) async {
+  Future<Map<String, dynamic>> getSubscriptionDetails(String subscriptionId) async {
     try {
       final headers = await _getHeaders();
       final response = await http.get(
         Uri.parse('$baseUrl/api/subscriptions/$subscriptionId'),
         headers: headers,
       );
-
       if (response.statusCode == 200) {
         final data = json.decode(response.body);
         return data['data'] as Map<String, dynamic>;
@@ -83,7 +80,7 @@ class SubscriptionService {
             'Failed to load subscription details: ${response.statusCode}');
       }
     } catch (e) {
-      print('Error fetching subscription details: $e');
+      appLogger.e('Error fetching subscription details', error: e);
       rethrow;
     }
   }
@@ -97,7 +94,6 @@ class SubscriptionService {
         headers: headers,
         body: json.encode({'planId': planId}),
       );
-
       if (response.statusCode == 200) {
         final data = json.decode(response.body);
         return data as Map<String, dynamic>;
@@ -106,21 +102,22 @@ class SubscriptionService {
             'Failed to create subscription: ${response.statusCode}');
       }
     } catch (e) {
-      print('Error creating subscription: $e');
+      appLogger.e('Error creating subscription', error: e);
       rethrow;
     }
   }
 
   /// Pause a subscription. Returns {success, message}.
-  /// Backend returns 202 Accepted — caller must refetch to confirm state.
-  Future<Map<String, dynamic>> pauseSubscription(String subscriptionId) async {
+  Future<Map<String, dynamic>> pauseSubscription(
+      String subscriptionId,
+      {String duration = '1_week'}) async {
     try {
       final headers = await _getHeaders();
       final response = await http.put(
         Uri.parse('$baseUrl/api/subscriptions/$subscriptionId/pause'),
         headers: headers,
+        body: json.encode({'duration': duration}),
       );
-
       final body = json.decode(response.body);
       if (response.statusCode == 200 || response.statusCode == 202) {
         return {'success': true, 'message': body['message'] ?? 'Subscription paused'};
@@ -128,13 +125,12 @@ class SubscriptionService {
         throw Exception(body['message'] ?? 'Failed to pause subscription: ${response.statusCode}');
       }
     } catch (e) {
-      print('Error pausing subscription: $e');
+      appLogger.e('Error pausing subscription', error: e);
       rethrow;
     }
   }
 
   /// Resume a paused subscription. Returns {success, message}.
-  /// Backend returns 202 Accepted — caller must refetch to confirm state.
   Future<Map<String, dynamic>> resumeSubscription(String subscriptionId) async {
     try {
       final headers = await _getHeaders();
@@ -142,7 +138,6 @@ class SubscriptionService {
         Uri.parse('$baseUrl/api/subscriptions/$subscriptionId/resume'),
         headers: headers,
       );
-
       final body = json.decode(response.body);
       if (response.statusCode == 200 || response.statusCode == 202) {
         return {'success': true, 'message': body['message'] ?? 'Subscription resumed'};
@@ -150,21 +145,23 @@ class SubscriptionService {
         throw Exception(body['message'] ?? 'Failed to resume subscription: ${response.statusCode}');
       }
     } catch (e) {
-      print('Error resuming subscription: $e');
+      appLogger.e('Error resuming subscription', error: e);
       rethrow;
     }
   }
 
-  /// Cancel a subscription. Returns {success, message}.
-  /// Backend returns 202 Accepted — caller must refetch to confirm state.
-  Future<Map<String, dynamic>> cancelSubscription(String subscriptionId) async {
+  /// Cancel a subscription with reason. Returns {success, message}.
+  Future<Map<String, dynamic>> cancelSubscription(
+      String subscriptionId,
+      {String reason = ''}) async {
     try {
       final headers = await _getHeaders();
-      final response = await http.delete(
-        Uri.parse('$baseUrl/api/subscriptions/$subscriptionId'),
+      // Use PUT with reason body matching bmjServer /cancel endpoint
+      final response = await http.put(
+        Uri.parse('$baseUrl/api/subscriptions/$subscriptionId/cancel'),
         headers: headers,
+        body: json.encode({'reason': reason}),
       );
-
       final body = json.decode(response.body);
       if (response.statusCode == 200 || response.statusCode == 202) {
         return {'success': true, 'message': body['message'] ?? 'Subscription canceled'};
@@ -177,4 +174,26 @@ class SubscriptionService {
     }
   }
 
+  /// Modify subscription schedule. Returns {success, message}.
+  Future<Map<String, dynamic>> modifySchedule(
+      String subscriptionId,
+      Map<String, dynamic> schedule) async {
+    try {
+      final headers = await _getHeaders();
+      final response = await http.put(
+        Uri.parse('$baseUrl/api/subscriptions/$subscriptionId/modify'),
+        headers: headers,
+        body: json.encode({'schedule': schedule}),
+      );
+      final body = json.decode(response.body);
+      if (response.statusCode == 200 || response.statusCode == 202) {
+        return {'success': true, 'message': body['message'] ?? 'Schedule updated'};
+      } else {
+        throw Exception(body['message'] ?? 'Failed to modify schedule: ${response.statusCode}');
+      }
+    } catch (e) {
+      appLogger.e('Error modifying schedule', error: e);
+      rethrow;
+    }
+  }
 }

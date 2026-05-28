@@ -4,6 +4,8 @@ import 'package:http/http.dart' as http;
 import 'package:lush/config/api_config.dart';
 import 'package:lush/services/secure_storage_service.dart';
 
+import '../utils/app_logger.dart';
+
 class InvoiceService {
   static String get baseUrl => ApiConfig.baseUrl;
   final SecureStorageService _secureStorage = SecureStorageService();
@@ -39,7 +41,7 @@ class InvoiceService {
         throw Exception('Failed to load invoices: ${response.statusCode}');
       }
     } catch (e) {
-      print('Error fetching invoices: $e');
+      appLogger.e('Error fetching invoices', error: e);
       rethrow;
     }
   }
@@ -61,7 +63,7 @@ class InvoiceService {
             'Failed to load invoice details: ${response.statusCode}');
       }
     } catch (e) {
-      print('Error fetching invoice details: $e');
+      appLogger.e('Error fetching invoice details', error: e);
       rethrow;
     }
   }
@@ -82,7 +84,7 @@ class InvoiceService {
         throw Exception('Failed to get PDF URL: ${response.statusCode}');
       }
     } catch (e) {
-      print('Error getting PDF URL: $e');
+      appLogger.e('Error getting PDF URL', error: e);
       rethrow;
     }
   }
@@ -105,7 +107,7 @@ class InvoiceService {
         throw Exception('Failed to send invoice email: ${response.statusCode}');
       }
     } catch (e) {
-      print('Error sending invoice email: $e');
+      appLogger.e('Error sending invoice email', error: e);
       rethrow;
     }
   }
@@ -128,7 +130,7 @@ class InvoiceService {
             'Failed to load local invoices: ${response.statusCode}');
       }
     } catch (e) {
-      print('Error fetching local invoices: $e');
+      appLogger.e('Error fetching local invoices', error: e);
       rethrow;
     }
   }
@@ -149,7 +151,7 @@ class InvoiceService {
         throw Exception('Failed to load local invoice: ${response.statusCode}');
       }
     } catch (e) {
-      print('Error fetching local invoice: $e');
+      appLogger.e('Error fetching local invoice', error: e);
       rethrow;
     }
   }

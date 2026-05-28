@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import '../../theme.dart';
+import 'package:lush/theme/app_colors.dart';
+import 'package:lush/theme/app_text_styles.dart';
 
 class FilterOptions extends StatelessWidget {
   final String selectedCategory;
@@ -48,17 +49,17 @@ class FilterOptions extends StatelessWidget {
                 children: [
                   Icon(
                     Icons.tune,
-                    color: LushTheme.nearlyBlue,
+                    color: AppColors.info,
                     size: 18.sp,
                   ),
                   SizedBox(width: 8.w),
                   Text(
                     'Filters',
                     style: TextStyle(
-                      fontFamily: LushTheme.fontName,
+                      fontFamily: AppTextStyles.fontFamily,
                       fontWeight: FontWeight.bold,
                       fontSize: 16.sp,
-                      color: LushTheme.darkerText,
+                      color: AppColors.lightTextPrimary,
                     ),
                   ),
                 ],
@@ -83,7 +84,7 @@ class FilterOptions extends StatelessWidget {
                   ),
                 ),
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: LushTheme.nearlyBlue,
+                  backgroundColor: AppColors.info,
                   padding:
                       EdgeInsets.symmetric(horizontal: 12.w, vertical: 6.h),
                   minimumSize: Size(0, 32.h),
@@ -106,7 +107,7 @@ class FilterOptions extends StatelessWidget {
                   label: selectedCategory,
                   icon: Icons.category,
                   onTap: () => _showCategorySelectionDialog(context),
-                  color: LushTheme.orangeAccent,
+                  color: AppColors.primaryOrange,
                 ),
                 SizedBox(width: 8.w),
 
@@ -188,7 +189,7 @@ class FilterOptions extends StatelessWidget {
         return AlertDialog(
           title: Row(
             children: [
-              Icon(Icons.filter_list, color: LushTheme.nearlyBlue, size: 24.sp),
+              Icon(Icons.filter_list, color: AppColors.info, size: 24.sp),
               SizedBox(width: 8.w),
               const Text('Filter Options'),
             ],
@@ -204,7 +205,7 @@ class FilterOptions extends StatelessWidget {
                   Row(
                     children: [
                       Icon(Icons.category,
-                          color: LushTheme.orangeAccent, size: 16.sp),
+                          color: AppColors.primaryOrange, size: 16.sp),
                       SizedBox(width: 8.w),
                       Text(
                         'Juice Category',
@@ -231,18 +232,18 @@ class FilterOptions extends StatelessWidget {
                             });
                           }
                         },
-                        selectedColor: LushTheme.orangeAccent.withValues(alpha: 0.2),
+                        selectedColor: AppColors.primaryOrange.withValues(alpha: 0.2),
                         backgroundColor: Colors.grey.withValues(alpha: 0.1),
                         labelStyle: TextStyle(
                           color: isSelected
-                              ? LushTheme.orangeAccent
-                              : LushTheme.darkerText,
+                              ? AppColors.primaryOrange
+                              : AppColors.lightTextPrimary,
                           fontWeight:
                               isSelected ? FontWeight.bold : FontWeight.normal,
                         ),
                         avatar: isSelected
                             ? Icon(Icons.check_circle,
-                                color: LushTheme.orangeAccent, size: 16.sp)
+                                color: AppColors.primaryOrange, size: 16.sp)
                             : null,
                         padding: EdgeInsets.symmetric(
                             horizontal: 12.w, vertical: 8.h),
@@ -285,7 +286,7 @@ class FilterOptions extends StatelessWidget {
                         backgroundColor: Colors.grey.withValues(alpha: 0.1),
                         labelStyle: TextStyle(
                           color:
-                              isSelected ? Colors.green : LushTheme.darkerText,
+                              isSelected ? Colors.green : AppColors.lightTextPrimary,
                           fontWeight:
                               isSelected ? FontWeight.bold : FontWeight.normal,
                         ),
@@ -321,7 +322,7 @@ class FilterOptions extends StatelessWidget {
                 Navigator.pop(context);
               },
               style: ElevatedButton.styleFrom(
-                backgroundColor: LushTheme.nearlyBlue,
+                backgroundColor: AppColors.info,
                 foregroundColor: Colors.white,
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(8.r),
@@ -341,7 +342,7 @@ class FilterOptions extends StatelessWidget {
       builder: (context) => AlertDialog(
         title: Row(
           children: [
-            Icon(Icons.category, color: LushTheme.orangeAccent, size: 20.sp),
+            Icon(Icons.category, color: AppColors.primaryOrange, size: 20.sp),
             SizedBox(width: 8.w),
             const Text('Select Juice Category'),
           ],
@@ -362,13 +363,13 @@ class FilterOptions extends StatelessWidget {
                   height: 40.w,
                   decoration: BoxDecoration(
                     color: isSelected
-                        ? LushTheme.orangeAccent.withValues(alpha: 0.1)
+                        ? AppColors.primaryOrange.withValues(alpha: 0.1)
                         : Colors.grey.withValues(alpha: 0.1),
                     shape: BoxShape.circle,
                   ),
                   child: Icon(
                     isSelected ? Icons.check_circle : Icons.circle_outlined,
-                    color: isSelected ? LushTheme.orangeAccent : Colors.grey,
+                    color: isSelected ? AppColors.primaryOrange : Colors.grey,
                     size: 24.sp,
                   ),
                 ),
@@ -378,19 +379,19 @@ class FilterOptions extends StatelessWidget {
                     fontWeight:
                         isSelected ? FontWeight.bold : FontWeight.normal,
                     color: isSelected
-                        ? LushTheme.orangeAccent
-                        : LushTheme.darkerText,
+                        ? AppColors.primaryOrange
+                        : AppColors.lightTextPrimary,
                   ),
                 ),
                 subtitle: Text(
                   _getCategoryDescription(category),
                   style: TextStyle(
                     fontSize: 12.sp,
-                    color: LushTheme.lightText,
+                    color: AppColors.lightTextSecondary,
                   ),
                 ),
                 trailing: isSelected
-                    ? Icon(Icons.check, color: LushTheme.orangeAccent)
+                    ? Icon(Icons.check, color: AppColors.primaryOrange)
                     : null,
                 contentPadding:
                     EdgeInsets.symmetric(horizontal: 8.w, vertical: 4.h),
@@ -398,7 +399,7 @@ class FilterOptions extends StatelessWidget {
                   borderRadius: BorderRadius.circular(8.r),
                 ),
                 tileColor: isSelected
-                    ? LushTheme.orangeAccent.withValues(alpha: 0.05)
+                    ? AppColors.primaryOrange.withValues(alpha: 0.05)
                     : null,
               );
             }).toList(),
@@ -469,14 +470,14 @@ class FilterOptions extends StatelessWidget {
                   style: TextStyle(
                     fontWeight:
                         isSelected ? FontWeight.bold : FontWeight.normal,
-                    color: isSelected ? Colors.green : LushTheme.darkerText,
+                    color: isSelected ? Colors.green : AppColors.lightTextPrimary,
                   ),
                 ),
                 subtitle: Text(
                   _getSizeDescription(size),
                   style: TextStyle(
                     fontSize: 12.sp,
-                    color: LushTheme.lightText,
+                    color: AppColors.lightTextSecondary,
                   ),
                 ),
                 trailing:

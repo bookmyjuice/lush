@@ -2,6 +2,7 @@ import 'dart:convert';
 
 import 'package:http/http.dart' as http;
 import 'package:lush/config/api_config.dart';
+import 'package:lush/utils/app_logger.dart';
 
 /// Service for fetching and managing subscription data
 class SubscriptionService {
@@ -35,7 +36,7 @@ class SubscriptionService {
         throw Exception('Failed to load subscriptions: ${response.statusCode}');
       }
     } catch (e) {
-      print('Error fetching subscriptions: $e');
+      appLogger.e('Error fetching subscriptions', error: e);
       return [];
     }
   }
@@ -61,7 +62,7 @@ class SubscriptionService {
         throw Exception('Failed to load subscription: ${response.statusCode}');
       }
     } catch (e) {
-      print('Error fetching subscription: $e');
+      appLogger.e('Error fetching subscription', error: e);
       return null;
     }
   }
@@ -86,7 +87,7 @@ class SubscriptionService {
         throw Exception('Failed to create subscription: ${response.statusCode}');
       }
     } catch (e) {
-      print('Error creating subscription: $e');
+      appLogger.e('Error creating subscription', error: e);
       return null;
     }
   }
@@ -104,7 +105,7 @@ class SubscriptionService {
 
       return response.statusCode == 200;
     } catch (e) {
-      print('Error pausing subscription: $e');
+      appLogger.e('Error pausing subscription', error: e);
       return false;
     }
   }
@@ -122,7 +123,7 @@ class SubscriptionService {
 
       return response.statusCode == 200;
     } catch (e) {
-      print('Error resuming subscription: $e');
+      appLogger.e('Error resuming subscription', error: e);
       return false;
     }
   }
@@ -140,7 +141,7 @@ class SubscriptionService {
 
       return response.statusCode == 200;
     } catch (e) {
-      print('Error canceling subscription: $e');
+      appLogger.e('Error canceling subscription', error: e);
       return false;
     }
   }
@@ -165,7 +166,7 @@ class SubscriptionService {
         throw Exception('Failed to load plans: ${response.statusCode}');
       }
     } catch (e) {
-      print('Error fetching plans: $e');
+      appLogger.e('Error fetching plans', error: e);
       return [];
     }
   }
@@ -188,7 +189,7 @@ class SubscriptionService {
         throw Exception('Failed to get pricing page: ${response.statusCode}');
       }
     } catch (e) {
-      print('Error getting pricing page: $e');
+      appLogger.e('Error getting pricing page', error: e);
       return null;
     }
   }

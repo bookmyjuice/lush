@@ -185,8 +185,8 @@ class LoginPageState extends State<LoginPage>
                     ),
                     dividerHeight: 0,
                     tabs: const [
-                      Tab(text: 'Sign In'),
-                      Tab(text: 'Sign Up'),
+                      Tab(key: Key('login_tab_sign_in'), text: 'Sign In'),
+                      Tab(key: Key('login_tab_sign_up'), text: 'Sign Up'),
                     ],
                   ),
                 ),
@@ -244,6 +244,7 @@ class LoginPageState extends State<LoginPage>
 
             // ── Email Field ──
             _buildWhiteTextField(
+              key: const Key('login_email_field'),
               controller: _emailController,
               hintText: 'Email address',
               prefixIcon: Icons.email_outlined,
@@ -262,6 +263,7 @@ class LoginPageState extends State<LoginPage>
 
             // ── Password Field ──
             _buildWhiteTextField(
+              key: const Key('login_password_field'),
               controller: _passwordController,
               hintText: 'Password',
               prefixIcon: Icons.lock_outlined,
@@ -291,6 +293,7 @@ class LoginPageState extends State<LoginPage>
             Align(
               alignment: Alignment.centerRight,
               child: TextButton(
+                key: const Key('login_forgot_password'),
                 onPressed: () {
                   Navigator.of(context).pushNamed("/forgot-password");
                 },
@@ -521,6 +524,7 @@ class LoginPageState extends State<LoginPage>
       width: double.infinity,
       height: 50,
       child: ElevatedButton(
+        key: const Key('login_signin_button'),
         onPressed: _isSignInLoading ? null : _handleSignIn,
         style: ElevatedButton.styleFrom(
           backgroundColor: AppColors.white,
@@ -645,6 +649,7 @@ class LoginPageState extends State<LoginPage>
     bool obscureText = false,
     Widget? suffixIcon,
     String? Function(String?)? validator,
+    Key? key,
   }) {
     return Container(
       decoration: BoxDecoration(
@@ -652,7 +657,8 @@ class LoginPageState extends State<LoginPage>
         borderRadius: BorderRadius.circular(AppRadius.lg + 2),
         border: Border.all(color: AppColors.white.withOpacity(0.3)),
       ),
-      child: TextFormField(
+          child: TextFormField(
+            key: key,
         controller: controller,
         keyboardType: keyboardType,
         obscureText: obscureText,

@@ -35,3 +35,28 @@ class UpdateCartItem extends CartEvent {
   @override
   List<Object?> get props => [item];
 }
+
+class PlaceOneTimeOrder extends CartEvent {
+  final List<CartItem> items;
+  final String deliveryAddress;
+  final DateTime deliveryDate;
+
+  const PlaceOneTimeOrder({
+    required this.items,
+    required this.deliveryAddress,
+    required this.deliveryDate,
+  });
+
+  @override
+  List<Object?> get props => [items, deliveryAddress, deliveryDate];
+}
+
+class ReorderItems extends CartEvent {
+  final String orderId;
+  final List<Map<String, dynamic>> items;
+
+  const ReorderItems({required this.orderId, required this.items});
+
+  @override
+  List<Object?> get props => [orderId, items];
+}

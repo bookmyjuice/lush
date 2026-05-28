@@ -1,73 +1,90 @@
-﻿import 'package:flutter/material.dart';
-import 'package:lush/theme/app_colors.dart';
-import 'package:rive/rive.dart' as rive;
+import 'package:flutter/material.dart';
+import 'package:lush/views/screens/login_page.dart';
 
-class SplashScreen extends StatefulWidget {
-  const SplashScreen({super.key});
+class SplashPage extends StatefulWidget {
+  const SplashPage({super.key});
+
   @override
-  SplashScreenState createState() => SplashScreenState();
+  State<SplashPage> createState() => _SplashPageState();
 }
 
-class SplashScreenState extends State<SplashScreen> {
-  rive.RiveWidgetController? _controller;
+class _SplashPageState extends State<SplashPage>
+    with SingleTickerProviderStateMixin {
+  late AnimationController _animationController;
+  late Animation<double> _fadeAnimation;
 
   @override
   void initState() {
     super.initState();
-    _initRive();
-  }
+    _animationController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 1500),
+    );
+    _fadeAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
+      CurvedAnimation(parent: _animationController, curve: Curves.easeIn),
+    );
+    _animationController.forward();
 
-  Future<void> _initRive() async {
-    try {
-      // Load the asset using the new static factory
-      final riveFile = await rive.File.asset(
-        'assets/BOOKMYJUICE_LOGO.riv',
-        // Factory.rive is the high-performance C++ renderer
-        riveFactory: rive.Factory.rive, 
+    Future.delayed(const Duration(seconds: 2), () {
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(
+          builder: (context) => const LoginPage(
+            toastHeading: '',
+            toastMessage: '',
+          ),
+        ),
       );
-
-      if (riveFile != null && mounted) {
-        setState(() {
-          // Initialize controller with the correct Artboard selector
-          _controller = rive.RiveWidgetController(
-            riveFile,
-            artboardSelector: const rive.ArtboardNamed('Artboard'),
-          );
-          
-        });
-      }
-    } catch (e) {
-      debugPrint('Rive Load Error: $e');
-    }
+    });
   }
 
   @override
   void dispose() {
-    _controller?.dispose(); // Vital to prevent memory leaks in the native runtime
+    _animationController.dispose();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.lightBackground,
+      key: const Key('splash_screen'),
+      backgroundColor: Colors.orange,
       body: Center(
-        child: SizedBox(
-          height: 76.35,
-          width: 76.35,
-          child: _controller == null
-              ? const Center(
-                  child: CircularProgressIndicator(
-                    color: Colors.white,
-                    strokeWidth: 2,
-                  ),
-                )
-              : rive.RiveWidget(
-                  controller: _controller!,
-                  // Fit and Alignment are now handled by the Widget, not Controller
-                  fit: rive.Fit.fitHeight,
-                  alignment: Alignment.center,
+        child: FadeTransition(
+          opacity: _fadeAnimation,
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              const SizedBox(
+                key: Key('splash_logo'),
+                height: 150,
+                width: 150,
+                child: Icon(
+                  Icons.local_drink,
+                  size: 100,
+                  color: Colors.white,
                 ),
+              ),
+              const SizedBox(height: 24),
+              const Text(
+                'BookMyJuice',
+                key: Key('splash_title'),
+                style: TextStyle(
+                  fontSize: 32,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.white,
+                ),
+              ),
+              const SizedBox(height: 8),
+              const Text(
+                'Fresh Juices, Delivered Daily',
+                style: TextStyle(
+                  fontSize: 16,
+                  color: Colors.white70,
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );

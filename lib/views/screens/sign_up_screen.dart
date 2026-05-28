@@ -40,6 +40,7 @@ class SignUpScreenState extends State<SignUpScreen> {
   final _firstNameController = TextEditingController();
   final _lastNameController = TextEditingController();
   final _phoneController = TextEditingController();
+  final _referralCodeController = TextEditingController();
 
   // Password visibility
   bool _obscurePassword = true;
@@ -62,6 +63,7 @@ class SignUpScreenState extends State<SignUpScreen> {
     _firstNameController.dispose();
     _lastNameController.dispose();
     _phoneController.dispose();
+    _referralCodeController.dispose();
     super.dispose();
   }
 
@@ -296,6 +298,15 @@ class SignUpScreenState extends State<SignUpScreen> {
                         return null;
                       },
                     ),
+                    const SizedBox(height: AppSpacing.md),
+
+                    // Referral Code Field
+                    AppTextField(
+                      label: 'Referral Code (Optional)',
+                      hint: 'Enter referral code',
+                      prefixIcon: Icons.redeem_outlined,
+                      controller: _referralCodeController,
+                    ),
                     const SizedBox(height: AppSpacing.xl),
 
                     // Submit Button
@@ -426,9 +437,13 @@ class SignUpScreenState extends State<SignUpScreen> {
     }
 
     // Dispatch signup event to AuthBloc
+    final referralCode = _referralCodeController.text.trim().isNotEmpty
+        ? _referralCodeController.text.trim()
+        : null;
     context.read<AuthenticationBloc>().add(CompleteSignup(
           password: _passwordController.text,
           confirmPassword: _confirmPasswordController.text,
+          referralCode: referralCode,
         ));
 
     // Note: Email, phone, name, address are collected in previous steps

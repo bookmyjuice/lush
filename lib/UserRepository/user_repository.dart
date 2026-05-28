@@ -843,7 +843,7 @@ class UserRepository {
               'googleFirstName': linkResult['googleFirstName'],
               'googleLastName': linkResult['googleLastName'],
               'googleId': linkResult['googleId'],
-              'photoUrl': currentUser.photoUrl,
+              'photoUrl': currentUser.photoUrl?.toString(),
             };
           }
         }

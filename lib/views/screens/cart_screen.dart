@@ -556,6 +556,7 @@ class CartScreenState extends State<CartScreen> {
                       try {
                         final checkoutUrl =
                             await userRepository.getCartCheckoutUrl(cartItems);
+                        if (!mounted) return;
                         if (checkoutUrl.isNotEmpty) {
                           Navigator.of(context)
                               .pushNamed('/checkout', arguments: checkoutUrl);

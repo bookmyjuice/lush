@@ -7,20 +7,6 @@ abstract class AuthenticationEvent extends Equatable {
   List<Object> get props => [];
 }
 
-class AuthenticationStarted extends AuthenticationEvent {}
-
-class AuthenticationLoggedIn extends AuthenticationEvent {
-  final String token;
-
-  const AuthenticationLoggedIn({required this.token});
-
-  @override
-  List<Object> get props => [token];
-
-  @override
-  String toString() => 'AuthenticationLoggedIn { token: $token }';
-}
-
 class LogOut extends AuthenticationEvent {}
 
 class AutoLogIn extends AuthenticationEvent {}
@@ -213,14 +199,16 @@ class EnterAddress extends AuthenticationEvent {
 class CompleteSignup extends AuthenticationEvent {
   final String password;
   final String confirmPassword;
+  final String? referralCode;
 
   const CompleteSignup({
     required this.password,
     required this.confirmPassword,
+    this.referralCode,
   });
 
   @override
-  List<Object> get props => [password, confirmPassword];
+  List<Object> get props => [password, confirmPassword, referralCode ?? ""];
 }
 
 // Legacy events (keep for backward compatibility)
@@ -233,11 +221,6 @@ class MobileSignUp extends AuthenticationEvent {
 }
 
 class FacebookSignUp extends AuthenticationEvent {
-  @override
-  List<Object> get props => [];
-}
-
-class SignInFacebook extends AuthenticationEvent {
   @override
   List<Object> get props => [];
 }

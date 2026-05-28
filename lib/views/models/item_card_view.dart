@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:hexcolor/hexcolor.dart' as hex;
-import '../../theme.dart';
+import 'package:lush/theme/app_colors.dart';
+import 'package:lush/theme/app_text_styles.dart';
 import '../../bloc/CartBloc/cart_bloc.dart';
 import '../../bloc/CartBloc/cart_event.dart';
 import '../widgets/size_selection_modal.dart';
@@ -80,6 +81,7 @@ class ItemCardView extends StatelessWidget {
                       // Use a delayed future to ensure we're not using a disposed context
                       Future<void>.delayed(Duration.zero, () {
                         // Get the navigator from the current context
+                        if (!context.mounted) return;
                         final navigator = Navigator.of(
                           ScaffoldMessenger.of(context).context,
                           rootNavigator: true,
@@ -249,11 +251,11 @@ class ItemCardView extends StatelessWidget {
                                   maxLines: 1,
                                   overflow: TextOverflow.ellipsis,
                                   style: const TextStyle(
-                                    fontFamily: LushTheme.fontName,
+                                    fontFamily: AppTextStyles.fontFamily,
                                     fontWeight: FontWeight.bold,
                                     fontSize: 14,
                                     letterSpacing: 0.2,
-                                    color: LushTheme.white,
+                                    color: AppColors.white,
                                   ),
                                 ),
                                 const SizedBox(height: 4),
@@ -278,33 +280,16 @@ class ItemCardView extends StatelessWidget {
 
                                 const SizedBox(height: 4),
 
-                                // Calories info (if available)
-                                // if (item.kacl != null)
-                                //   Text(
-                                //     'Calories: ${item.kacl ?? 0}',
-                                //     style: const TextStyle(
-                                //       fontFamily: LushTheme.fontName,
-                                //       fontWeight: FontWeight.w500,
-                                //       fontSize: 10,
-                                //       letterSpacing: 0.2,
-                                //       color: LushTheme.white,
-                                //     ),
-                                //   ),
-
-                                // const SizedBox(height: 4),
-
                                 // Price display
                                 Text(
                                   'MRP: ₹${(item.itemPrices?.isNotEmpty ?? false) ? (item.itemPrices![0].price?.toStringAsFixed(0) ?? '0') : (item.price?.toStringAsFixed(0) ?? '0')}',
                                   style: const TextStyle(
-                                    fontFamily: LushTheme.fontName,
+                                    fontFamily: AppTextStyles.fontFamily,
                                     fontWeight: FontWeight.bold,
                                     fontSize: 12,
                                     color: Colors.white,
                                   ),
                                 ),
-
-                                // const SizedBox(height: 29),
 
                                 // Add to cart button
                                 SizedBox(

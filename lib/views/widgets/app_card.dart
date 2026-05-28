@@ -1,6 +1,6 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import '../../theme.dart';
+import 'package:lush/theme/app_colors.dart';
 
 class AppCard extends StatelessWidget {
   final Widget child;
@@ -36,12 +36,12 @@ class AppCard extends StatelessWidget {
           child: Container(
             padding: padding ?? EdgeInsets.all(20.w),
             decoration: BoxDecoration(
-              color: backgroundColor ?? LushTheme.white,
+              color: backgroundColor ?? AppColors.white,
               borderRadius: BorderRadius.circular(borderRadius ?? 16.r),
               boxShadow: boxShadow ??
                   [
                     BoxShadow(
-                      color: LushTheme.grey.withValues(alpha: 0.1),
+                      color: AppColors.grey.withValues(alpha: 0.1),
                       spreadRadius: 1,
                       blurRadius: 10,
                       offset: const Offset(0, 3),
@@ -74,29 +74,30 @@ class AppCardHeader extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Row(
-      children: [
+      children: <Widget>[
         Expanded(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
+            children: <Widget>[
               Text(
                 title,
                 style: TextStyle(
                   fontSize: 18.sp,
                   fontWeight: FontWeight.bold,
-                  color: LushTheme.darkerText,
+                  color: AppColors.lightTextPrimary,
                 ),
               ),
-              if (subtitle != null) ...[
-                SizedBox(height: 4.h),
-                Text(
-                  subtitle!,
-                  style: TextStyle(
-                    fontSize: 14.sp,
-                    color: LushTheme.lightText,
+              if (subtitle != null)
+                ...[
+                  SizedBox(height: 4.h),
+                  Text(
+                    subtitle!,
+                    style: TextStyle(
+                      fontSize: 14.sp,
+                      color: AppColors.lightTextSecondary,
+                    ),
                   ),
-                ),
-              ],
+                ],
             ],
           ),
         ),
@@ -107,13 +108,13 @@ class AppCardHeader extends StatelessWidget {
             child: Container(
               padding: EdgeInsets.all(8.w),
               decoration: BoxDecoration(
-                color: LushTheme.nearlyBlue.withValues(alpha: 0.1),
+                color: AppColors.info.withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(8.r),
               ),
               child: Icon(
                 Icons.arrow_forward_ios,
                 size: 16.sp,
-                color: LushTheme.nearlyBlue,
+                color: AppColors.info,
               ),
             ),
           ),
@@ -164,7 +165,7 @@ class _AppLoadingCardState extends State<AppLoadingCard>
       builder: (context, child) {
         return AppCard(
           margin: widget.margin,
-          backgroundColor: LushTheme.nearlyWhite,
+          backgroundColor: AppColors.offWhite,
           child: SizedBox(
             height: widget.height ?? 120.h,
             child: Column(
@@ -174,7 +175,7 @@ class _AppLoadingCardState extends State<AppLoadingCard>
                   height: 20.h,
                   width: 150.w,
                   decoration: BoxDecoration(
-                    color: LushTheme.grey.withValues(alpha: _animation.value),
+                    color: AppColors.grey.withValues(alpha: _animation.value),
                     borderRadius: BorderRadius.circular(10.r),
                   ),
                 ),
@@ -183,7 +184,7 @@ class _AppLoadingCardState extends State<AppLoadingCard>
                   height: 16.h,
                   width: 200.w,
                   decoration: BoxDecoration(
-                    color: LushTheme.grey.withValues(alpha: _animation.value),
+                    color: AppColors.grey.withValues(alpha: _animation.value),
                     borderRadius: BorderRadius.circular(8.r),
                   ),
                 ),
@@ -192,7 +193,7 @@ class _AppLoadingCardState extends State<AppLoadingCard>
                   height: 16.h,
                   width: 120.w,
                   decoration: BoxDecoration(
-                    color: LushTheme.grey.withValues(alpha: _animation.value),
+                    color: AppColors.grey.withValues(alpha: _animation.value),
                     borderRadius: BorderRadius.circular(8.r),
                   ),
                 ),

@@ -124,7 +124,7 @@ class Item {
     );
   }
 
-  Map<String, dynamic> toJson() {
+  Map<String, dynamic> toChargebeeJson() {
     final Map<String, dynamic> data = <String, dynamic>{};
     data['id'] = id;
     data['description'] = description;
@@ -146,8 +146,14 @@ class Item {
     if (itemPrices != null) {
       data['item_prices'] = itemPrices!.map((e) => e.toJson()).toList();
     }
+    return data;
+  }
 
-    // JuiceItem properties
+  Map<String, dynamic> toDisplayJson() {
+    final Map<String, dynamic> data = <String, dynamic>{};
+    data['id'] = id;
+    data['name'] = name;
+    data['description'] = description;
     data['imagePath'] = imagePath;
     data['titleTxt'] = titleTxt;
     data['startColor'] = startColor;
@@ -156,8 +162,21 @@ class Item {
     data['kacl'] = kacl;
     data['price'] = price;
     data['rating'] = rating;
-
+    data['servingSize'] = servingSize;
+    data['status'] = status;
+    data['type'] = type;
+    data['unit'] = unit;
+    data['subscription_id'] = subscriptionId;
+    data['item_prices'] = itemPrices?.map((e) => e.toJson()).toList();
     return data;
+  }
+
+  Map<String, dynamic> toJson() {
+    // Kept for backward compatibility.
+    // Prefer toChargebeeJson() or toDisplayJson() explicitly.
+    // Callers: cart_repository.dart (SharedPreferences cache — uses toDisplayJson now).
+    // See FLAG-006 in docs/data_models_map.md.
+    return toChargebeeJson();
   }
 }
 

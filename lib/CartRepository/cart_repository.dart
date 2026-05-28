@@ -4,6 +4,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 import '../views/models/cart_item.dart';
 import '../views/models/item.dart';
+import 'package:lush/utils/app_logger.dart';
 
 class CartRepository {
   static const String _cartKey = 'cart_items';
@@ -42,14 +43,14 @@ class CartRepository {
             items.add(_cartItemFromJson(item));
           }
         } catch (e) {
-          print('Error parsing cart item: $e');
+          appLogger.e('Error parsing cart item', error: e);
           // Skip this item and continue with the next one
         }
       }
 
       return items;
     } catch (e) {
-      print('Error loading cart items: $e');
+      appLogger.e('Error loading cart items', error: e);
       return [];
     }
   }
@@ -62,7 +63,7 @@ class CartRepository {
           json.encode(items.map(_cartItemToJson).toList());
       await prefs.setString(_cartKey, cartJson);
     } catch (e) {
-      print('Error saving cart items: $e');
+      appLogger.e('Error saving cart items', error: e);
     }
   }
 
@@ -72,7 +73,7 @@ class CartRepository {
       final prefs = await SharedPreferences.getInstance();
       await prefs.remove(_cartKey);
     } catch (e) {
-      print('Error clearing cart: $e');
+      appLogger.e('Error clearing cart', error: e);
     }
   }
 
@@ -126,17 +127,17 @@ class CartRepository {
           customizations: existingItem.customizations,
           selectedPrice: existingItem.selectedPrice,
         );
-        print('Item exists in cart, quantity updated to: ${items[existingIndex].quantity}');
+        appLogger.d('Item exists in cart, quantity updated to: ${items[existingIndex].quantity}');
       } else {
         // New item - add to cart
         items.add(newItem);
-        print('New item added to cart: ${newItem.item.name}');
+        appLogger.d('New item added to cart: ${newItem.item.name}');
       }
       
       await saveCartItems(items);
-      print('Cart saved with ${items.length} items');
+      appLogger.d('Cart saved with ${items.length} items');
     } catch (e) {
-      print('Error adding item to cart: $e');
+      appLogger.e('Error adding item to cart', error: e);
       rethrow;
     }
   }
@@ -169,7 +170,7 @@ class CartRepository {
         await saveCartItems(items);
       }
     } catch (e) {
-      print('Error updating cart item quantity: $e');
+      appLogger.e('Error updating cart item quantity', error: e);
       rethrow;
     }
   }
@@ -185,7 +186,7 @@ class CartRepository {
       
       await saveCartItems(items);
     } catch (e) {
-      print('Error removing item from cart: $e');
+      appLogger.e('Error removing item from cart', error: e);
       rethrow;
     }
   }
@@ -193,7 +194,7 @@ class CartRepository {
   // Helper methods for JSON serialization
   Map<String, dynamic> _cartItemToJson(CartItem item) {
     return {
-      'item': item.item.toJson(),
+      'item': item.item.toDisplayJson(),
       'quantity': item.quantity,
       'selectedSize': item.selectedSize,
       'customizations': item.customizations,
@@ -213,7 +214,7 @@ class CartRepository {
       try {
         item = Item.fromJson(json['item'] as Map<String, dynamic>);
       } catch (e) {
-        print('Error parsing item in cart: $e');
+        appLogger.e('Error parsing item in cart', error: e);
       // Create a minimal valid item to prevent crashes
         item = Item(
           id: (json['item']['id'] as String?) ?? 'unknown',
@@ -229,7 +230,7 @@ class CartRepository {
         try {
           selectedPrice = ItemPrice.fromJson(json['selectedPrice'] as Map<String, dynamic>);
         } catch (e) {
-          print('Error parsing selected price in cart: $e');
+          appLogger.e('Error parsing selected price in cart', error: e);
           // Create a minimal valid price to prevent crashes
           selectedPrice = ItemPrice(
             id: (json['selectedPrice']['id'] as String?) ?? 'unknown',
@@ -247,7 +248,7 @@ class CartRepository {
         try {
           customizations = Map<String, dynamic>.from(json['customizations'] as Map<String, dynamic>);
         } catch (e) {
-          print('Error parsing customizations in cart: $e');
+          appLogger.e('Error parsing customizations in cart', error: e);
           customizations = null;
         }
       }
@@ -261,7 +262,7 @@ class CartRepository {
         selectedPrice: selectedPrice,
       );
     } catch (e) {
-      print('Error creating cart item from JSON: $e');
+      appLogger.e('Error creating cart item from JSON', error: e);
       // Return a minimal valid cart item to prevent crashes
       return CartItem(
         item: Item(

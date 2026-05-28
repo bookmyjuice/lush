@@ -6,6 +6,11 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../UserRepository/user_repository.dart';
 import '../../get_it.dart';
+import '../../services/subscription_service.dart';
+import '../../utils/analytics_service.dart';
+import '../../views/models/subscription_plan_catalog.dart';
+import '../../views/models/subscription_selection.dart';
+
 // Inline replacement for deleted subscription_plan.dart model
 class SubscriptionPlan {
   final String id;
@@ -34,7 +39,6 @@ class SubscriptionPlan {
 // Events
 abstract class SubscriptionEvent extends Equatable {
   const SubscriptionEvent();
-
   @override
   List<Object> get props => [];
 }
@@ -47,6 +51,17 @@ class LoadSubscriptionPlans extends SubscriptionEvent {
   const LoadSubscriptionPlans();
 }
 
+class LoadSubscriptionCatalog extends SubscriptionEvent {
+  const LoadSubscriptionCatalog();
+}
+
+class CreateSubscriptionFromSelection extends SubscriptionEvent {
+  final SubscriptionSelection selection;
+  const CreateSubscriptionFromSelection({required this.selection});
+  @override
+  List<Object> get props => [selection];
+}
+
 class LoadSubscriptionHistory extends SubscriptionEvent {
   const LoadSubscriptionHistory();
 }
@@ -54,53 +69,60 @@ class LoadSubscriptionHistory extends SubscriptionEvent {
 class CreateSubscription extends SubscriptionEvent {
   final int planId;
   final DateTime startDate;
-
-  const CreateSubscription({
-    required this.planId,
-    required this.startDate,
-  });
-
+  const CreateSubscription({required this.planId, required this.startDate});
   @override
   List<Object> get props => [planId, startDate];
 }
 
+/// Cancel subscription with optional reason string.
 class CancelSubscription extends SubscriptionEvent {
   final String subscriptionId;
-
-  const CancelSubscription({required this.subscriptionId});
-
+  final String reason;
+  const CancelSubscription({
+    required this.subscriptionId,
+    this.reason = '',
+  });
   @override
-  List<Object> get props => [subscriptionId];
+  List<Object> get props => [subscriptionId, reason];
 }
 
+/// Pause subscription with a duration key.
 class PauseSubscription extends SubscriptionEvent {
   final String subscriptionId;
-  final DateTime pauseUntil;
-
+  final String duration; // '1_week' | '2_weeks' | '1_month'
   const PauseSubscription({
     required this.subscriptionId,
-    required this.pauseUntil,
+    this.duration = '1_week',
   });
-
   @override
-  List<Object> get props => [subscriptionId, pauseUntil];
+  List<Object> get props => [subscriptionId, duration];
 }
 
+/// Resume a paused subscription.
 class ResumeSubscription extends SubscriptionEvent {
   final String subscriptionId;
-
   const ResumeSubscription({required this.subscriptionId});
-
   @override
   List<Object> get props => [subscriptionId];
+}
+
+/// Modify subscription day-wise schedule.
+class ModifySubscriptionSchedule extends SubscriptionEvent {
+  final String subscriptionId;
+  final Map<String, String> newSchedule; // day → itemPriceId
+  const ModifySubscriptionSchedule({
+    required this.subscriptionId,
+    required this.newSchedule,
+  });
+  @override
+  List<Object> get props => [subscriptionId, newSchedule];
 }
 
 // Enhanced subscription model for active subscriptions
 class ActiveSubscription extends Equatable {
   final String id;
   final SubscriptionPlan plan;
-  final String
-      status; // 'active', 'paused', 'cancelled', 'expired', 'completed'
+  final String status;
   final DateTime startDate;
   final DateTime? endDate;
   final DateTime? nextDeliveryDate;
@@ -135,9 +157,7 @@ class ActiveSubscription extends Equatable {
     return completedDeliveries / totalDeliveries;
   }
 
-  int get remainingDeliveries {
-    return totalDeliveries - completedDeliveries;
-  }
+  int get remainingDeliveries => totalDeliveries - completedDeliveries;
 
   String get statusDisplayName {
     switch (status) {
@@ -202,8 +222,6 @@ class ActiveSubscription extends Equatable {
 
   factory ActiveSubscription.fromJson(Map<String, dynamic> json) {
     final planId = json['planId'] as int;
-
-    // Create a default plan
     final plan = SubscriptionPlan(
       id: json['planId']?.toString() ?? '',
       name: (json['planName'] as String?) ?? 'Unknown Plan',
@@ -215,7 +233,6 @@ class ActiveSubscription extends Equatable {
       features: [],
       planID: planId,
     );
-
     return ActiveSubscription(
       id: json['id'] as String,
       plan: plan,
@@ -239,24 +256,14 @@ class ActiveSubscription extends Equatable {
 
   @override
   List<Object?> get props => [
-        id,
-        plan,
-        status,
-        startDate,
-        endDate,
-        nextDeliveryDate,
-        totalDeliveries,
-        completedDeliveries,
-        pausedUntil,
-        createdAt,
-        updatedAt,
+        id, plan, status, startDate, endDate, nextDeliveryDate,
+        totalDeliveries, completedDeliveries, pausedUntil, createdAt, updatedAt,
       ];
 }
 
 // States
 abstract class SubscriptionState extends Equatable {
   const SubscriptionState();
-
   @override
   List<Object> get props => [];
 }
@@ -271,27 +278,42 @@ class SubscriptionLoading extends SubscriptionState {
 
 class SubscriptionLoaded extends SubscriptionState {
   final ActiveSubscription subscription;
-
   const SubscriptionLoaded({required this.subscription});
-
   @override
   List<Object> get props => [subscription];
 }
 
 class SubscriptionPlansLoaded extends SubscriptionState {
   final List<SubscriptionPlan> plans;
-
   const SubscriptionPlansLoaded({required this.plans});
-
   @override
   List<Object> get props => [plans];
 }
 
+class SubscriptionCatalogLoaded extends SubscriptionState {
+  final List<SubscriptionPlanCatalog> plans;
+  const SubscriptionCatalogLoaded({required this.plans});
+  @override
+  List<Object> get props => [plans];
+}
+
+class SubscriptionCatalogError extends SubscriptionState {
+  final String message;
+  const SubscriptionCatalogError({required this.message});
+  @override
+  List<Object> get props => [message];
+}
+
+class SubscriptionCreatedSuccess extends SubscriptionState {
+  final String message;
+  const SubscriptionCreatedSuccess({required this.message});
+  @override
+  List<Object> get props => [message];
+}
+
 class SubscriptionListLoaded extends SubscriptionState {
   final List<ActiveSubscription> subscriptions;
-
   const SubscriptionListLoaded({required this.subscriptions});
-
   @override
   List<Object> get props => [subscriptions];
 }
@@ -302,56 +324,70 @@ class SubscriptionEmpty extends SubscriptionState {
 
 class SubscriptionError extends SubscriptionState {
   final String message;
-
   const SubscriptionError({required this.message});
-
   @override
   List<Object> get props => [message];
 }
 
 class SubscriptionCreated extends SubscriptionState {
   final ActiveSubscription subscription;
-
   const SubscriptionCreated({required this.subscription});
-
   @override
   List<Object> get props => [subscription];
 }
 
 class SubscriptionCancelled extends SubscriptionState {
   final String subscriptionId;
-
   const SubscriptionCancelled({required this.subscriptionId});
-
   @override
   List<Object> get props => [subscriptionId];
 }
 
 class SubscriptionPaused extends SubscriptionState {
   final ActiveSubscription subscription;
-
   const SubscriptionPaused({required this.subscription});
-
   @override
   List<Object> get props => [subscription];
 }
 
 class SubscriptionResumed extends SubscriptionState {
   final ActiveSubscription subscription;
-
   const SubscriptionResumed({required this.subscription});
-
   @override
   List<Object> get props => [subscription];
+}
+
+class SubscriptionModified extends SubscriptionState {
+  final String message;
+  const SubscriptionModified({required this.message});
+  @override
+  List<Object> get props => [message];
 }
 
 // BLoC
 class SubscriptionBloc extends Bloc<SubscriptionEvent, SubscriptionState> {
   final UserRepository userRepository = getIt.get();
+  late final SubscriptionService _subscriptionService;
 
-  // Helper method to create a default subscription plan
-  SubscriptionPlan _getDefaultSubscriptionPlan(
-      {int planID = 1, String name = 'Premium'}) {
+  SubscriptionBloc({SubscriptionService? subscriptionService})
+      : super(const SubscriptionInitial()) {
+    _subscriptionService = subscriptionService ?? SubscriptionService();
+    on<LoadActiveSubscriptions>(_onLoadActiveSubscriptions);
+    on<LoadSubscriptionPlans>(_onLoadSubscriptionPlans);
+    on<LoadSubscriptionHistory>(_onLoadSubscriptionHistory);
+    on<CreateSubscription>(_onCreateSubscription);
+    on<CancelSubscription>(_onCancelSubscription);
+    on<PauseSubscription>(_onPauseSubscription);
+    on<ResumeSubscription>(_onResumeSubscription);
+    on<LoadSubscriptionCatalog>(_onLoadSubscriptionCatalog);
+    on<CreateSubscriptionFromSelection>(_onCreateSubscriptionFromSelection);
+    on<ModifySubscriptionSchedule>(_onModifySubscriptionSchedule);
+  }
+
+  SubscriptionPlan _getDefaultSubscriptionPlan({
+    int planID = 1,
+    String name = 'Premium',
+  }) {
     return SubscriptionPlan(
       id: planID.toString(),
       name: name,
@@ -365,7 +401,6 @@ class SubscriptionBloc extends Bloc<SubscriptionEvent, SubscriptionState> {
     );
   }
 
-  // Helper method to get a list of default subscription plans
   List<SubscriptionPlan> _getDefaultSubscriptionPlans() {
     return [
       _getDefaultSubscriptionPlan(planID: 1, name: 'Premium'),
@@ -374,14 +409,38 @@ class SubscriptionBloc extends Bloc<SubscriptionEvent, SubscriptionState> {
     ];
   }
 
-  SubscriptionBloc() : super(const SubscriptionInitial()) {
-    on<LoadActiveSubscriptions>(_onLoadActiveSubscriptions);
-    on<LoadSubscriptionPlans>(_onLoadSubscriptionPlans);
-    on<LoadSubscriptionHistory>(_onLoadSubscriptionHistory);
-    on<CreateSubscription>(_onCreateSubscription);
-    on<CancelSubscription>(_onCancelSubscription);
-    on<PauseSubscription>(_onPauseSubscription);
-    on<ResumeSubscription>(_onResumeSubscription);
+  Future<void> _onLoadSubscriptionCatalog(
+    LoadSubscriptionCatalog event,
+    Emitter<SubscriptionState> emit,
+  ) async {
+    emit(const SubscriptionLoading());
+    try {
+      final plansList = await _subscriptionService.getSubscriptionPlans();
+      final catalog = plansList
+          .map((json) => SubscriptionPlanCatalog.fromMap(json, []))
+          .where((plan) => plan.itemId.startsWith('bmj-'))
+          .toList();
+      if (isClosed) return;
+      emit(SubscriptionCatalogLoaded(plans: catalog));
+    } catch (e) {
+      if (isClosed) return;
+      emit(SubscriptionCatalogError(message: e.toString()));
+    }
+  }
+
+  Future<void> _onCreateSubscriptionFromSelection(
+    CreateSubscriptionFromSelection event,
+    Emitter<SubscriptionState> emit,
+  ) async {
+    emit(const SubscriptionLoading());
+    try {
+      await _subscriptionService.createSubscription(event.selection.itemPriceId);
+      if (isClosed) return;
+      emit(const SubscriptionCreatedSuccess(message: 'Subscription created successfully'));
+    } catch (e) {
+      if (isClosed) return;
+      emit(SubscriptionError(message: e.toString()));
+    }
   }
 
   Future<void> _onLoadActiveSubscriptions(
@@ -389,31 +448,52 @@ class SubscriptionBloc extends Bloc<SubscriptionEvent, SubscriptionState> {
     Emitter<SubscriptionState> emit,
   ) async {
     emit(const SubscriptionLoading());
-
     try {
-      // Check if user has internet connection
       if (!await userRepository.isInternetAvailable()) {
-        // Try to load from SharedPreferences as fallback
-        final cachedSubscription = await _loadFromCache();
-        if (cachedSubscription != null) {
-          emit(SubscriptionLoaded(subscription: cachedSubscription));
+        final cached = await _loadFromCache();
+        if (cached != null) {
+          if (isClosed) return;
+          emit(SubscriptionLoaded(subscription: cached));
           return;
         }
+        if (isClosed) return;
         emit(const SubscriptionError(message: 'No internet connection'));
         return;
       }
 
-      // Make API call to your Spring Boot backend to get active subscriptions
-      // For now, simulating API call - replace with actual implementation
-      await Future<void>.delayed(const Duration(seconds: 1));
-
-      // Check if user has an active subscription
-      if (userRepository.user.id.isNotEmpty) {
-        // In real implementation, call your subscription API endpoint
-        // Example: GET /api/subscriptions/active?userId=${userRepository.user.id}
-
-        // Mock active subscription for demo
-        final mockSubscription = ActiveSubscription(
+      // Try real API, fall back to mock data
+      final subscriptions = await _subscriptionService.getMySubscriptions();
+      if (subscriptions.isNotEmpty) {
+        // Parse first subscription from API response
+        final sub = subscriptions.first;
+        final activeSub = ActiveSubscription(
+          id: sub['id'] as String? ?? 'sub_mock',
+          plan: _getDefaultSubscriptionPlan(),
+          status: sub['status'] as String? ?? 'active',
+          startDate: sub['startDate'] != null
+              ? DateTime.parse(sub['startDate'] as String)
+              : DateTime.now(),
+          endDate: sub['endDate'] != null
+              ? DateTime.parse(sub['endDate'] as String)
+              : DateTime.now().add(const Duration(days: 30)),
+          nextDeliveryDate: sub['nextDeliveryDate'] != null
+              ? DateTime.parse(sub['nextDeliveryDate'] as String)
+              : DateTime.now().add(const Duration(days: 1)),
+          totalDeliveries: (sub['totalDeliveries'] as int?) ?? 30,
+          completedDeliveries: (sub['completedDeliveries'] as int?) ?? 0,
+          pausedUntil: sub['pausedUntil'] != null
+              ? DateTime.parse(sub['pausedUntil'] as String)
+              : null,
+          createdAt: DateTime.now(),
+          updatedAt: DateTime.now(),
+        );
+        await _saveToCache(activeSub);
+        if (isClosed) return;
+        emit(SubscriptionLoaded(subscription: activeSub));
+      } else {
+        // Fallback: mock subscription for demo
+        await Future<void>.delayed(const Duration(milliseconds: 500));
+        final mockSub = ActiveSubscription(
           id: 'sub_${userRepository.user.id}',
           plan: _getDefaultSubscriptionPlan(),
           status: 'active',
@@ -425,15 +505,12 @@ class SubscriptionBloc extends Bloc<SubscriptionEvent, SubscriptionState> {
           createdAt: DateTime.now().subtract(const Duration(days: 5)),
           updatedAt: DateTime.now(),
         );
-
-        // Cache the subscription data
-        await _saveToCache(mockSubscription);
-
-        emit(SubscriptionLoaded(subscription: mockSubscription));
-      } else {
-        emit(const SubscriptionEmpty());
+        await _saveToCache(mockSub);
+        if (isClosed) return;
+        emit(SubscriptionLoaded(subscription: mockSub));
       }
     } catch (e) {
+      if (isClosed) return;
       emit(SubscriptionError(message: e.toString()));
     }
   }
@@ -443,14 +520,13 @@ class SubscriptionBloc extends Bloc<SubscriptionEvent, SubscriptionState> {
     Emitter<SubscriptionState> emit,
   ) async {
     emit(const SubscriptionLoading());
-
     try {
-      // Load available subscription plans from your backend or use static data
       await Future<void>.delayed(const Duration(milliseconds: 500));
-
       final plans = _getDefaultSubscriptionPlans();
+      if (isClosed) return;
       emit(SubscriptionPlansLoaded(plans: plans));
     } catch (e) {
+      if (isClosed) return;
       emit(SubscriptionError(message: e.toString()));
     }
   }
@@ -460,13 +536,8 @@ class SubscriptionBloc extends Bloc<SubscriptionEvent, SubscriptionState> {
     Emitter<SubscriptionState> emit,
   ) async {
     emit(const SubscriptionLoading());
-
     try {
-      // Load user's subscription history from your backend
-      // Example: GET /api/subscriptions/history?userId=${userRepository.user.id}
-      await Future<void>.delayed(const Duration(seconds: 1));
-
-      // Mock subscription history for demo
+      await Future<void>.delayed(const Duration(milliseconds: 500));
       final subscriptions = <ActiveSubscription>[
         ActiveSubscription(
           id: 'sub_current',
@@ -493,9 +564,10 @@ class SubscriptionBloc extends Bloc<SubscriptionEvent, SubscriptionState> {
           updatedAt: DateTime.now().subtract(const Duration(days: 30)),
         ),
       ];
-
+      if (isClosed) return;
       emit(SubscriptionListLoaded(subscriptions: subscriptions));
     } catch (e) {
+      if (isClosed) return;
       emit(SubscriptionError(message: e.toString()));
     }
   }
@@ -505,16 +577,10 @@ class SubscriptionBloc extends Bloc<SubscriptionEvent, SubscriptionState> {
     Emitter<SubscriptionState> emit,
   ) async {
     emit(const SubscriptionLoading());
-
     try {
-      // Create new subscription via your backend API
-      // Example: POST /api/subscriptions with Chargebee integration
-      await Future<void>.delayed(const Duration(seconds: 2));
-
-      // Get the selected plan based on planId
+      await Future<void>.delayed(const Duration(seconds: 1));
       final selectedPlan = _getDefaultSubscriptionPlan(planID: event.planId);
-
-      final newSubscription = ActiveSubscription(
+      final newSub = ActiveSubscription(
         id: 'sub_${DateTime.now().millisecondsSinceEpoch}',
         plan: selectedPlan,
         status: 'active',
@@ -526,119 +592,117 @@ class SubscriptionBloc extends Bloc<SubscriptionEvent, SubscriptionState> {
         createdAt: DateTime.now(),
         updatedAt: DateTime.now(),
       );
-
-      // Cache the new subscription
-      await _saveToCache(newSubscription);
-
-      emit(SubscriptionCreated(subscription: newSubscription));
-      emit(SubscriptionLoaded(subscription: newSubscription));
+      await _saveToCache(newSub);
+      if (isClosed) return;
+      await AnalyticsService.logSubscriptionStarted(
+        planId: selectedPlan.id,
+        value: 0.0,
+      );
+      if (isClosed) return;
+      emit(SubscriptionCreated(subscription: newSub));
+      if (isClosed) return;
+      emit(SubscriptionLoaded(subscription: newSub));
     } catch (e) {
+      if (isClosed) return;
       emit(SubscriptionError(message: e.toString()));
     }
   }
 
+  /// Cancel subscription — calls API with reason.
   Future<void> _onCancelSubscription(
     CancelSubscription event,
     Emitter<SubscriptionState> emit,
   ) async {
     emit(const SubscriptionLoading());
-
     try {
-      // Cancel subscription via your backend API
-      // Example: POST /api/subscriptions/{id}/cancel
-      await Future<void>.delayed(const Duration(seconds: 1));
-
-      // Clear cached subscription
+      await _subscriptionService.cancelSubscription(
+        event.subscriptionId,
+        reason: event.reason,
+      );
       await _clearCache();
-
+      if (isClosed) return;
+      await AnalyticsService.logSubscriptionCancelled(
+        planId: event.subscriptionId,
+        reason: event.reason.isNotEmpty ? event.reason : 'not specified',
+      );
+      if (isClosed) return;
       emit(SubscriptionCancelled(subscriptionId: event.subscriptionId));
-      emit(const SubscriptionEmpty());
     } catch (e) {
+      if (isClosed) return;
       emit(SubscriptionError(message: e.toString()));
     }
   }
 
+  /// Pause subscription — calls API with duration.
   Future<void> _onPauseSubscription(
     PauseSubscription event,
     Emitter<SubscriptionState> emit,
   ) async {
-    if (state is SubscriptionLoaded) {
-      emit(const SubscriptionLoading());
-
-      try {
-        // Pause subscription via your backend API
-        await Future<void>.delayed(const Duration(seconds: 1));
-
-        final currentSubscription = (state as SubscriptionLoaded).subscription;
-        final pausedSubscription = currentSubscription.copyWith(
-          status: 'paused',
-          pausedUntil: event.pauseUntil,
-          updatedAt: DateTime.now(),
-        );
-
-        // Update cache
-        await _saveToCache(pausedSubscription);
-
-        emit(SubscriptionPaused(subscription: pausedSubscription));
-        emit(SubscriptionLoaded(subscription: pausedSubscription));
-      } catch (e) {
-        emit(SubscriptionError(message: e.toString()));
-      }
+    emit(const SubscriptionLoading());
+    try {
+      await _subscriptionService.pauseSubscription(
+        event.subscriptionId,
+        duration: event.duration,
+      );
+      // Refetch subscription to get updated state
+      add(const LoadActiveSubscriptions());
+    } catch (e) {
+      if (isClosed) return;
+      emit(SubscriptionError(message: e.toString()));
     }
   }
 
+  /// Resume subscription — calls API.
   Future<void> _onResumeSubscription(
     ResumeSubscription event,
     Emitter<SubscriptionState> emit,
   ) async {
-    if (state is SubscriptionLoaded) {
-      emit(const SubscriptionLoading());
-
-      try {
-        // Resume subscription via your backend API
-        await Future<void>.delayed(const Duration(seconds: 1));
-
-        final currentSubscription = (state as SubscriptionLoaded).subscription;
-        final resumedSubscription = currentSubscription.copyWith(
-          status: 'active',
-          pausedUntil: null,
-          updatedAt: DateTime.now(),
-        );
-
-        // Update cache
-        await _saveToCache(resumedSubscription);
-
-        emit(SubscriptionResumed(subscription: resumedSubscription));
-        emit(SubscriptionLoaded(subscription: resumedSubscription));
-      } catch (e) {
-        emit(SubscriptionError(message: e.toString()));
-      }
+    emit(const SubscriptionLoading());
+    try {
+      await _subscriptionService.resumeSubscription(event.subscriptionId);
+      // Refetch to get updated state
+      add(const LoadActiveSubscriptions());
+    } catch (e) {
+      if (isClosed) return;
+      emit(SubscriptionError(message: e.toString()));
     }
   }
 
-  // Cache management using SharedPreferences
+  /// Modify schedule — calls API with new day-wise schedule.
+  Future<void> _onModifySubscriptionSchedule(
+    ModifySubscriptionSchedule event,
+    Emitter<SubscriptionState> emit,
+  ) async {
+    emit(const SubscriptionLoading());
+    try {
+      await _subscriptionService.modifySchedule(
+        event.subscriptionId,
+        event.newSchedule,
+      );
+      if (isClosed) return;
+      emit(const SubscriptionModified(message: 'Schedule updated'));
+    } catch (e) {
+      if (isClosed) return;
+      emit(SubscriptionError(message: e.toString()));
+    }
+  }
+
+  // Cache management
   Future<void> _saveToCache(ActiveSubscription subscription) async {
     try {
       final prefs = await SharedPreferences.getInstance();
-      final subscriptionJson = jsonEncode(subscription.toJson());
-      await prefs.setString('active_subscription', subscriptionJson);
-    } catch (e) {
-      // Handle cache save error silently
-    }
+      await prefs.setString('active_subscription', jsonEncode(subscription.toJson()));
+    } catch (_) {}
   }
 
   Future<ActiveSubscription?> _loadFromCache() async {
     try {
       final prefs = await SharedPreferences.getInstance();
-      final subscriptionJson = prefs.getString('active_subscription');
-      if (subscriptionJson != null) {
-        final subscriptionMap =
-            jsonDecode(subscriptionJson) as Map<String, dynamic>;
-        return ActiveSubscription.fromJson(subscriptionMap);
+      final jsonStr = prefs.getString('active_subscription');
+      if (jsonStr != null) {
+        return ActiveSubscription.fromJson(jsonDecode(jsonStr) as Map<String, dynamic>);
       }
-    } catch (e) {
-      // Handle cache load error silently
-    }
+    } catch (_) {}
     return null;
   }
 
@@ -646,8 +710,6 @@ class SubscriptionBloc extends Bloc<SubscriptionEvent, SubscriptionState> {
     try {
       final prefs = await SharedPreferences.getInstance();
       await prefs.remove('active_subscription');
-    } catch (e) {
-      // Handle cache clear error silently
-    }
+    } catch (_) {}
   }
 }

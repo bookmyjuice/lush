@@ -3,6 +3,8 @@ import 'package:lush/bloc/CartBloc/cart_event.dart';
 
 import '../../CartRepository/cart_repository.dart';
 import '../../views/models/cart_item.dart';
+import '../../views/models/item.dart';
+import '../../services/analytics_service.dart';
 import 'cart_state.dart';
 
 class CartBloc extends Bloc<CartEvent, CartState> {
@@ -23,43 +25,30 @@ class CartBloc extends Bloc<CartEvent, CartState> {
       try {
         if (state is CartLoaded) {
           final currentItems = List<CartItem>.from((state as CartLoaded).items);
-
-          // Check if the same item with the same price is already in the cart
           final existingItemIndex = currentItems.indexWhere((item) =>
               item.item.id == event.item.item.id &&
               item.selectedPrice?.id == event.item.selectedPrice?.id);
-
           if (existingItemIndex != -1) {
-            // Update quantity of existing item
             final existingItem = currentItems[existingItemIndex];
             currentItems[existingItemIndex] = existingItem.copyWith(
                 quantity: existingItem.quantity + event.item.quantity);
           } else {
-            // Add new item
             currentItems.add(event.item);
           }
-
           await cartRepository.saveCartItems(currentItems);
           emit(CartLoaded(currentItems));
         } else {
-          // If state is not CartLoaded, load cart first then add item
           final items = await cartRepository.getCartItems();
-
-          // Check if the same item with the same price is already in the cart
           final existingItemIndex = items.indexWhere((item) =>
               item.item.id == event.item.item.id &&
               item.selectedPrice?.id == event.item.selectedPrice?.id);
-
           if (existingItemIndex != -1) {
-            // Update quantity of existing item
             final existingItem = items[existingItemIndex];
             items[existingItemIndex] = existingItem.copyWith(
                 quantity: existingItem.quantity + event.item.quantity);
           } else {
-            // Add new item
             items.add(event.item);
           }
-
           await cartRepository.saveCartItems(items);
           emit(CartLoaded(items));
         }
@@ -76,7 +65,6 @@ class CartBloc extends Bloc<CartEvent, CartState> {
           await cartRepository.saveCartItems(currentItems);
           emit(CartLoaded(currentItems));
         } else {
-          // If state is not CartLoaded, load cart first then remove item
           final items = await cartRepository.getCartItems();
           items.remove(event.item);
           await cartRepository.saveCartItems(items);
@@ -100,45 +88,70 @@ class CartBloc extends Bloc<CartEvent, CartState> {
       try {
         if (state is CartLoaded) {
           final currentItems = List<CartItem>.from((state as CartLoaded).items);
-
-          // Find the index of the item to update
           final index = currentItems.indexWhere((item) =>
               item.item.id == event.item.item.id &&
               item.selectedPrice?.id == event.item.selectedPrice?.id);
-
           if (index != -1) {
-            // Replace the item at the found index
             currentItems[index] = event.item;
             await cartRepository.saveCartItems(currentItems);
             emit(CartLoaded(currentItems));
           } else {
-            // If item not found, add it
             currentItems.add(event.item);
             await cartRepository.saveCartItems(currentItems);
             emit(CartLoaded(currentItems));
           }
         } else {
-          // If state is not CartLoaded, load cart first then update item
           final items = await cartRepository.getCartItems();
-
-          // Find the index of the item to update
           final index = items.indexWhere((item) =>
               item.item.id == event.item.item.id &&
               item.selectedPrice?.id == event.item.selectedPrice?.id);
-
           if (index != -1) {
-            // Replace the item at the found index
             items[index] = event.item;
           } else {
-            // If item not found, add it
             items.add(event.item);
           }
-
           await cartRepository.saveCartItems(items);
           emit(CartLoaded(items));
         }
       } catch (e) {
         emit(CartError('Failed to update item in cart: $e'));
+      }
+    });
+
+    on<PlaceOneTimeOrder>((event, emit) async {
+      emit(CartLoading());
+      try {
+        await Future<void>.delayed(const Duration(seconds: 1));
+        await AnalyticsService.logOrderPlaced();
+        emit(const OrderPlaced('order-placed'));
+        await cartRepository.clearCart();
+        emit(const CartLoaded([]));
+      } catch (e) {
+        emit(CartError('Failed to place order: $e'));
+      }
+    });
+
+    on<ReorderItems>((event, emit) async {
+      try {
+        await AnalyticsService.logReorderTapped(event.orderId);
+        final cartItems = <CartItem>[];
+        for (final itemData in event.items) {
+          final cartItem = CartItem(
+            item: Item(
+              id: itemData['itemId'] as String? ?? '',
+              name: itemData['itemName'] as String? ?? 'Item',
+              description: '',
+              servingSize: '',
+            ),
+            quantity: (itemData['quantity'] as num?)?.toInt() ?? 1,
+          );
+          cartItems.add(cartItem);
+        }
+        await cartRepository.clearCart();
+        await cartRepository.saveCartItems(cartItems);
+        emit(CartLoaded(cartItems));
+      } catch (e) {
+        emit(CartError('Failed to reorder items: $e'));
       }
     });
   }

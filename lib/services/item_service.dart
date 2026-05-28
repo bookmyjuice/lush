@@ -4,6 +4,8 @@ import 'package:lush/views/models/dynamic_item.dart';
 import 'package:lush/views/models/item.dart';
 import 'package:lush/views/models/item_data.dart';
 
+import '../utils/app_logger.dart';
+
 class ItemService {
   final UserRepository _userRepository = getIt.get<UserRepository>();
 
@@ -49,7 +51,7 @@ class ItemService {
 
       return items;
     } catch (e) {
-      print('Error fetching items from backend: $e');
+      appLogger.e('Error fetching items from backend', error: e);
       // Return fallback data based on static item list
       return getFallbackItems();
     }

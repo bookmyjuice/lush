@@ -3,7 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import '../../bloc/CartBloc/cart_bloc.dart';
 import '../../bloc/CartBloc/cart_state.dart';
-import '../../theme.dart';
+import 'package:lush/theme/app_colors.dart';
 
 class CartIcon extends StatelessWidget {
   final VoidCallback? onTap;
@@ -37,7 +37,7 @@ class CartIcon extends StatelessWidget {
           child: Container(
             padding: EdgeInsets.all(8.w),
             decoration: BoxDecoration(
-              color: backgroundColor ?? LushTheme.nearlyBlue.withAlpha(20),
+              color: backgroundColor ?? AppColors.info.withValues(alpha: 0.078),
               borderRadius: BorderRadius.circular(12.r),
             ),
             child: Stack(
@@ -45,7 +45,7 @@ class CartIcon extends StatelessWidget {
                 Icon(
                   Icons.shopping_cart_outlined,
                   size: size ?? 24.sp,
-                  color: iconColor ?? LushTheme.nearlyBlue,
+                  color: iconColor ?? AppColors.info,
                 ),
                 if (itemCount > 0)
                   Positioned(

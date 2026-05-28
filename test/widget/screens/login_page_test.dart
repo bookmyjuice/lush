@@ -61,9 +61,9 @@ Widget buildTestApp({
 Future<void> tapButton(WidgetTester tester, String label) async {
   final finder = find.widgetWithText(ElevatedButton, label);
   await tester.ensureVisible(finder);
-  await tester.pumpAndSettle();
+  await tester.pump(const Duration(seconds: 1));
   await tester.tap(finder);
-  await tester.pumpAndSettle();
+  await tester.pump(const Duration(seconds: 1));
 }
 
 /// Tap a widget, making it visible first if needed.

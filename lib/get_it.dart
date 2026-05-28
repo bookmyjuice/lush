@@ -1,7 +1,9 @@
 import 'package:get_it/get_it.dart';
 import 'package:lush/CartRepository/cart_repository.dart';
 import 'package:lush/UserRepository/user_repository.dart';
+import 'package:lush/services/bottle_service.dart';
 import 'package:lush/services/item_service.dart';
+import 'package:lush/services/subscription_service.dart';
 // Keep for backward compatibility
 
 final getIt = GetIt.instance;
@@ -14,4 +16,6 @@ void registerRepositories() {
     () => UserRepository(),
   );
   getIt.registerLazySingleton<ItemService>(() => ItemService());
+  getIt.registerLazySingleton<BottleService>(() => BottleService());
+  getIt.registerLazySingleton<SubscriptionService>(() => SubscriptionService());
 }

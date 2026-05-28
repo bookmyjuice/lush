@@ -1,6 +1,6 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import '../../theme.dart';
+import 'package:lush/theme/app_colors.dart';
 import 'app_card.dart';
 import '../models/item.dart';
 
@@ -34,13 +34,13 @@ class QuickActionCard extends StatelessWidget {
               width: 60.w,
               height: 60.w,
               decoration: BoxDecoration(
-                color: backgroundColor ?? LushTheme.nearlyBlue.withValues(alpha: 0.1),
+                color: backgroundColor ?? AppColors.info.withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(16.r),
               ),
               child: Icon(
                 icon,
                 size: 30.sp,
-                color: iconColor ?? LushTheme.nearlyBlue,
+                color: iconColor ?? AppColors.info,
               ),
             ),
             SizedBox(height: 12.h),
@@ -49,7 +49,7 @@ class QuickActionCard extends StatelessWidget {
               style: TextStyle(
                 fontSize: 16.sp,
                 fontWeight: FontWeight.w600,
-                color: LushTheme.darkerText,
+                color: AppColors.lightTextPrimary,
               ),
               textAlign: TextAlign.center,
             ),
@@ -58,7 +58,7 @@ class QuickActionCard extends StatelessWidget {
               subtitle,
               style: TextStyle(
                 fontSize: 12.sp,
-                color: LushTheme.lightText,
+                color: AppColors.lightTextSecondary,
               ),
               textAlign: TextAlign.center,
             ),
@@ -105,7 +105,7 @@ class SubscriptionCard extends StatelessWidget {
                       style: TextStyle(
                         fontSize: 18.sp,
                         fontWeight: FontWeight.bold,
-                        color: LushTheme.darkerText,
+                        color: AppColors.lightTextPrimary,
                       ),
                     ),
                     SizedBox(height: 4.h),
@@ -113,7 +113,7 @@ class SubscriptionCard extends StatelessWidget {
                       subtitle,
                       style: TextStyle(
                         fontSize: 14.sp,
-                        color: LushTheme.lightText,
+                        color: AppColors.lightTextSecondary,
                       ),
                     ),
                   ],
@@ -147,7 +147,7 @@ class SubscriptionCard extends StatelessWidget {
                       'Next Delivery',
                       style: TextStyle(
                         fontSize: 12.sp,
-                        color: LushTheme.lightText,
+                        color: AppColors.lightTextSecondary,
                       ),
                     ),
                     SizedBox(height: 4.h),
@@ -158,7 +158,7 @@ class SubscriptionCard extends StatelessWidget {
                       style: TextStyle(
                         fontSize: 14.sp,
                         fontWeight: FontWeight.w600,
-                        color: LushTheme.darkerText,
+                        color: AppColors.lightTextPrimary,
                       ),
                     ),
                   ],
@@ -171,7 +171,7 @@ class SubscriptionCard extends StatelessWidget {
                     'Deliveries Left',
                     style: TextStyle(
                       fontSize: 12.sp,
-                      color: LushTheme.lightText,
+                      color: AppColors.lightTextSecondary,
                     ),
                   ),
                   SizedBox(height: 4.h),
@@ -180,7 +180,7 @@ class SubscriptionCard extends StatelessWidget {
                     style: TextStyle(
                       fontSize: 14.sp,
                       fontWeight: FontWeight.w600,
-                      color: LushTheme.darkerText,
+                      color: AppColors.lightTextPrimary,
                     ),
                   ),
                 ],
@@ -201,7 +201,7 @@ class SubscriptionCard extends StatelessWidget {
       case 'cancelled':
         return Colors.red;
       default:
-        return LushTheme.lightText;
+        return AppColors.lightTextSecondary;
     }
   }
 }
@@ -272,7 +272,7 @@ class JuiceRecommendationCard extends StatelessWidget {
               style: TextStyle(
                 fontSize: 14.sp,
                 fontWeight: FontWeight.w600,
-                color: LushTheme.darkerText,
+                color: AppColors.lightTextPrimary,
               ),
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
@@ -283,7 +283,7 @@ class JuiceRecommendationCard extends StatelessWidget {
                 item.meals!.take(2).join(', '),
                 style: TextStyle(
                   fontSize: 12.sp,
-                  color: LushTheme.lightText,
+                  color: AppColors.lightTextSecondary,
                 ),
                 maxLines: 2,
                 overflow: TextOverflow.ellipsis,
@@ -294,7 +294,7 @@ class JuiceRecommendationCard extends StatelessWidget {
                 Icon(
                   Icons.local_fire_department,
                   size: 14.sp,
-                  color: LushTheme.nearlyBlue,
+                  color: AppColors.info,
                 ),
                 SizedBox(width: 4.w),
                 Text(
@@ -302,7 +302,7 @@ class JuiceRecommendationCard extends StatelessWidget {
                   style: TextStyle(
                     fontSize: 12.sp,
                     fontWeight: FontWeight.w500,
-                    color: LushTheme.nearlyBlue,
+                    color: AppColors.info,
                   ),
                 ),
               ],
@@ -319,9 +319,9 @@ class JuiceRecommendationCard extends StatelessWidget {
         return Color(
             int.parse(colorString.substring(1), radix: 16) + 0xFF000000);
       }
-      return LushTheme.nearlyBlue;
+      return AppColors.info;
     } catch (e) {
-      return LushTheme.nearlyBlue;
+      return AppColors.info;
     }
   }
 }
@@ -368,14 +368,14 @@ class HealthInsightCard extends StatelessWidget {
               style: TextStyle(
                 fontSize: 18.sp,
                 fontWeight: FontWeight.bold,
-                color: LushTheme.darkerText,
+                color: AppColors.lightTextPrimary,
               ),
             ),
             Text(
               unit,
               style: TextStyle(
                 fontSize: 10.sp,
-                color: LushTheme.lightText,
+                color: AppColors.lightTextSecondary,
               ),
             ),
             SizedBox(height: 4.h),
@@ -383,7 +383,7 @@ class HealthInsightCard extends StatelessWidget {
               title,
               style: TextStyle(
                 fontSize: 12.sp,
-                color: LushTheme.lightText,
+                color: AppColors.lightTextSecondary,
               ),
               textAlign: TextAlign.center,
               maxLines: 2,
@@ -423,7 +423,7 @@ class SectionHeader extends StatelessWidget {
                   style: TextStyle(
                     fontSize: 20.sp,
                     fontWeight: FontWeight.bold,
-                    color: LushTheme.darkerText,
+                    color: AppColors.lightTextPrimary,
                   ),
                 ),
                 if (subtitle != null) ...[
@@ -432,7 +432,7 @@ class SectionHeader extends StatelessWidget {
                     subtitle!,
                     style: TextStyle(
                       fontSize: 14.sp,
-                      color: LushTheme.lightText,
+                      color: AppColors.lightTextSecondary,
                     ),
                   ),
                 ],
@@ -447,7 +447,7 @@ class SectionHeader extends StatelessWidget {
                 style: TextStyle(
                   fontSize: 14.sp,
                   fontWeight: FontWeight.w600,
-                  color: LushTheme.nearlyBlue,
+                  color: AppColors.info,
                 ),
               ),
             ),
