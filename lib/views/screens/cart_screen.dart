@@ -675,7 +675,7 @@ class CartScreenState extends State<CartScreen> {
       builder: (context) => AlertDialog(
         title: const Text('Clear Cart'),
         content: const Text(
-            'Are you sure you want to remove all items from your cart?'),
+            'Are you sure you want to remove all items from your cart?',),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(),

@@ -134,7 +134,6 @@ class EmailVerificationAfterPhoneScreenState
           child: SingleChildScrollView(
             padding: const EdgeInsets.all(24.0),
             child: Column(
-              crossAxisAlignment: CrossAxisAlignment.center,
               children: [
                 const SizedBox(height: 40),
                 const Icon(
@@ -170,7 +169,6 @@ class EmailVerificationAfterPhoneScreenState
                 ),
                 const SizedBox(height: 20),
                 PinInputTextField(
-                  pinLength: 6,
                   controller: _otpController,
                   autoFocus: true,
                   decoration: UnderlineDecoration(

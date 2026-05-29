@@ -4,7 +4,7 @@ import 'package:lush/bloc/CartBloc/cart_bloc.dart';
 import 'package:lush/bloc/CartBloc/cart_event.dart';
 import 'package:lush/bloc/ProductCatalogBloc/product_catalog_bloc.dart' hide AddToCart;
 import 'package:lush/theme/app_colors.dart';
-// import 'package:lush/utils/haptic_feedback.dart';
+import 'package:lush/utils/analytics_service.dart';
 import 'package:lush/views/models/cart_item.dart';
 import 'package:lush/views/models/item.dart';
 import 'package:lush/views/widgets/shimmer_product_card.dart';
@@ -30,7 +30,6 @@ class ProductCatalogScreenState extends State<ProductCatalogScreen> {
   @override
   void initState() {
     super.initState();
-    // Load products on init
     WidgetsBinding.instance.addPostFrameCallback((_) {
       context.read<ProductCatalogBloc>().add(const LoadProductCatalog());
     });
@@ -50,27 +49,17 @@ class ProductCatalogScreenState extends State<ProductCatalogScreen> {
         backgroundColor: AppColors.primaryOrange,
         elevation: 0,
         actions: [
-          // Cart icon
           IconButton(
             icon: const Icon(Icons.shopping_cart),
-            onPressed: () {
-              Navigator.pushNamed(context, '/cart');
-            },
+            onPressed: () => Navigator.pushNamed(context, '/cart'),
           ),
         ],
       ),
       body: Column(
         children: [
-          // Search Bar
           _buildSearchBar(),
-          
-          // Category Filter Chips
           _buildCategoryFilter(),
-          
-          // Size Filter Chips
           _buildSizeFilter(),
-          
-          // Product Grid
           Expanded(
             child: RefreshIndicator(
               onRefresh: () async {
@@ -79,92 +68,54 @@ class ProductCatalogScreenState extends State<ProductCatalogScreen> {
               },
               child: BlocBuilder<ProductCatalogBloc, ProductCatalogState>(
                 builder: (context, state) {
-                if (state is ProductCatalogLoading) {
-                  return GridView.builder(
-                    padding: const EdgeInsets.all(16),
-                    gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                      crossAxisCount: 2,
-                      childAspectRatio: 0.75,
-                      crossAxisSpacing: 16,
-                      mainAxisSpacing: 16,
-                    ),
-                    itemCount: 6, // Show 6 shimmer cards while loading
-                    itemBuilder: (context, index) {
-                      return const ShimmerProductCard();
-                    },
-                  );
-                }
-
-                if (state is ProductCatalogError) {
-                  return Center(
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        const Icon(
-                          Icons.error_outline,
-                          size: 64,
-                          color: Colors.grey,
-                        ),
-                        const SizedBox(height: 16),
-                        Text(
-                          state.message,
-                          style: const TextStyle(color: Colors.grey),
-                          textAlign: TextAlign.center,
-                        ),
-                        const SizedBox(height: 16),
-                        ElevatedButton(
-                          onPressed: () {
-                            context
-                                .read<ProductCatalogBloc>()
-                                .add(const LoadProductCatalog());
-                          },
-                          child: const Text('Retry'),
-                        ),
-                      ],
-                    ),
-                  );
-                }
-
-                if (state is ProductCatalogEmpty ||
-                    (state is ProductCatalogFiltered &&
-                        state.items.isEmpty)) {
-                  return const Center(
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Icon(
-                          Icons.inventory_2_outlined,
-                          size: 64,
-                          color: Colors.grey,
-                        ),
-                        SizedBox(height: 16),
-                        Text(
-                          'No products found',
-                          style: TextStyle(
-                            fontSize: 18,
-                            color: Colors.grey,
+                  if (state is ProductCatalogLoading) {
+                    return GridView.builder(
+                      padding: const EdgeInsets.all(16),
+                      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                        crossAxisCount: 2, childAspectRatio: 0.75,
+                        crossAxisSpacing: 16, mainAxisSpacing: 16,
+                      ),
+                      itemCount: 6,
+                      itemBuilder: (_, __) => const ShimmerProductCard(),
+                    );
+                  }
+                  if (state is ProductCatalogError) {
+                    return Center(
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          const Icon(Icons.error_outline, size: 64, color: Colors.grey),
+                          const SizedBox(height: 16),
+                          Text(state.message, style: const TextStyle(color: Colors.grey)),
+                          const SizedBox(height: 16),
+                          ElevatedButton(
+                            onPressed: () => context.read<ProductCatalogBloc>().add(const LoadProductCatalog()),
+                            child: const Text('Retry'),
                           ),
-                        ),
-                      ],
-                    ),
-                  );
-                }
-
-                if (state is ProductCatalogLoaded) {
-                  _selectedCategory ??=
-                      state.categories.isNotEmpty ? state.categories.first : null;
-                  _selectedSize ??= state.sizes.isNotEmpty ? state.sizes.first : null;
-                  return _buildProductGrid(state.items);
-                }
-
-                if (state is ProductCatalogFiltered) {
-                  return _buildProductGrid(state.items);
-                }
-
-                return const Center(
-                  child: Text('Something went wrong'),
-                );
-              },
+                        ],
+                      ),
+                    );
+                  }
+                  if (state is ProductCatalogEmpty || (state is ProductCatalogFiltered && state.items.isEmpty)) {
+                    return const Center(
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(Icons.inventory_2_outlined, size: 64, color: Colors.grey),
+                          SizedBox(height: 16),
+                          Text('No products found', style: TextStyle(fontSize: 18, color: Colors.grey)),
+                        ],
+                      ),
+                    );
+                  }
+                  if (state is ProductCatalogLoaded) {
+                    _selectedCategory ??= state.categories.isNotEmpty ? state.categories.first : null;
+                    _selectedSize ??= state.sizes.isNotEmpty ? state.sizes.first : null;
+                    return _buildProductGrid(state.items);
+                  }
+                  if (state is ProductCatalogFiltered) return _buildProductGrid(state.items);
+                  return const Center(child: Text('Something went wrong'));
+                },
               ),
             ),
           ),
@@ -186,9 +137,7 @@ class ProductCatalogScreenState extends State<ProductCatalogScreen> {
                   icon: const Icon(Icons.clear),
                   onPressed: () {
                     _searchController.clear();
-                    context.read<ProductCatalogBloc>().add(
-                          const SearchProducts(query: ''),
-                        );
+                    context.read<ProductCatalogBloc>().add(const SearchProducts(query: ''));
                   },
                 )
               : null,
@@ -201,9 +150,8 @@ class ProductCatalogScreenState extends State<ProductCatalogScreen> {
           contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
         ),
         onChanged: (value) {
-          context.read<ProductCatalogBloc>().add(
-                SearchProducts(query: value),
-              );
+          AnalyticsService.logSearchPerformed(value);
+          context.read<ProductCatalogBloc>().add(SearchProducts(query: value));
         },
       ),
     );
@@ -213,14 +161,8 @@ class ProductCatalogScreenState extends State<ProductCatalogScreen> {
     return BlocBuilder<ProductCatalogBloc, ProductCatalogState>(
       builder: (context, state) {
         List<String> categories = [];
-        
-        if (state is ProductCatalogLoaded) {
-          categories = state.categories;
-        }
-
-        if (categories.isEmpty) {
-          return const SizedBox.shrink();
-        }
+        if (state is ProductCatalogLoaded) categories = state.categories;
+        if (categories.isEmpty) return const SizedBox.shrink();
 
         return SizedBox(
           height: 50,
@@ -231,29 +173,22 @@ class ProductCatalogScreenState extends State<ProductCatalogScreen> {
             itemBuilder: (context, index) {
               final category = categories[index];
               final isSelected = _selectedCategory == category;
-
               return Padding(
                 padding: const EdgeInsets.only(right: 8),
                 child: FilterChip(
                   label: Text(category),
                   selected: isSelected,
                   onSelected: (selected) {
-                    setState(() {
-                      _selectedCategory = selected ? category : null;
-                    });
-                    context.read<ProductCatalogBloc>().add(
-                          FilterByCategory(category: category),
-                        );
+                    setState(() => _selectedCategory = selected ? category : null);
+                    AnalyticsService.logFamilySelected(category);
+                    context.read<ProductCatalogBloc>().add(FilterByCategory(category: category));
                   },
                   backgroundColor: AppColors.lightGrey,
                   selectedColor: AppColors.primaryOrange.withValues(alpha: 0.3),
                   checkmarkColor: AppColors.primaryOrange,
                   labelStyle: TextStyle(
-                    color: isSelected
-                        ? AppColors.primaryOrange
-                        : Colors.grey.shade700,
-                    fontWeight:
-                        isSelected ? FontWeight.bold : FontWeight.normal,
+                    color: isSelected ? AppColors.primaryOrange : Colors.grey.shade700,
+                    fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
                   ),
                 ),
               );
@@ -268,14 +203,8 @@ class ProductCatalogScreenState extends State<ProductCatalogScreen> {
     return BlocBuilder<ProductCatalogBloc, ProductCatalogState>(
       builder: (context, state) {
         List<String> sizes = [];
-        
-        if (state is ProductCatalogLoaded) {
-          sizes = state.sizes;
-        }
-
-        if (sizes.isEmpty) {
-          return const SizedBox.shrink();
-        }
+        if (state is ProductCatalogLoaded) sizes = state.sizes;
+        if (sizes.isEmpty) return const SizedBox.shrink();
 
         return SizedBox(
           height: 50,
@@ -286,29 +215,21 @@ class ProductCatalogScreenState extends State<ProductCatalogScreen> {
             itemBuilder: (context, index) {
               final size = sizes[index];
               final isSelected = _selectedSize == size;
-
               return Padding(
                 padding: const EdgeInsets.only(right: 8),
                 child: FilterChip(
                   label: Text(size),
                   selected: isSelected,
                   onSelected: (selected) {
-                    setState(() {
-                      _selectedSize = selected ? size : null;
-                    });
-                    context.read<ProductCatalogBloc>().add(
-                          FilterBySize(size: size),
-                        );
+                    setState(() => _selectedSize = selected ? size : null);
+                    context.read<ProductCatalogBloc>().add(FilterBySize(size: size));
                   },
                   backgroundColor: AppColors.lightGrey,
                   selectedColor: AppColors.primaryOrange.withValues(alpha: 0.3),
                   checkmarkColor: AppColors.primaryOrange,
                   labelStyle: TextStyle(
-                    color: isSelected
-                        ? AppColors.primaryOrange
-                        : Colors.grey.shade700,
-                    fontWeight:
-                        isSelected ? FontWeight.bold : FontWeight.normal,
+                    color: isSelected ? AppColors.primaryOrange : Colors.grey.shade700,
+                    fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
                   ),
                 ),
               );
@@ -323,159 +244,74 @@ class ProductCatalogScreenState extends State<ProductCatalogScreen> {
     return GridView.builder(
       padding: const EdgeInsets.all(16),
       gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-        crossAxisCount: 2,
-        childAspectRatio: 0.75,
-        crossAxisSpacing: 16,
-        mainAxisSpacing: 16,
+        crossAxisCount: 2, childAspectRatio: 0.75,
+        crossAxisSpacing: 16, mainAxisSpacing: 16,
       ),
       itemCount: items.length,
-      itemBuilder: (context, index) {
-        final item = items[index];
-        return _buildProductCard(item);
-      },
+      itemBuilder: (context, index) => _buildProductCard(items[index]),
     );
   }
 
   Widget _buildProductCard(CatalogItem item) {
-    // Get the first price (default to 500ml if available)
     final defaultPrice = item.prices.isNotEmpty
-        ? item.prices.firstWhere(
-            (p) => p.name?.contains('500ml') ?? false,
-            orElse: () => item.prices.first,
-          )
+        ? item.prices.firstWhere((p) => p.name?.contains('500ml') ?? false, orElse: () => item.prices.first)
         : null;
 
     return Card(
       elevation: 4,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(16),
-      ),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Product Image
           Expanded(
             child: Container(
               width: double.infinity,
               decoration: BoxDecoration(
                 gradient: LinearGradient(
-                  colors: [
-                    _hexToColor(item.startColor),
-                    _hexToColor(item.endColor),
-                  ],
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
+                  colors: [_hexToColor(item.startColor), _hexToColor(item.endColor)],
+                  begin: Alignment.topLeft, end: Alignment.bottomRight,
                 ),
-                borderRadius: const BorderRadius.only(
-                  topLeft: Radius.circular(16),
-                  topRight: Radius.circular(16),
-                ),
+                borderRadius: const BorderRadius.only(topLeft: Radius.circular(16), topRight: Radius.circular(16)),
               ),
               child: item.imagePath.isNotEmpty
-                  ? Image.asset(
-                      item.imagePath,
-                      fit: BoxFit.contain,
-                      errorBuilder: (context, error, stackTrace) {
-                        return Center(
-                          child: Icon(
-                            Icons.local_drink,
-                            size: 64,
-                            color: Colors.white.withValues(alpha: 0.5),
-                          ),
-                        );
-                      },
-                    )
-                  : Center(
-                      child: Icon(
-                        Icons.local_drink,
-                        size: 64,
-                        color: Colors.white.withValues(alpha: 0.5),
+                  ? Image.asset(item.imagePath, fit: BoxFit.contain,
+                      errorBuilder: (_, __, ___) => Center(
+                        child: Icon(Icons.local_drink, size: 64, color: Colors.white.withValues(alpha: 0.5)),
                       ),
-                    ),
+                    )
+                  : Center(child: Icon(Icons.local_drink, size: 64, color: Colors.white.withValues(alpha: 0.5))),
             ),
           ),
-          
-          // Product Details
           Padding(
             padding: const EdgeInsets.all(12),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // Category Badge
                 Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 8,
-                    vertical: 4,
-                  ),
+                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                   decoration: BoxDecoration(
                     color: _getCategoryColor(item.category).withValues(alpha: 0.2),
                     borderRadius: BorderRadius.circular(12),
                   ),
-                  child: Text(
-                    item.category,
-                    style: TextStyle(
-                      fontSize: 10,
-                      fontWeight: FontWeight.bold,
-                      color: _getCategoryColor(item.category),
-                    ),
-                  ),
+                  child: Text(item.category, style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: _getCategoryColor(item.category))),
                 ),
                 const SizedBox(height: 8),
-                
-                // Product Name
-                Text(
-                  item.name,
-                  style: const TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.bold,
-                  ),
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
-                ),
+                Text(item.name, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold), maxLines: 2, overflow: TextOverflow.ellipsis),
                 const SizedBox(height: 4),
-                
-                // Calories
-                Text(
-                  '${item.calories} cal',
-                  style: TextStyle(
-                    fontSize: 12,
-                    color: Colors.grey.shade600,
-                  ),
-                ),
+                Text('${item.calories} cal', style: TextStyle(fontSize: 12, color: Colors.grey.shade600)),
                 const SizedBox(height: 8),
-                
-                // Price and Add to Cart
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     if (defaultPrice != null)
-                      Text(
-                        '₹${defaultPrice.price?.toStringAsFixed(2) ?? '0.00'}',
-                        style: const TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
-                          color: AppColors.primaryOrange,
-                        ),
-                      )
+                      Text('₹${defaultPrice.price?.toStringAsFixed(2) ?? '0.00'}',
+                          style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: AppColors.primaryOrange))
                     else
-                      const Text(
-                        'From ₹75',
-                        style: TextStyle(
-                          fontSize: 14,
-                          color: Colors.grey,
-                        ),
-                      ),
-                    
-                    // Add to Cart Button
+                      const Text('From ₹75', style: TextStyle(fontSize: 14, color: Colors.grey)),
                     IconButton(
-                      icon: const Icon(
-                        Icons.add_circle,
-                        size: 32,
-                      ),
+                      icon: const Icon(Icons.add_circle, size: 32),
                       color: AppColors.primaryOrange,
-                      onPressed: () {
-                        _showSizeSelectionDialog(item);
-                      },
+                      onPressed: () => _showSizeSelectionDialog(item),
                     ),
                   ],
                 ),
@@ -490,123 +326,53 @@ class ProductCatalogScreenState extends State<ProductCatalogScreen> {
   void _showSizeSelectionDialog(CatalogItem item) {
     showModalBottomSheet<dynamic>(
       context: context,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-      ),
+      shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(20))),
       builder: (context) {
         return StatefulBuilder(
           builder: (context, setModalState) {
             ItemPrice? selectedPrice;
-            
             return Padding(
               padding: const EdgeInsets.all(24),
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // Header
-                  Text(
-                    item.name,
-                    style: const TextStyle(
-                      fontSize: 20,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
+                  Text(item.name, style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
                   const SizedBox(height: 8),
-                  const Text(
-                    'Select Size',
-                    style: TextStyle(
-                      fontSize: 16,
-                      color: Colors.grey,
-                    ),
-                  ),
+                  const Text('Select Size', style: TextStyle(fontSize: 16, color: Colors.grey)),
                   const SizedBox(height: 24),
-                  
-                  // Size Options
                   ...item.prices.map((price) {
                     final isSelected = selectedPrice == price;
                     return ListTile(
-                      title: Text(
-                        price.name ?? 'Unknown Size',
-                        style: TextStyle(
-                          fontWeight:
-                              isSelected ? FontWeight.bold : FontWeight.normal,
-                        ),
-                      ),
-                      subtitle: Text(
-                        '₹${price.price?.toStringAsFixed(2) ?? '0.00'}',
-                        style: const TextStyle(
-                          color: AppColors.primaryOrange,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                      trailing: Radio<ItemPrice>(
-                        value: price,
-                        groupValue: selectedPrice,
-                        onChanged: (value) {
-                          setModalState(() {
-                            selectedPrice = value;
-                          });
-                        },
-                        activeColor: AppColors.primaryOrange,
-                      ),
-                      onTap: () {
-                        setModalState(() {
-                          selectedPrice = price;
-                        });
-                      },
+                      title: Text(price.name ?? 'Unknown Size',
+                          style: TextStyle(fontWeight: isSelected ? FontWeight.bold : FontWeight.normal)),
+                      subtitle: Text('₹${price.price?.toStringAsFixed(2) ?? '0.00'}',
+                          style: const TextStyle(color: AppColors.primaryOrange, fontWeight: FontWeight.bold)),
+                      trailing: Radio<ItemPrice>(value: price, groupValue: selectedPrice,
+                          onChanged: (v) => setModalState(() => selectedPrice = v), activeColor: AppColors.primaryOrange),
+                      onTap: () => setModalState(() => selectedPrice = price),
                     );
                   }).toList(),
-                  
                   const SizedBox(height: 24),
-                  
-                  // Add to Cart Button
                   SizedBox(
-                    width: double.infinity,
-                    height: 50,
+                    width: double.infinity, height: 50,
                     child: ElevatedButton(
                       onPressed: selectedPrice != null
                           ? () {
-                              // Add haptic feedback
                               HapticFeedbackUtil.HapticFeedbackUtil.lightFeedback();
-                              
-                              // Add to CartBloc
-                              final cartItem = CartItem(
-                                item: item.item,
-                                quantity: 1,
-                                selectedPrice: selectedPrice,
-                              );
-                              context.read<CartBloc>().add(
-                                    AddToCart(cartItem),
-                                  );
-
+                              context.read<CartBloc>().add(AddToCart(CartItem(item: item.item, quantity: 1, selectedPrice: selectedPrice)));
                               Navigator.pop(context);
-
-                              // Show success message
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                SnackBar(
-                                  content: Text(
-                                    '${item.name} (${selectedPrice!.name}) added to cart',
-                                  ),
-                                  backgroundColor: AppColors.success,
-                                  behavior: SnackBarBehavior.floating,
-                                ),
-                              );
+                              ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                                content: Text('${item.name} (${selectedPrice!.name}) added to cart'),
+                                backgroundColor: AppColors.success, behavior: SnackBarBehavior.floating,
+                              ));
                             }
                           : null,
                       style: ElevatedButton.styleFrom(
                         backgroundColor: AppColors.primaryOrange,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                       ),
-                      child: const Text(
-                        'Add to Cart',
-                        style: TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
+                      child: const Text('Add to Cart', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
                     ),
                   ),
                   const SizedBox(height: 16),
@@ -621,22 +387,15 @@ class ProductCatalogScreenState extends State<ProductCatalogScreen> {
 
   Color _hexToColor(String hexColor) {
     hexColor = hexColor.replaceAll('#', '');
-    if (hexColor.length == 6) {
-      return Color(int.parse('0xFF$hexColor'));
-    }
-    return AppColors.primaryOrange; // Default orange
+    return hexColor.length == 6 ? Color(int.parse('0xFF$hexColor')) : AppColors.primaryOrange;
   }
 
   Color _getCategoryColor(String category) {
     switch (category.toLowerCase()) {
-      case 'delight':
-        return AppColors.success; // Green
-      case 'signature':
-        return AppColors.info; // Blue
-      case 'premium':
-        return AppColors.primaryOrangeDark; // Dark orange
-      default:
-        return AppColors.primaryOrange; // Orange
+      case 'delight': return AppColors.success;
+      case 'signature': return AppColors.info;
+      case 'premium': return AppColors.primaryOrangeDark;
+      default: return AppColors.primaryOrange;
     }
   }
 }

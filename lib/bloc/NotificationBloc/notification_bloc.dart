@@ -2,6 +2,7 @@ import 'dart:convert';
 
 import 'package:equatable/equatable.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import '../../utils/analytics_service.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../models/notification_model.dart';
@@ -109,10 +110,11 @@ class NotificationBloc extends Bloc<NotificationEvent, NotificationState> {
   ) async {
     if (state is! NotificationLoaded) return;
     final current = (state as NotificationLoaded).items;
-    final updated = current.map((n) {
-      return n.id == event.id ? n.copyWith(isRead: true) : n;
-    }).toList();
+    final updated = current.map((n) =>
+      n.id == event.id ? n.copyWith(isRead: true) : n,
+    ).toList();
 
+    await AnalyticsService.logNotificationTapped(event.id);
     await _saveToStorage(updated);
     if (isClosed) return;
     emit(NotificationLoaded(

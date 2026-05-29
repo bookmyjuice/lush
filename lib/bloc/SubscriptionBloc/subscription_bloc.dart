@@ -644,6 +644,7 @@ class SubscriptionBloc extends Bloc<SubscriptionEvent, SubscriptionState> {
         event.subscriptionId,
         duration: event.duration,
       );
+      await AnalyticsService.logSubscriptionPaused(event.subscriptionId);
       // Refetch subscription to get updated state
       add(const LoadActiveSubscriptions());
     } catch (e) {

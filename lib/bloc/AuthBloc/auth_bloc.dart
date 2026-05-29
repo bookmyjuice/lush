@@ -5,7 +5,7 @@ import 'package:lush/get_it.dart';
 import 'package:lush/views/models/firebase_phone_auth.dart';
 
 import '../../UserRepository/user_repository.dart';
-import '../../services/analytics_service.dart';
+import '../../utils/analytics_service.dart';
 import 'auth_events.dart';
 import 'auth_state.dart';
 

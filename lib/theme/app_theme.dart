@@ -5,6 +5,7 @@
 library;
 
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'app_colors.dart';
 import 'app_text_styles.dart';
 
@@ -38,19 +39,23 @@ class AppTheme {
   /// Based on tokens in DESIGN_SYSTEM.md
   static ThemeData get light {
     final colorScheme = ColorScheme.fromSeed(
-      seedColor: AppColors.primaryOrange,
+      seedColor: AppColors.primaryGreen,
       brightness: Brightness.light,
-      primary: AppColors.primaryOrange,
+      primary: AppColors.primaryGreen,
       onPrimary: AppColors.white,
-      primaryContainer: AppColors.primaryOrangeDark,
-      secondary: AppColors.secondaryTeal,
+      primaryContainer: AppColors.primaryGreenDark,
+      secondary: AppColors.primaryAccent,
       onSecondary: AppColors.white,
-      secondaryContainer: AppColors.secondaryTealDark,
+      secondaryContainer: AppColors.primaryGreenLight,
       surface: AppColors.lightSurface,
       onSurface: AppColors.lightTextPrimary,
       error: AppColors.error,
       onError: AppColors.white,
       outline: AppColors.grey,
+    );
+
+    final textTheme = GoogleFonts.poppinsTextTheme(
+      ThemeData.light().textTheme,
     );
 
     return ThemeData(
@@ -59,10 +64,11 @@ class AppTheme {
       colorScheme: colorScheme,
       scaffoldBackgroundColor: AppColors.lightBackground,
 
-      // ── Text Theme ──
-      textTheme: AppTextStyles.textTheme.apply(
-        bodyColor: AppColors.lightTextPrimary,
-        displayColor: AppColors.lightTextPrimary,
+      // ── Text Theme (Poppins) ──
+      textTheme: textTheme.copyWith(
+        bodyMedium: textTheme.bodyMedium?.copyWith(color: AppColors.lightTextPrimary),
+        titleLarge: textTheme.titleLarge?.copyWith(color: AppColors.lightTextPrimary),
+        labelLarge: textTheme.labelLarge?.copyWith(color: AppColors.lightTextPrimary),
       ),
 
       // ── App Bar ──

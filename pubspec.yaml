@@ -51,7 +51,7 @@ dependencies:
   # Referral sharing
   share_plus: ^10.1.0
   # Firebase Analytics
-  firebase_analytics: ^11.3.0
+  firebase_analytics: ^12.4.1
   # Structured logging
   logger: ^2.0.0
 

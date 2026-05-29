@@ -144,7 +144,6 @@ class EmailVerificationScreenState extends State<EmailVerificationScreen> {
           child: SingleChildScrollView(
             padding: const EdgeInsets.all(24.0),
             child: Column(
-              crossAxisAlignment: CrossAxisAlignment.center,
               children: [
                 const SizedBox(height: 40),
                 const Icon(
@@ -180,7 +179,6 @@ class EmailVerificationScreenState extends State<EmailVerificationScreen> {
                 ),
                 const SizedBox(height: 20),
                 PinInputTextField(
-                  pinLength: 6,
                   controller: _otpController,
                   autoFocus: true,
                   decoration: UnderlineDecoration(

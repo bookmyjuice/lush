@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:lush/utils/analytics_service.dart';
 import 'package:lush/views/models/model.dart';
 import 'package:toastification/toastification.dart';
 
@@ -23,6 +24,11 @@ class _DetailPageState extends State<DetailPage> {
   @override
   void initState() {
     product = widget.product;
+    AnalyticsService.logItemViewed(
+      itemId: product.name,
+      itemName: product.name,
+      family: product.details.isNotEmpty ? 'juice' : 'unknown',
+    );
     super.initState();
   }
 
@@ -38,7 +44,7 @@ class _DetailPageState extends State<DetailPage> {
             padding: EdgeInsets.only(right: 50),
             child: Icon(Icons.shopping_cart_outlined),
           )
-        ],
+        ,],
       ),
       body: _buildBody(context),
     );
@@ -69,7 +75,7 @@ class _DetailPageState extends State<DetailPage> {
               fit: BoxFit.contain,
               width: MediaQuery.of(context).size.width * .6,
             ),
-          )),
+          ),),
     );
   }
 
@@ -95,7 +101,7 @@ class _DetailPageState extends State<DetailPage> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               const Text(
-                "The Sweetest Juice Point",
+                'The Sweetest Juice Point',
                 style: TextStyle(color: Colors.white70),
               ),
               Text(
@@ -112,7 +118,7 @@ class _DetailPageState extends State<DetailPage> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               const Text(
-                "Price",
+                'Price',
                 style: TextStyle(color: Colors.white70),
               ),
               Text(
@@ -125,7 +131,7 @@ class _DetailPageState extends State<DetailPage> {
               ),
             ],
           )
-        ],
+        ,],
       ),
     );
   }
@@ -172,7 +178,7 @@ class _DetailPageState extends State<DetailPage> {
                       Text(
                         items.toString().padLeft(2, '0'),
                         style: const TextStyle(
-                            fontSize: 18, fontWeight: FontWeight.bold),
+                            fontSize: 18, fontWeight: FontWeight.bold,),
                       ),
                       IconButton(
                         icon: const Icon(
@@ -229,15 +235,15 @@ class _DetailPageState extends State<DetailPage> {
                   decoration: BoxDecoration(
                       color: product.nameColor,
                       borderRadius:
-                          const BorderRadius.all(Radius.circular(50))),
+                          const BorderRadius.all(Radius.circular(50)),),
                   child: RichText(
                       text: const TextSpan(
                           style: TextStyle(color: Colors.white, fontSize: 20),
                           children: <TextSpan>[
-                        TextSpan(text: "Buy Now"),
+                        TextSpan(text: 'Buy Now'),
                         // TextSpan(text: "129 ", style: TextStyle(decoration: TextDecoration.lineThrough)),
                         // TextSpan(text: "98/juice",style: TextStyle(fontWeight: FontWeight.bold))
-                      ])),
+                      ],),),
                   // const Text(
                   //   "Buy Now",
                   //   textAlign: TextAlign.center,
@@ -263,21 +269,21 @@ class _DetailPageState extends State<DetailPage> {
                   decoration: BoxDecoration(
                       color: product.nameColor,
                       borderRadius:
-                          const BorderRadius.all(Radius.circular(50))),
+                          const BorderRadius.all(Radius.circular(50),),),
                   child: RichText(
                       text: const TextSpan(
                           style: TextStyle(color: Colors.white, fontSize: 20),
                           children: <TextSpan>[
-                        TextSpan(text: "Subscribe @Rs."),
+                        TextSpan(text: 'Subscribe @Rs.'),
                         TextSpan(
-                            text: "129 ",
+                            text: '129 ',
                             style: TextStyle(
                                 decoration: TextDecoration.lineThrough,
-                                fontWeight: FontWeight.w100)),
+                                fontWeight: FontWeight.w100,),),
                         TextSpan(
-                            text: "89/juice",
-                            style: TextStyle(fontWeight: FontWeight.bold))
-                      ])),
+                            text: '89/juice',
+                            style: TextStyle(fontWeight: FontWeight.bold),)
+                      ,],),),
                   // Text(
                   //   "Subscribe",
                   //   textAlign: TextAlign.center,
@@ -289,7 +295,7 @@ class _DetailPageState extends State<DetailPage> {
                 ),
               ),
             )
-          ],
+         , ],
         ),
       ),
     );

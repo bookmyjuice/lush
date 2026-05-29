@@ -13,22 +13,25 @@ import 'package:flutter/material.dart';
 class AppColors {
   AppColors._();
 
-  // ── Brand Primary (Orange) ──
-  static const Color primaryOrange = Color(0xFFFF8C42);
-  static const Color primaryOrangeDark = Color(0xFFE67E3A);
-  static const Color primaryOrangeLight = Color(0xFFFFA96A);
+  // ── Brand Primary (Green) ──
+  static const Color primaryGreen = Color(0xFF2E7D32);
+  static const Color primaryGreenDark = Color(0xFF1B5E20);
+  static const Color primaryGreenLight = Color(0xFF43A047);
 
   // ── Brand Gradients ──
-  /// Top color of the login screen background gradient (warm amber).
-  static const Color gradientStart = Color(0xFFFFA726);
+  static const Color gradientStart = Color(0xFF1B5E20);
+  static const Color gradientEnd = Color(0xFF43A047);
 
-  /// Bottom color of the login screen background gradient (deep orange).
-  static const Color gradientEnd = Color(0xFFFF7043);
-
-  // ── Brand Secondary (Teal) ──
+  // ── Brand Secondary ──
+  static const Color primaryAccent = Color(0xFF66BB6A);
   static const Color secondaryTeal = Color(0xFF4ECDC4);
   static const Color secondaryTealDark = Color(0xFF45B7AF);
   static const Color secondaryTealLight = Color(0xFF7FD9D2);
+
+  // ── Legacy (Orange — kept for backward compat) ──
+  static const Color primaryOrange = Color(0xFF2E7D32);
+  static const Color primaryOrangeDark = Color(0xFF1B5E20);
+  static const Color primaryOrangeLight = Color(0xFF43A047);
 
   // ── Semantic / Status ──
   static const Color success = Color(0xFF4CAF50);

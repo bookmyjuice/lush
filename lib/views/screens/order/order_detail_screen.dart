@@ -59,8 +59,9 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
   }
 
   void _handleReorder(BuildContext context, OrderDetail order) {
-    context.read<CartBloc>().add(
+      context.read<CartBloc>().add(
           ReorderItems(
+            orderId: order.id,
             items: order.lineItems
                 .map((item) => ({
                       'itemId': item.itemId,

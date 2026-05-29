@@ -278,11 +278,11 @@ class CreatePasswordScreenState extends State<CreatePasswordScreen> {
       padding: const EdgeInsets.symmetric(vertical: AppSpacing.xs),
       child: Row(
         children: [
-          Icon(Icons.check_circle_outline, size: 16, color: AppColors.darkGrey),
+          const Icon(Icons.check_circle_outline, size: 16, color: AppColors.darkGrey),
           const SizedBox(width: AppSpacing.sm),
           Text(
             text,
-            style: TextStyle(fontSize: 13, color: AppColors.darkGrey),
+            style: const TextStyle(fontSize: 13, color: AppColors.darkGrey),
           ),
         ],
       ),

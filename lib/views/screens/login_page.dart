@@ -66,7 +66,7 @@ class LoginPageState extends State<LoginPage>
       WidgetsBinding.instance.addPostFrameCallback((_) {
         toastification.show(
           icon: const Icon(Icons.error),
-          closeButton: ToastCloseButton(),
+          closeButton: const ToastCloseButton(),
           alignment: Alignment.center,
           title: Text(widget.toastHeading),
           description: Text(widget.toastMessage),
@@ -104,7 +104,6 @@ class LoginPageState extends State<LoginPage>
           if ((state is LogInFailed) && !_dialogShown) {
             _dialogShown = true;
             toastification.show(
-              closeButton: const ToastCloseButton(),
               title: const Text('Login Failed'),
               description:
                   const Text('Please check your credentials and try again.'),
@@ -114,7 +113,6 @@ class LoginPageState extends State<LoginPage>
           if (state is SignUpFailed) {
             _dialogShown = true;
             toastification.show(
-              closeButton: const ToastCloseButton(),
               title: Text(state.errorHeading),
               description: Text(state.error),
               type: ToastificationType.error,
@@ -233,9 +231,9 @@ class LoginPageState extends State<LoginPage>
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: AppSpacing.xs),
-            Text(
+            const Text(
               'Sign in to your account',
-              style: const TextStyle(fontSize: 14, color: AppColors.white70,
+              style: TextStyle(fontSize: 14, color: AppColors.white70,
                 fontWeight: FontWeight.w500,
               ),
               textAlign: TextAlign.center,
@@ -315,7 +313,7 @@ class LoginPageState extends State<LoginPage>
             // ── Divider ──
             Row(
               children: [
-                Expanded(
+                const Expanded(
                   child: Divider(color: AppColors.white54, thickness: 1),
                 ),
                 Padding(
@@ -328,7 +326,7 @@ class LoginPageState extends State<LoginPage>
                     ),
                   ),
                 ),
-                Expanded(
+                const Expanded(
                   child: Divider(color: AppColors.white54, thickness: 1),
                 ),
               ],
@@ -466,7 +464,7 @@ class LoginPageState extends State<LoginPage>
           // ── Divider ──
           Row(
             children: [
-              Expanded(
+              const Expanded(
                 child: Divider(color: AppColors.white54, thickness: 1),
               ),
               Padding(
@@ -479,7 +477,7 @@ class LoginPageState extends State<LoginPage>
                   ),
                 ),
               ),
-              Expanded(
+              const Expanded(
                 child: Divider(color: AppColors.white54, thickness: 1),
               ),
             ],
@@ -492,7 +490,7 @@ class LoginPageState extends State<LoginPage>
             children: [
               Text(
                 'Already have an account? ',
-                style: TextStyle(fontSize: 14, color: AppColors.white.withOpacity(0.8),
+                style: TextStyle(fontSize: 14, color: AppColors.white.withValues(alpha: 0.8),
                 ),
               ),
               GestureDetector(
@@ -530,8 +528,8 @@ class LoginPageState extends State<LoginPage>
           backgroundColor: AppColors.white,
           foregroundColor: AppColors.primaryOrange,
           elevation: 2,
-          disabledBackgroundColor: AppColors.white.withOpacity(0.5),
-          disabledForegroundColor: AppColors.primaryOrange.withOpacity(0.5),
+          disabledBackgroundColor: AppColors.white.withValues(alpha: 0.5),
+          disabledForegroundColor: AppColors.primaryOrange.withValues(alpha: 0.5),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(AppRadius.lg + 2),
           ),
@@ -651,11 +649,11 @@ class LoginPageState extends State<LoginPage>
     String? Function(String?)? validator,
     Key? key,
   }) {
-    return Container(
+    return DecoratedBox(
       decoration: BoxDecoration(
         color: AppColors.white,
         borderRadius: BorderRadius.circular(AppRadius.lg + 2),
-        border: Border.all(color: AppColors.white.withOpacity(0.3)),
+        border: Border.all(color: AppColors.white.withValues(alpha: 0.3)),
       ),
           child: TextFormField(
             key: key,
@@ -692,9 +690,9 @@ class LoginPageState extends State<LoginPage>
     return OutlinedButton(
       onPressed: onTap,
       style: OutlinedButton.styleFrom(
-        backgroundColor: AppColors.white.withOpacity(0.15),
+        backgroundColor: AppColors.white.withValues(alpha: 0.15),
         foregroundColor: AppColors.white,
-        side: BorderSide(color: AppColors.white.withOpacity(0.3)),
+        side: BorderSide(color: AppColors.white.withValues(alpha: 0.3)),
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(AppRadius.lg + 2),
         ),
@@ -741,9 +739,9 @@ class LoginPageState extends State<LoginPage>
       child: Container(
         padding: const EdgeInsets.all(AppSpacing.lg - 6),
         decoration: BoxDecoration(
-          color: AppColors.white.withOpacity(0.15),
+          color: AppColors.white.withValues(alpha: 0.15),
           borderRadius: BorderRadius.circular(AppRadius.lg + 2),
-          border: Border.all(color: AppColors.white.withOpacity(0.2)),
+          border: Border.all(color: AppColors.white.withValues(alpha: 0.2)),
         ),
         child: Row(
           children: [
@@ -751,7 +749,7 @@ class LoginPageState extends State<LoginPage>
               width: 44,
               height: 44,
               decoration: BoxDecoration(
-                color: AppColors.white.withOpacity(0.2),
+                color: AppColors.white.withValues(alpha: 0.2),
                 borderRadius: BorderRadius.circular(AppRadius.sm + 4),
               ),
               child: _buildCardIcon(icon, iconColor),
@@ -771,7 +769,7 @@ class LoginPageState extends State<LoginPage>
                   const SizedBox(height: 2),
                   Text(
                     subtitle,
-                    style: TextStyle(fontSize: 13, color: AppColors.white.withOpacity(0.7),
+                    style: TextStyle(fontSize: 13, color: AppColors.white.withValues(alpha: 0.7),
                     ),
                   ),
                 ],
@@ -790,7 +788,7 @@ class LoginPageState extends State<LoginPage>
               Icon(
                 Icons.arrow_forward_ios,
                 size: 16,
-                color: AppColors.white.withOpacity(0.7),
+                color: AppColors.white.withValues(alpha: 0.7),
               ),
           ],
         ),

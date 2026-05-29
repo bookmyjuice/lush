@@ -67,7 +67,7 @@ class _DeleteAccountScreenState extends State<DeleteAccountScreen> {
       context: context,
       builder: (context) => AlertDialog(
         title: const Text('Delete Account'),
-        content: Column(
+        content: const Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -75,7 +75,7 @@ class _DeleteAccountScreenState extends State<DeleteAccountScreen> {
               'Are you sure you want to delete your account?',
               style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600, color: AppColors.lightTextPrimary, fontFamily: 'Roboto'),
             ),
-            const SizedBox(height: 16),
+            SizedBox(height: 16),
             Text(
               '• You will lose access to your subscriptions and order history\n'
               '• Your data will be soft-deleted and can be recovered within 30 days\n'
@@ -134,12 +134,12 @@ class _DeleteAccountScreenState extends State<DeleteAccountScreen> {
               const SizedBox(height: 40),
               Icon(Icons.delete_forever, size: 80, color: Colors.red[300]),
               const SizedBox(height: 24),
-              Text(
+              const Text(
                 'Delete Your Account',
                 style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: AppColors.lightTextPrimary, fontFamily: 'Roboto'),
               ),
               const SizedBox(height: 16),
-              Text(
+              const Text(
                 'This action will soft-delete your account. Your data will be retained for 30 days in case you change your mind.',
                 style: TextStyle(fontSize: 14, color: AppColors.darkGrey, fontFamily: 'Roboto'),
                 textAlign: TextAlign.center,
@@ -157,7 +157,7 @@ class _DeleteAccountScreenState extends State<DeleteAccountScreen> {
                   children: [
                     Row(
                       children: [
-                        Icon(Icons.warning_amber_rounded, color: AppColors.error),
+                        const Icon(Icons.warning_amber_rounded, color: AppColors.error),
                         const SizedBox(width: 8),
                         Text(
                           'What you will lose:',
@@ -171,7 +171,7 @@ class _DeleteAccountScreenState extends State<DeleteAccountScreen> {
                     _buildLossItem('Saved delivery addresses'),
                     _buildLossItem('Cart items and preferences'),
                     const SizedBox(height: 12),
-                    Text(
+                    const Text(
                       'Recovery: Contact support within 30 days to recover your account.',
                       style: TextStyle(fontSize: 12, color: AppColors.lightTextSecondary, fontFamily: 'Roboto'),
 
@@ -202,7 +202,7 @@ class _DeleteAccountScreenState extends State<DeleteAccountScreen> {
               const SizedBox(height: 16),
               TextButton(
                 onPressed: () => Navigator.of(context).pop(),
-                child: Text(
+                child: const Text(
                   'Cancel',
                   style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600, color: AppColors.lightTextSecondary, fontFamily: 'Roboto'),
                 ),
@@ -220,7 +220,7 @@ class _DeleteAccountScreenState extends State<DeleteAccountScreen> {
       padding: const EdgeInsets.only(bottom: 8),
       child: Row(
         children: [
-          Icon(Icons.close, size: 16, color: AppColors.error),
+          const Icon(Icons.close, size: 16, color: AppColors.error),
           const SizedBox(width: 8),
           Expanded(
             child: Text(

@@ -20,7 +20,7 @@ class ReferralScreen extends StatelessWidget {
           if (state is ReferralLoaded) return _buildLoadedContent(context, state);
           if (state is ReferralError) return _buildErrorContent(context, state);
           return const SizedBox.shrink();
-        }),
+        },),
     );
   }
   Widget _buildLoadedContent(BuildContext context, ReferralLoaded state) {
@@ -38,7 +38,7 @@ class ReferralScreen extends StatelessWidget {
               child: Column(
                 children: [
                   const Text(
-"Your Referral Code
+                    'Your Referral Code',
                     style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
                   ),
                   const SizedBox(height: 12),
@@ -54,39 +54,39 @@ class ReferralScreen extends StatelessWidget {
                         Clipboard.setData(ClipboardData(text: info.referralCode));
                         ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Referral code copied!')));
                       },
-                      icon: const Icon(Icons.copy), label: const Text("Copy Code")),
+                      icon: const Icon(Icons.copy), label: const Text('Copy Code'),),
                     ElevatedButton.icon(
                       key: const Key('share_button'),
                       onPressed: () {
-"                        Share.share('Use my referral code ${info.referralCode} to sign up and get rewards!');
+                        Share.share('Use my referral code ${info.referralCode} to sign up and get rewards!');
                       },
-                      icon: const Icon(Icons.share), label: const Text("Share")),
-                  ]),
+                      icon: const Icon(Icons.share), label: const Text('Share'),),
+                  ],),
                 ],
               ),
             ),
           ),
           const SizedBox(height: 16),
-          Card(key: const Key("referral_stats_card"),
+          Card(key: const Key('referral_stats_card'),
             elevation: 2, shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
             child: Padding(padding: const EdgeInsets.all(20.0),
               child: Row(mainAxisAlignment: MainAxisAlignment.spaceAround, children: [
                 _buildStatColumn('Friends Joined', '${info.referralCount}', Icons.people),
-                _buildStatColumn('Total Earned', '$${info.totalRewardAmount.toStringAsFixed(2)}', Icons.monetization_on),
-              ])),
+                _buildStatColumn('Total Earned', '₹${info.totalRewardAmount.toStringAsFixed(2)}', Icons.monetization_on),
+              ],),),
           ),
           const SizedBox(height: 16),
-          Card(key: const Key("how_it_works_card"), elevation: 2,
+          Card(key: const Key('how_it_works_card'), elevation: 2,
             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-            child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-              const Padding(padding: EdgeInsets.fromLTRB(16, 16, 16, 8),
-                child: Text("How It Works", style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600))),
-              const Divider(),
-              const ListTile(leading: CircleAvatar(child: Text('1')), title: Text('Share your referral code'), subtitle: Text('Send your unique code to friends and family')),
-              const ListTile(leading: CircleAvatar(child: Text('2')), title: Text('They sign up'), subtitle: Text('Your friends use your code when creating an account')),
-              const ListTile(leading: CircleAvatar(child: Text('3')), title: Text('They get a discount'), subtitle: Text('Your friends enjoy a discount on their first order')),
-              const ListTile(leading: CircleAvatar(child: Text('4')), title: Text('You earn rewards'), subtitle: Text('You earn credit for every friend who joins')),
-            ]),
+            child: const Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+              Padding(padding: EdgeInsets.fromLTRB(16, 16, 16, 8),
+                child: Text('How It Works', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600)),),
+              Divider(),
+              ListTile(leading: CircleAvatar(child: Text('1')), title: Text('Share your referral code'), subtitle: Text('Send your unique code to friends and family')),
+              ListTile(leading: CircleAvatar(child: Text('2')), title: Text('They sign up'), subtitle: Text('Your friends use your code when creating an account')),
+              ListTile(leading: CircleAvatar(child: Text('3')), title: Text('They get a discount'), subtitle: Text('Your friends enjoy a discount on their first order')),
+              ListTile(leading: CircleAvatar(child: Text('4')), title: Text('You earn rewards'), subtitle: Text('You earn credit for every friend who joins')),
+            ],),
           ),
         ],
       ),
@@ -99,7 +99,7 @@ class ReferralScreen extends StatelessWidget {
       const SizedBox(height: 8),
       Text(value, style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold)),
       Text(label, style: TextStyle(fontSize: 14, color: Colors.grey[600])),
-    ]);
+    ],);
   }
 
   Widget _buildErrorContent(BuildContext context, ReferralError state) {
@@ -110,9 +110,9 @@ class ReferralScreen extends StatelessWidget {
           const SizedBox(height: 16),
           Text(state.message, textAlign: TextAlign.center, style: const TextStyle(fontSize: 16)),
           const SizedBox(height: 24),
-          ElevatedButton(key: const Key("referral_retry_button"),
+          ElevatedButton(key: const Key('referral_retry_button'),
             onPressed: () { context.read<ReferralBloc>().add(const LoadReferralInfo()); },
-            child: const Text("Retry")),
-        ]),),);
+            child: const Text('Retry'),),
+        ],),),);
   }
 }

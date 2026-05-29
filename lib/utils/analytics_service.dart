@@ -1,9 +1,23 @@
+import 'package:flutter/foundation.dart';
 import 'package:firebase_analytics/firebase_analytics.dart';
 
 class AnalyticsService {
-  AnalyticsService._();
+  AnalyticsService();
 
-  static final FirebaseAnalytics _analytics = FirebaseAnalytics.instance;
+  static FirebaseAnalytics? _analyticsInstance;
+
+  static FirebaseAnalytics get _analytics =>
+      _analyticsInstance ?? FirebaseAnalytics.instance;
+
+  @visibleForTesting
+  static void setAnalyticsForTesting(FirebaseAnalytics analytics) {
+    _analyticsInstance = analytics;
+  }
+
+  @visibleForTesting
+  static void resetAnalyticsForTesting() {
+    _analyticsInstance = null;
+  }
 
   static Future<void> logLogin() async {
     await _analytics.logLogin(loginMethod: 'email');

@@ -4,7 +4,7 @@ import 'package:lush/bloc/CartBloc/cart_event.dart';
 import '../../CartRepository/cart_repository.dart';
 import '../../views/models/cart_item.dart';
 import '../../views/models/item.dart';
-import '../../services/analytics_service.dart';
+import '../../utils/analytics_service.dart';
 import 'cart_state.dart';
 
 class CartBloc extends Bloc<CartEvent, CartState> {
@@ -122,7 +122,7 @@ class CartBloc extends Bloc<CartEvent, CartState> {
       emit(CartLoading());
       try {
         await Future<void>.delayed(const Duration(seconds: 1));
-        await AnalyticsService.logOrderPlaced();
+        await AnalyticsService.logOrderPlaced(value: 0.0, itemCount: 0);
         emit(const OrderPlaced('order-placed'));
         await cartRepository.clearCart();
         emit(const CartLoaded([]));

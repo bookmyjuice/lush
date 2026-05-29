@@ -264,7 +264,7 @@ class DeliverySlotSelectionScreenState
                     IconButton(
                       onPressed:
                           _selectedDate.subtract(const Duration(days: 1)).isBefore(
-                                  DateTime.now().subtract(const Duration(days: 1)))
+                                  DateTime.now().subtract(const Duration(days: 1)),)
                               ? null
                               : () => _changeDate(-1),
                       icon: const Icon(Icons.chevron_left),
@@ -336,7 +336,7 @@ class DeliverySlotSelectionScreenState
                               ? AppColors.primaryOrange
                               : AppColors.grey,
                           child: const Icon(Icons.access_time,
-                              color: AppColors.white),
+                              color: AppColors.white,),
                         ),
                         title: Text(
                           '$startTime - $endTime',
@@ -357,7 +357,7 @@ class DeliverySlotSelectionScreenState
                         ),
                         trailing: available
                             ? const Icon(Icons.check_circle_outline,
-                                color: AppColors.success)
+                                color: AppColors.success,)
                             : const Icon(Icons.cancel, color: AppColors.error),
                         enabled: available,
                         onTap: available ? () => _selectSlot(slot) : null,

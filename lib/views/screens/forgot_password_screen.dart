@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:lush/theme/app_colors.dart';
 import 'package:lush/UserRepository/user_repository.dart';
+import 'package:lush/theme/app_colors.dart';
 import 'package:lush/widgets/app_text_field.dart';
 import 'package:toastification/toastification.dart';
 
@@ -82,7 +82,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
       title: Text(title),
       description: Text(message),
       type: type,
-      closeButton: ToastCloseButton(),
+      closeButton: const ToastCloseButton(),
     );
   }
 
@@ -90,32 +90,32 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Forgot Password'),
+        title: const Text('Forgot Password'),
         backgroundColor: AppColors.primaryOrange,
         centerTitle: true,
       ),
       body: SafeArea(
         child: SingleChildScrollView(
-          padding: EdgeInsets.all(24.0),
+          padding: const EdgeInsets.all(24.0),
           child: Form(
             key: _formKey,
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
-                SizedBox(height: 20),
-                Icon(Icons.lock_reset, size: 80, color: AppColors.primaryOrange),
-                SizedBox(height: 20),
-                Text(
+                const SizedBox(height: 20),
+                const Icon(Icons.lock_reset, size: 80, color: AppColors.primaryOrange),
+                const SizedBox(height: 20),
+                const Text(
                   'Reset Your Password',
                   style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: AppColors.lightTextPrimary, fontFamily: 'Roboto'),
                 ),
-                SizedBox(height: 8),
-                Text(
+                const SizedBox(height: 8),
+                const Text(
                   'Choose how you want to verify your identity',
                   style: TextStyle(fontSize: 14, color: AppColors.lightTextSecondary, fontFamily: 'Roboto'),
                   textAlign: TextAlign.center,
                 ),
-                SizedBox(height: 30),
+                const SizedBox(height: 30),
 
                 // Method 1: Phone OTP
                 _buildMethodCard(
@@ -141,18 +141,18 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                   isLoading: _isLoading,
                 ),
 
-                SizedBox(height: 16),
+                const SizedBox(height: 16),
 
-                Divider(thickness: 1, color: AppColors.lightDivider),
+                const Divider(thickness: 1, color: AppColors.lightDivider),
 
-                SizedBox(height: 8),
-                Text(
+                const SizedBox(height: 8),
+                const Text(
                   'OR',
                   style: TextStyle(fontSize: 14, fontWeight: FontWeight.w500, color: AppColors.grey, fontFamily: 'Roboto'),
                 ),
-                SizedBox(height: 8),
-                Divider(thickness: 1, color: AppColors.lightDivider),
-                SizedBox(height: 16),
+                const SizedBox(height: 8),
+                const Divider(thickness: 1, color: AppColors.lightDivider),
+                const SizedBox(height: 16),
 
                 // Method 2: Email OTP
                 _buildMethodCard(
@@ -176,19 +176,19 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                   isLoading: _isLoading,
                 ),
 
-                SizedBox(height: 30),
+                const SizedBox(height: 30),
                 TextButton(
                   onPressed: () => Navigator.of(context).pop(),
-                  child: Text(
+                  child: const Text(
                     'Back to Login',
                     style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600, color: AppColors.primaryOrangeDark, fontFamily: 'Roboto'),
                   ),
                 ),
-                SizedBox(height: 12),
+                const SizedBox(height: 12),
                 // BR-009 Fallback: Contact support if user loses access to both phone and email
                 TextButton(
                   onPressed: () => _showContactSupportDialog(context),
-                  child: Text(
+                  child: const Text(
                     "Can't access your phone or email? Contact Support",
                     style: TextStyle(fontSize: 12, color: AppColors.lightTextSecondary, fontFamily: 'Roboto'),
                     textAlign: TextAlign.center,
@@ -212,7 +212,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
     required bool isLoading,
   }) {
     return Container(
-      padding: EdgeInsets.all(16),
+      padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: AppColors.white,
         borderRadius: BorderRadius.circular(12),
@@ -221,7 +221,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
           BoxShadow(
             color: AppColors.nearlyBlack.withValues(alpha: 0.05),
             blurRadius: 8,
-            offset: Offset(0, 2),
+            offset: const Offset(0, 2),
           ),
         ],
       ),
@@ -231,28 +231,28 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
           Row(
             children: [
               Icon(icon, size: 28, color: AppColors.primaryOrangeDark),
-              SizedBox(width: 12),
+              const SizedBox(width: 12),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
                       title,
-                      style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: AppColors.lightTextPrimary, fontFamily: 'Roboto'),
+                      style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: AppColors.lightTextPrimary, fontFamily: 'Roboto'),
                     ),
-                    SizedBox(height: 4),
+                    const SizedBox(height: 4),
                     Text(
                       subtitle,
-                      style: TextStyle(fontSize: 12, color: AppColors.lightTextSecondary, fontFamily: 'Roboto'),
+                      style: const TextStyle(fontSize: 12, color: AppColors.lightTextSecondary, fontFamily: 'Roboto'),
                     ),
                   ],
                 ),
               ),
             ],
           ),
-          SizedBox(height: 16),
+          const SizedBox(height: 16),
           child,
-          SizedBox(height: 16),
+          const SizedBox(height: 16),
           SizedBox(
             width: double.infinity,
             height: 50,
@@ -265,10 +265,10 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                 ),
               ),
               child: isLoading
-                  ? CircularProgressIndicator(color: AppColors.white)
+                  ? const CircularProgressIndicator(color: AppColors.white)
                   : Text(
                       buttonText,
-                      style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: AppColors.white),
+                      style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: AppColors.white),
                     ),
             ),
           ),
@@ -281,8 +281,8 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
     showDialog<void>(
       context: context,
       builder: (context) => AlertDialog(
-        title: Text('Contact Support'),
-        content: Column(
+        title: const Text('Contact Support'),
+        content: const Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -310,7 +310,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: Text('Close'),
+            child: const Text('Close'),
           ),
         ],
       ),

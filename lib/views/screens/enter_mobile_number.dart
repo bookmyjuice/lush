@@ -21,7 +21,7 @@ class _MobileNumberPageState extends State<MobileNumberPage> {
   Widget build(BuildContext context) {
     return Scaffold(
         appBar: AppBar(
-          title: const Text("Enter Phone Number"),
+          title: const Text('Enter Phone Number'),
           centerTitle: true,
         ),
         body: BlocListener<AuthenticationBloc, AuthenticationState>(
@@ -30,7 +30,7 @@ class _MobileNumberPageState extends State<MobileNumberPage> {
           listener: (context, state) {
             if (state is OTPSent) {
               // Navigate to OTP verification screen only after OTP is sent
-              Navigator.of(context).pushNamed("/otpSignUpScreen");
+              Navigator.of(context).pushNamed('/otpSignUpScreen');
             } else if (state is OTPSendFailed) {
               toastification.show(
                 title: const Text('Failed to Send OTP'),
@@ -50,7 +50,7 @@ class _MobileNumberPageState extends State<MobileNumberPage> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         const Text(
-                          "Create Account with Phone Number",
+                          'Create Account with Phone Number',
                           style: TextStyle(
                             fontSize: 18,
                             fontWeight: FontWeight.bold,
@@ -62,14 +62,14 @@ class _MobileNumberPageState extends State<MobileNumberPage> {
                             maxLength: 10,
                             controller: MobileNoController,
                             decoration: const InputDecoration(
-                                prefixText: "+91 ",
+                                prefixText: '+91 ',
                                 prefixIcon: Icon(Icons.phone),
-                                labelText: "Phone Number",
-                                hintText: "Enter 10 digit phone number",
+                                labelText: 'Phone Number',
+                                hintText: 'Enter 10 digit phone number',
                                 border: OutlineInputBorder(
                                   borderRadius:
                                       BorderRadius.all(Radius.circular(10)),
-                                ))),
+                                ),),),
                       ],
                     ),
                   ),
@@ -81,7 +81,7 @@ class _MobileNumberPageState extends State<MobileNumberPage> {
                       return ElevatedButton(
                           style: ElevatedButton.styleFrom(
                             padding: const EdgeInsets.symmetric(
-                                horizontal: 40, vertical: 12),
+                                horizontal: 40, vertical: 12,),
                             backgroundColor: Colors.amber,
                           ),
                           onPressed: isLoading
@@ -92,7 +92,7 @@ class _MobileNumberPageState extends State<MobileNumberPage> {
                                     ScaffoldMessenger.of(context).showSnackBar(
                                       const SnackBar(
                                         content: Text(
-                                            "Please enter a valid 10-digit phone number"),
+                                            'Please enter a valid 10-digit phone number',),
                                       ),
                                     );
                                     return;
@@ -101,13 +101,13 @@ class _MobileNumberPageState extends State<MobileNumberPage> {
                                   BlocProvider.of<AuthenticationBloc>(context)
                                       .add(MobileSignUp(
                                           mobileNumber:
-                                              MobileNoController.text));
+                                              MobileNoController.text,),);
 
                                   // Send OTP
                                   BlocProvider.of<AuthenticationBloc>(context)
                                       .add(SendOTP(
                                           phoneNumber:
-                                              MobileNoController.text));
+                                              MobileNoController.text,),);
                                 },
                           child: isLoading
                               ? const SizedBox(
@@ -116,14 +116,14 @@ class _MobileNumberPageState extends State<MobileNumberPage> {
                                   child: CircularProgressIndicator(
                                     strokeWidth: 2,
                                     valueColor: AlwaysStoppedAnimation<Color>(
-                                        Colors.white),
+                                        Colors.white,),
                                   ),
                                 )
-                              : const Text("Continue"));
+                              : const Text('Continue'),);
                     },
                   )
-                ]),
+                ,],),
           ),
-        ));
+        ),);
   }
 }

@@ -10,14 +10,13 @@ import 'referral_state.dart';
 
 class ReferralBloc extends Bloc<ReferralEvent, ReferralState> {
   final ReferralRepository _referralRepository;
-  final AnalyticsService _analyticsService;
   bool _isClosed = false;
 
   ReferralBloc({
     required ReferralRepository referralRepository,
-    required AnalyticsService analyticsService,
+    // ignore: avoid_unused_constructor_parameters
+    AnalyticsService? analyticsService,
   })  : _referralRepository = referralRepository,
-        _analyticsService = analyticsService,
         super(const ReferralInitial()) {
     on<LoadReferralInfo>(_onLoadReferralInfo);
     on<ShareReferralCode>(_onShareReferralCode);
@@ -51,7 +50,7 @@ class ReferralBloc extends Bloc<ReferralEvent, ReferralState> {
   ) async {
     if (_isClosed) return;
     try {
-      await _analyticsService.logReferralShared();
+      await AnalyticsService.logReferralShared();
     } catch (e) {
       developer.log('Analytics error: ' + e.toString());
     }

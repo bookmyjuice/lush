@@ -14,7 +14,7 @@ class UserRepository {
   String? server = ApiConfig.baseUrl;
   bool userLoggedIn = false;
   User user =
-      User.blank('', '', '', '', '', '', '', '', '', '', '', '', '', '');
+      User.blank('', '', '', '', '', '', '', '', '', '', '', '', '', '','');
 
   final Future<SharedPreferences> _prefs = SharedPreferences.getInstance();
   final SecureStorageService _secureStorage = SecureStorageService();

@@ -51,7 +51,7 @@ class _ModifyScheduleScreenState extends State<ModifyScheduleScreen> {
       body: BlocConsumer<SubscriptionBloc, SubscriptionState>(
         listener: (context, state) {
           if (state is SubscriptionModified) {
-            Navigator.pop();
+            Navigator.pop(context);
             ScaffoldMessenger.of(context).showSnackBar(
               const SnackBar(content: Text('Schedule updated')),
             );

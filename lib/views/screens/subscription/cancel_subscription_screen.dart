@@ -49,7 +49,7 @@ class _CancelSubscriptionScreenState extends State<CancelSubscriptionScreen> {
         listener: (context, state) {
           setState(() => _isLoading = state is SubscriptionLoading);
           if (state is SubscriptionCancelled) {
-            Navigator.pushNamedAndRemoveUntil('/home', (_) => false);
+            Navigator.pushNamedAndRemoveUntil(context, '/home', (_) => false);
             ScaffoldMessenger.of(context).showSnackBar(
               const SnackBar(content: Text('Subscription cancelled')),
             );
