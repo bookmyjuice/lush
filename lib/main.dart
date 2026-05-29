@@ -70,6 +70,7 @@ import 'views/screens/subscription/subscription_summary_screen.dart';
 import 'views/models/subscription_selection.dart';
 
 void main() async {
+  
   // 1. MUST be the first thing called
   WidgetsFlutterBinding.ensureInitialized();
   // 2. Now you can safely call your background setup

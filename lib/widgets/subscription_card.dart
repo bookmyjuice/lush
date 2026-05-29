@@ -22,7 +22,7 @@ class SubscriptionCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      margin: EdgeInsets.fromLTRB(16.w, -24.h, 16.w, 8.h),
+      margin: EdgeInsets.fromLTRB(16.w, 8.h, 16.w, 8.h),
       child: Card(
         elevation: 8,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20.r)),

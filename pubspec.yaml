@@ -49,7 +49,7 @@ dependencies:
   # Sentry error tracking
   sentry_flutter: ^8.10.0
   # Referral sharing
-  share_plus: ^10.1.0
+  share_plus: ^12.0.2
   # Firebase Analytics
   firebase_analytics: ^12.4.1
   # Structured logging

@@ -4,18 +4,30 @@ import 'package:lush/UserRepository/user_repository.dart';
 import 'package:lush/services/bottle_service.dart';
 import 'package:lush/services/item_service.dart';
 import 'package:lush/services/subscription_service.dart';
-// Keep for backward compatibility
 
 final getIt = GetIt.instance;
 
 void registerRepositories() {
-  getIt.registerLazySingleton<CartRepository>(
-    () => CartRepository(),
-  );
-  getIt.registerLazySingleton<UserRepository>(
-    () => UserRepository(),
-  );
-  getIt.registerLazySingleton<ItemService>(() => ItemService());
-  getIt.registerLazySingleton<BottleService>(() => BottleService());
-  getIt.registerLazySingleton<SubscriptionService>(() => SubscriptionService());
+  // Allow reassignment between test runs (prevents "already registered" crash)
+  getIt.allowReassignment = true;
+
+  if (!getIt.isRegistered<CartRepository>()) {
+    getIt.registerLazySingleton<CartRepository>(
+      () => CartRepository(),
+    );
+  }
+  if (!getIt.isRegistered<UserRepository>()) {
+    getIt.registerLazySingleton<UserRepository>(
+      () => UserRepository(),
+    );
+  }
+  if (!getIt.isRegistered<ItemService>()) {
+    getIt.registerLazySingleton<ItemService>(() => ItemService());
+  }
+  if (!getIt.isRegistered<BottleService>()) {
+    getIt.registerLazySingleton<BottleService>(() => BottleService());
+  }
+  if (!getIt.isRegistered<SubscriptionService>()) {
+    getIt.registerLazySingleton<SubscriptionService>(() => SubscriptionService());
+  }
 }
