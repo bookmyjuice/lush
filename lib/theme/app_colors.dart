@@ -71,4 +71,60 @@ class AppColors {
   static const Color darkTextPrimary = Color(0xFFFEFEFE);
   static const Color darkTextSecondary = Color(0xFFB0B0B0);
   static const Color darkTextDisabled = Color(0xFF808080);
+
+  // ── Glassmorphism Tokens ──
+  /// Deep background for dark glass screens (#0A0F0D).
+  static const Color glassBg = Color(0xFF0A0F0D);
+
+  /// Elevated surface for glass cards (#0F1613).
+  static const Color glassElevated = Color(0xFF0F1613);
+
+  /// Glass surface overlay — 6% white.
+  static const Color glassSurface = Color(0x0FFFFFFF);
+
+  /// Stronger glass overlay — 8% white.
+  static const Color glassSurfaceStrong = Color(0x14FFFFFF);
+
+  /// Glass border — 12% white.
+  static const Color glassBorder = Color(0x1AFFFFFF);
+
+  /// Glass border subtle — 8% white.
+  static const Color glassBorderSubtle = Color(0x14FFFFFF);
+
+  /// Glass text primary (#E8F5E9 — light green-white).
+  static const Color glassText = Color(0xFFE8F5E9);
+
+  /// Glass text dim (#9FB0A8 — muted green-grey).
+  static const Color glassTextDim = Color(0xFF9FB0A8);
+
+  /// Glass accent green (#22C55E — neon green).
+  static const Color glassAccent = Color(0xFF22C55E);
+
+  /// Glass accent green dark (#16A34A).
+  static const Color glassAccentDark = Color(0xFF16A34A);
+
+  /// Glass accent orange (#FB923C).
+  static const Color glassOrange = Color(0xFFFB923C);
+
+  /// Glass accent pink (#F472B6).
+  static const Color glassPink = Color(0xFFF472B6);
+
+  /// Glass accent purple (#A78BFA).
+  static const Color glassPurple = Color(0xFFA78BFA);
+
+  /// Glass glow shadow — neon green.
+  static const Color glassGlow = Color(0x4022C55E);
+
+  // ── Light Glassmorphism Tokens ──
+  /// Light background for glass in light theme (#F0F5F2).
+  static const Color glassBgLight = Color(0xFFF0F5F2);
+
+  /// Light elevated glass (#EAF0EC).
+  static const Color glassElevatedLight = Color(0xFFEAF0EC);
+
+  /// Light glass overlay — 40% white.
+  static const Color glassSurfaceLight = Color(0x66FFFFFF);
+
+  /// Light glass border — 20% black.
+  static const Color glassBorderLight = Color(0x33000000);
 }

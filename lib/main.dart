@@ -48,7 +48,6 @@ import 'views/screens/my_account_page.dart';
 import 'views/screens/notifications.dart';
 import 'views/screens/order_history_screen.dart';
 import 'views/screens/order/order_detail_screen.dart';
-import 'views/screens/referral/referral_screen.dart';
 import 'views/screens/phone_entry_after_email_screen.dart';
 import 'views/screens/phone_login_screen.dart';
 import 'views/screens/phone_otp_verification_screen.dart';
@@ -60,7 +59,7 @@ import 'views/screens/reset_password_mobile_screen.dart';
 import 'views/screens/signup_method_selection_screen.dart';
 import 'views/screens/subscription_management_screen.dart';
 import 'views/screens/plan_selection_screen.dart';
-import 'views/screens/dashboard.dart'; // For DashboardMode
+// For DashboardMode
 import 'views/screens/address_selection_screen.dart';
 import 'views/screens/delivery_slot_selection_screen.dart';
 import 'views/screens/subscription/subscription_family_screen.dart';
@@ -73,11 +72,15 @@ void main() async {
   
   // 1. MUST be the first thing called
   WidgetsFlutterBinding.ensureInitialized();
-  // 2. Now you can safely call your background setup
-  // Setup FCM background message handler before runApp()
-  FirebaseNotificationService.setupBackgroundHandler();
 
-  await _initializeApp();
+  try {
+    await _initializeApp();
+  } catch (e, stackTrace) {
+    if (kDebugMode) {
+      print('[WARN] Non-critical init failure, continuing with fallback: $e');
+      print('StackTrace: $stackTrace');
+    }
+  }
   runApp(const BookMyJuiceApp());
 }
 
@@ -85,6 +88,12 @@ Future<void> _initializeApp() async {
   try {
     // Ensure Flutter bindings are initialized
     WidgetsFlutterBinding.ensureInitialized();
+
+    // Register dependencies FIRST (critical for Bloc creation)
+    registerRepositories();
+
+    // Initialize error handling
+    _initializeErrorHandling();
 
     // Initialize Firebase (required for FCM and Firebase Phone Auth)
     await Firebase.initializeApp(
@@ -97,12 +106,12 @@ Future<void> _initializeApp() async {
     // Initialize Sentry error tracking
     await SentryFlutter.init(
       (options) {
-        options.dsn = const String.fromEnvironment(
+        options..dsn = const String.fromEnvironment(
           'SENTRY_DSN_FLUTTER',
           defaultValue: '',
-        );
-        options.tracesSampleRate = 0.1;
-        options.environment = const String.fromEnvironment(
+        )
+        ..tracesSampleRate = 0.1
+        ..environment = const String.fromEnvironment(
           'SENTRY_ENVIRONMENT',
           defaultValue: 'development',
         );
@@ -112,16 +121,13 @@ Future<void> _initializeApp() async {
       },
     );
 
-    // Initialize error handling
-    _initializeErrorHandling();
-
-    // Register dependencies
-    registerRepositories();
-
     // Initialize FCM push notification service (secondary layer)
     await FirebaseNotificationService.instance.initialize();
 
-    await RiveNative.init(); // Required for 0.14.x
+      // Setup FCM background message handler (after Firebase init)
+      FirebaseNotificationService.setupBackgroundHandler();
+
+      await RiveNative.init(); // Required for 0.14.x
 
     // Set preferred orientations
     await SystemChrome.setPreferredOrientations([
@@ -323,7 +329,7 @@ class BookMyJuiceApp extends StatelessWidget {
                   );
                 } else if (settings.name == '/menu') {
                   return MaterialPageRoute(
-                    builder: (_) => const Menu(),
+                    builder: (_) => Dashboard(),
                   );
                 } else if (settings.name == '/address-selection') {
                   return MaterialPageRoute(

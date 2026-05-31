@@ -5,7 +5,6 @@ import 'package:lush/bloc/CartBloc/cart_bloc.dart';
 import 'package:lush/bloc/CartBloc/cart_event.dart';
 import 'package:lush/bloc/CartBloc/cart_state.dart';
 import 'package:lush/theme/app_colors.dart';
-import 'package:lush/views/models/cart_item.dart';
 
 class OrderCheckoutScreen extends StatefulWidget {
   const OrderCheckoutScreen({super.key});
@@ -24,7 +23,7 @@ class _OrderCheckoutScreenState extends State<OrderCheckoutScreen> {
       listener: (context, state) {
         if (state is OrderPlaced) {
           ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('Order placed! 🎉'), backgroundColor: AppColors.success),
+            const SnackBar(content: Text('Order placed! 🎉'), backgroundColor: AppColors.success),
           );
           Navigator.of(context).pushNamedAndRemoveUntil('/dashboard', (_) => false);
         }
@@ -52,7 +51,7 @@ class _OrderCheckoutScreenState extends State<OrderCheckoutScreen> {
           appBar: AppBar(
             backgroundColor: AppColors.white,
             elevation: 0,
-            title: Text('Checkout', style: TextStyle(fontWeight: FontWeight.bold, color: AppColors.lightTextPrimary)),
+            title: const Text('Checkout', style: TextStyle(fontWeight: FontWeight.bold, color: AppColors.lightTextPrimary)),
             iconTheme: const IconThemeData(color: AppColors.lightTextPrimary),
           ),
           body: _isPlacing
@@ -68,17 +67,17 @@ class _OrderCheckoutScreenState extends State<OrderCheckoutScreen> {
                           Expanded(child: Text(
                             '${item.item.name} × ${item.quantity}',
                             style: TextStyle(fontSize: 14.sp, color: AppColors.lightTextPrimary),
-                          )),
+                          ),),
                           Text('₹${item.totalPrice.toStringAsFixed(0)}',
                               style: TextStyle(fontSize: 14.sp, fontWeight: FontWeight.w600, color: AppColors.lightTextPrimary)),
-                        ]),
-                      )),
+                        ],),
+                      ),),
                       Divider(color: AppColors.lightDivider, height: 24.h),
                       Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
                         Text('$itemCount items', style: TextStyle(fontSize: 14.sp, color: AppColors.lightTextSecondary)),
                         Text('Total: ₹${grandTotal.toStringAsFixed(0)}',
                             style: TextStyle(fontSize: 18.sp, fontWeight: FontWeight.bold, color: AppColors.primaryOrange)),
-                      ]),
+                      ],),
                     ]),
                     SizedBox(height: 16.h),
 
@@ -88,7 +87,7 @@ class _OrderCheckoutScreenState extends State<OrderCheckoutScreen> {
                         contentPadding: EdgeInsets.zero,
                         title: Text(_formatDate(_selectedDate),
                             style: TextStyle(fontSize: 16.sp, fontWeight: FontWeight.w600, color: AppColors.lightTextPrimary)),
-                        subtitle: Text('Tap to change', style: TextStyle(color: AppColors.lightTextSecondary)),
+                        subtitle: const Text('Tap to change', style: TextStyle(color: AppColors.lightTextSecondary)),
                         trailing: const Icon(Icons.calendar_today, color: AppColors.primaryOrange),
                         onTap: () => _pickDate(context),
                       ),
@@ -115,7 +114,7 @@ class _OrderCheckoutScreenState extends State<OrderCheckoutScreen> {
                         child: Text('Place Order', style: TextStyle(fontSize: 16.sp, fontWeight: FontWeight.bold, color: AppColors.white)),
                       ),
                     ),
-                  ]),
+                  ],),
                 ),
         );
       },
@@ -132,7 +131,7 @@ class _OrderCheckoutScreenState extends State<OrderCheckoutScreen> {
         border: Border.all(color: AppColors.lightDivider),
       ),
       child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-        Text(title, style: TextStyle(fontSize: 16.sp, fontWeight: FontWeight.w600, color: AppColors.lightTextPrimary)),
+        Text('Delivery Date', style: TextStyle(fontSize: 16.sp, fontWeight: FontWeight.w600, color: AppColors.lightTextPrimary)),
         SizedBox(height: 12.h),
         ...children,
       ]),

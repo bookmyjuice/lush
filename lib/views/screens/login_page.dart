@@ -97,12 +97,21 @@ class LoginPageState extends State<LoginPage>
     return Scaffold(
       body: BlocListener<AuthenticationBloc, AuthenticationState>(
         listenWhen: (previous, current) =>
+            current is AuthenticationSuccess ||
             current is LogInFailed ||
             current is SignUpFailed ||
             current is AutoLoginFailed,
         listener: (context, state) async {
+          if (state is AuthenticationSuccess) {
+            _dialogShown = true;
+            WidgetsBinding.instance.addPostFrameCallback((_) {
+              Navigator.of(context).pop();
+            });
+            return;
+          }
           if ((state is LogInFailed) && !_dialogShown) {
             _dialogShown = true;
+            setState(() => _isSignInLoading = false);
             toastification.show(
               title: const Text('Login Failed'),
               description:
@@ -112,6 +121,7 @@ class LoginPageState extends State<LoginPage>
           }
           if (state is SignUpFailed) {
             _dialogShown = true;
+            setState(() => _isSignInLoading = false);
             toastification.show(
               title: Text(state.errorHeading),
               description: Text(state.error),
@@ -120,6 +130,7 @@ class LoginPageState extends State<LoginPage>
           }
           if (state is AutoLoginFailed) {
             _dialogShown = true;
+            setState(() => _isSignInLoading = false);
             toastification.show(
               closeButton: const ToastCloseButton(),
               title: const Text('Session Expired'),
@@ -223,12 +234,13 @@ class LoginPageState extends State<LoginPage>
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             // ── Heading ──
-            Text(
-              'Welcome Back!',
-              style: AppTextStyles.textTheme.headlineMedium?.copyWith(
-                color: AppColors.white,
+            Semantics(
+              label: 'Welcome Back!',
+              child: Text(
+                'Welcome Back!',
+                style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: AppColors.white),
+                textAlign: TextAlign.center,
               ),
-              textAlign: TextAlign.center,
             ),
             const SizedBox(height: AppSpacing.xs),
             const Text(
@@ -241,65 +253,74 @@ class LoginPageState extends State<LoginPage>
             const SizedBox(height: AppSpacing.lg),
 
             // ── Email Field ──
-            _buildWhiteTextField(
-              key: const Key('login_email_field'),
-              controller: _emailController,
-              hintText: 'Email address',
-              prefixIcon: Icons.email_outlined,
-              keyboardType: TextInputType.emailAddress,
-              validator: (value) {
-                if (value == null || value.trim().isEmpty) {
-                  return 'Please enter your email';
-                }
-                if (!isValidEmail(value.trim())) {
-                  return 'Please enter a valid email';
-                }
-                return null;
-              },
+            Semantics(
+              label: 'Email address',
+              child: _buildWhiteTextField(
+                key: const Key('login_email_field'),
+                controller: _emailController,
+                hintText: 'Email address',
+                prefixIcon: Icons.email_outlined,
+                keyboardType: TextInputType.emailAddress,
+                validator: (value) {
+                  if (value == null || value.trim().isEmpty) {
+                    return 'Please enter your email';
+                  }
+                  if (!isValidEmail(value.trim())) {
+                    return 'Please enter a valid email';
+                  }
+                  return null;
+                },
+              ),
             ),
             const SizedBox(height: AppSpacing.md),
 
             // ── Password Field ──
-            _buildWhiteTextField(
-              key: const Key('login_password_field'),
-              controller: _passwordController,
-              hintText: 'Password',
-              prefixIcon: Icons.lock_outlined,
-              obscureText: _obscurePassword,
-              suffixIcon: IconButton(
-                icon: Icon(
-                  _obscurePassword
-                      ? Icons.visibility_off_outlined
-                      : Icons.visibility_outlined,
-                  color: AppColors.darkGrey,
-                  size: 20,
+            Semantics(
+              label: 'Password',
+              child: _buildWhiteTextField(
+                key: const Key('login_password_field'),
+                controller: _passwordController,
+                hintText: 'Password',
+                prefixIcon: Icons.lock_outlined,
+                obscureText: _obscurePassword,
+                suffixIcon: IconButton(
+                  icon: Icon(
+                    _obscurePassword
+                        ? Icons.visibility_off_outlined
+                        : Icons.visibility_outlined,
+                    color: AppColors.darkGrey,
+                    size: 20,
+                  ),
+                  onPressed: () {
+                    setState(() => _obscurePassword = !_obscurePassword);
+                  },
                 ),
-                onPressed: () {
-                  setState(() => _obscurePassword = !_obscurePassword);
+                validator: (value) {
+                  if (value == null || value.isEmpty) {
+                    return 'Please enter your password';
+                  }
+                  return null;
                 },
               ),
-              validator: (value) {
-                if (value == null || value.isEmpty) {
-                  return 'Please enter your password';
-                }
-                return null;
-              },
             ),
             const SizedBox(height: AppSpacing.xs),
 
             // ── Forgot Password ──
-            Align(
-              alignment: Alignment.centerRight,
-              child: TextButton(
-                key: const Key('login_forgot_password'),
-                onPressed: () {
-                  Navigator.of(context).pushNamed("/forgot-password");
-                },
-                child: Text(
-                  'Forgot Password?',
-                  style: AppTextStyles.textTheme.labelLarge?.copyWith(
-                    fontWeight: FontWeight.w600,
-                    color: AppColors.white,
+            Semantics(
+              label: 'Forgot Password',
+              child: Align(
+                alignment: Alignment.centerRight,
+                child: TextButton(
+                  key: const Key('login_forgot_password'),
+                  onPressed: () {
+                    Navigator.of(context).pushNamed("/forgot-password");
+                  },
+                  child: Text(
+                    'Forgot Password?',
+                    style: AppTextStyles.textTheme.labelLarge?.copyWith(
+                      fontWeight: FontWeight.w600,
+                      color: AppColors.white,
+                    ),
                   ),
                 ),
               ),
@@ -307,7 +328,10 @@ class LoginPageState extends State<LoginPage>
             const SizedBox(height: AppSpacing.sm),
 
             // ── Sign In Button ──
-            _buildSignInButton(),
+            Semantics(
+              label: 'Sign In',
+              child: _buildSignInButton(),
+            ),
             const SizedBox(height: AppSpacing.lg),
 
             // ── Divider ──
@@ -338,25 +362,31 @@ class LoginPageState extends State<LoginPage>
               children: [
                 // Google Login Button
                 Expanded(
-                  child: _buildAltLoginButton(
-                    icon: FontAwesomeIcons.google,
+                  child: Semantics(
                     label: 'Google',
-                    color: AppColors.white,
-                    iconColor: AppColors.error,
-                    onTap: _handleGoogleSignIn,
+                    child: _buildAltLoginButton(
+                      icon: FontAwesomeIcons.google,
+                      label: 'Google',
+                      color: AppColors.white,
+                      iconColor: AppColors.error,
+                      onTap: _handleGoogleSignIn,
+                    ),
                   ),
                 ),
                 const SizedBox(width: AppSpacing.sm),
                 // Phone OTP Login Button
                 Expanded(
-                  child: _buildAltLoginButton(
-                    icon: FontAwesomeIcons.mobileScreenButton,
+                  child: Semantics(
                     label: 'Phone OTP',
-                    color: AppColors.white,
-                    iconColor: AppColors.secondaryTeal,
-                    onTap: () {
-                      Navigator.of(context).pushNamed("/phone-login");
-                    },
+                    child: _buildAltLoginButton(
+                      icon: FontAwesomeIcons.mobileScreenButton,
+                      label: 'Phone OTP',
+                      color: AppColors.white,
+                      iconColor: AppColors.secondaryTeal,
+                      onTap: () {
+                        Navigator.of(context).pushNamed("/phone-login");
+                      },
+                    ),
                   ),
                 ),
               ],
@@ -369,7 +399,7 @@ class LoginPageState extends State<LoginPage>
               children: [
                 Text(
                   "Don't have an account? ",
-                  style: TextStyle(fontSize: 14, color: AppColors.white.withOpacity(0.8),
+                  style: TextStyle(fontSize: 14, color: AppColors.white.withValues(alpha: 0.8),
                   ),
                 ),
                 GestureDetector(
@@ -421,43 +451,52 @@ class LoginPageState extends State<LoginPage>
           const SizedBox(height: AppSpacing.lg + AppSpacing.xs),
 
           // ── Sign up with Email ──
-          _buildSignupMethodCard(
-            icon: Icons.email_outlined,
-            iconColor: AppColors.info,
-            title: 'Sign up with Email',
-            subtitle: 'Enter your email address',
-            onTap: () {
-              BlocProvider.of<AuthenticationBloc>(context).add(
-                const ChooseSignupMethod(method: 'email'),
-              );
-              Navigator.pushNamed(context, '/email-signup');
-            },
+          Semantics(
+            label: 'Sign up with Email',
+            child: _buildSignupMethodCard(
+              icon: Icons.email_outlined,
+              iconColor: AppColors.info,
+              title: 'Sign up with Email',
+              subtitle: 'Enter your email address',
+              onTap: () {
+                BlocProvider.of<AuthenticationBloc>(context).add(
+                  const ChooseSignupMethod(method: 'email'),
+                );
+                Navigator.pushNamed(context, '/email-signup');
+              },
+            ),
           ),
           const SizedBox(height: AppSpacing.sm),
 
           // ── Sign up with Phone ──
-          _buildSignupMethodCard(
-            icon: Icons.phone_outlined,
-            iconColor: AppColors.success,
-            title: 'Sign up with Phone',
-            subtitle: 'Enter your mobile number',
-            onTap: () {
-              BlocProvider.of<AuthenticationBloc>(context).add(
-                const ChooseSignupMethod(method: 'phone'),
-              );
-              Navigator.pushNamed(context, '/phone-signup');
-            },
+          Semantics(
+            label: 'Sign up with Phone',
+            child: _buildSignupMethodCard(
+              icon: Icons.phone_outlined,
+              iconColor: AppColors.success,
+              title: 'Sign up with Phone',
+              subtitle: 'Enter your mobile number',
+              onTap: () {
+                BlocProvider.of<AuthenticationBloc>(context).add(
+                  const ChooseSignupMethod(method: 'phone'),
+                );
+                Navigator.pushNamed(context, '/phone-signup');
+              },
+            ),
           ),
           const SizedBox(height: AppSpacing.sm),
 
           // ── Sign up with Google ──
-          _buildSignupMethodCard(
-            icon: FontAwesomeIcons.google,
-            iconColor: AppColors.error,
-            title: 'Sign up with Google',
-            subtitle: 'Quick signup with your Google account',
-            onTap: _isGoogleLoading ? null : _handleGoogleSignUp,
-            isLoading: _isGoogleLoading,
+          Semantics(
+            label: 'Sign up with Google',
+            child: _buildSignupMethodCard(
+              icon: FontAwesomeIcons.google,
+              iconColor: AppColors.error,
+              title: 'Sign up with Google',
+              subtitle: 'Quick signup with your Google account',
+              onTap: _isGoogleLoading ? null : _handleGoogleSignUp,
+              isLoading: _isGoogleLoading,
+            ),
           ),
           const SizedBox(height: AppSpacing.lg + AppSpacing.xs),
 
@@ -655,25 +694,28 @@ class LoginPageState extends State<LoginPage>
         borderRadius: BorderRadius.circular(AppRadius.lg + 2),
         border: Border.all(color: AppColors.white.withValues(alpha: 0.3)),
       ),
-          child: TextFormField(
-            key: key,
-        controller: controller,
-        keyboardType: keyboardType,
-        obscureText: obscureText,
-        validator: validator,
-        style: AppTextStyles.textTheme.bodyLarge?.copyWith(
-          color: AppColors.lightTextPrimary,
-        ),
-        decoration: InputDecoration(
-          hintText: hintText,
-          hintStyle: AppTextStyles.textTheme.bodyLarge?.copyWith(
-            color: AppColors.darkGrey,
+      child: Semantics(
+        label: hintText,
+        child: TextFormField(
+          key: key,
+          controller: controller,
+          keyboardType: keyboardType,
+          obscureText: obscureText,
+          validator: validator,
+          style: AppTextStyles.textTheme.bodyLarge?.copyWith(
+            color: AppColors.lightTextPrimary,
           ),
-          prefixIcon: Icon(prefixIcon, color: AppColors.darkGrey, size: 22),
-          suffixIcon: suffixIcon,
-          border: InputBorder.none,
-          contentPadding:
-              const EdgeInsets.symmetric(horizontal: AppSpacing.md, vertical: AppSpacing.md),
+          decoration: InputDecoration(
+            hintText: hintText,
+            hintStyle: AppTextStyles.textTheme.bodyLarge?.copyWith(
+              color: AppColors.darkGrey,
+            ),
+            prefixIcon: Icon(prefixIcon, color: AppColors.darkGrey, size: 22),
+            suffixIcon: suffixIcon,
+            border: InputBorder.none,
+            contentPadding:
+                const EdgeInsets.symmetric(horizontal: AppSpacing.md, vertical: AppSpacing.md),
+          ),
         ),
       ),
     );

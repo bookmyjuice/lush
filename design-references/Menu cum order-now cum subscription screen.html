@@ -1,0 +1,633 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<title>BookMyJuice – Mobile Prototype</title>
+<style>
+  :root{
+    --bg:#0A0F0D;
+    --bg-elev:#0F1714;
+    --bg-elev2:#121C18;
+    --glass:rgba(255,255,255,0.06);
+    --glass-border:rgba(255,255,255,0.10);
+    --text:#E9F5EE;
+    --text-dim:#9BB5A9;
+    --text-mute:#6B8479;
+    --accent:#A5FF5A;
+    --accent-2:#5EFFA9;
+    --danger:#FF6B6B;
+    --radius-xl:28px;
+    --radius-lg:20px;
+    --radius-md:16px;
+    --radius-sm:12px;
+    --shadow:0 10px 30px rgba(0,0,0,0.5);
+    --shadow-neon:0 0 0 1px rgba(165,255,90,0.25),0 0 30px rgba(165,255,90,0.15);
+    --safe-bottom:env(safe-area-inset-bottom,0px);
+  }
+  *{box-sizing:border-box}
+  html,body{
+    height:100%;
+    margin:0;
+    background:var(--bg);
+    color:var(--text);
+    font-family:ui-sans-serif, -apple-system, BlinkMacSystemFont, "SF Pro Text", "Inter", "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    -webkit-font-smoothing:antialiased;
+    -moz-osx-font-smoothing:grayscale;
+    overscroll-behavior:none;
+  }
+  body{
+    display:flex;
+    justify-content:center;
+    background: radial-gradient(800px 500px at 100% -10%, rgba(94,255,169,0.08), transparent 60%),
+                radial-gradient(600px 400px at -10% 110%, rgba(165,255,90,0.07), transparent 60%),
+                var(--bg);
+  }
+  .app{
+    width:100%;
+    max-width:390px;
+    min-height:100dvh;
+    position:relative;
+    background:linear-gradient(180deg,#0A0F0D 0%, #0B1210 100%);
+    box-shadow:0 0 0 1px rgba(255,255,255,0.04) inset;
+    display:flex;
+    flex-direction:column;
+  }
+  /* Top Bar */
+  .topbar{
+    position:sticky;
+    top:0;
+    z-index:30;
+    padding:14px 16px 10px;
+    background:linear-gradient(180deg, rgba(10,15,13,0.9) 0%, rgba(10,15,13,0.7) 70%, transparent 100%);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+  }
+  .status{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    font-size:15px;
+    font-weight:600;
+    letter-spacing:0.2px;
+  }
+  .time{font-variant-numeric:tabular-nums}
+  .logo{
+    display:flex;align-items:center;gap:8px;
+    font-weight:800;letter-spacing:0.3px;
+  }
+  .logo-mark{
+    width:22px;height:22px;border-radius:7px;
+    background:conic-gradient(from 0deg,var(--accent),var(--accent-2),var(--accent));
+    box-shadow:0 0 20px rgba(165,255,90,0.5);
+    position:relative;
+  }
+  .logo-mark::after{
+    content:"";position:absolute;inset:3px;border-radius:5px;background:#0A0F0D;
+  }
+  .cart-btn{
+    position:relative;
+    width:36px;height:36px;border-radius:12px;
+    background:var(--glass);
+    border:1px solid var(--glass-border);
+    display:grid;place-items:center;
+    cursor:pointer;
+    transition:transform .15s ease;
+  }
+  .cart-btn:active{transform:scale(0.96)}
+  .badge{
+    position:absolute;top:-4px;right:-4px;
+    min-width:18px;height:18px;padding:0 5px;
+    background:var(--accent);color:#0A0F0D;
+    font-size:11px;font-weight:800;
+    border-radius:999px;display:grid;place-items:center;
+    box-shadow:0 0 0 2px var(--bg), var(--shadow-neon);
+  }
+
+  /* Segment */
+  .segment-wrap{padding:8px 16px 0}
+  .segment{
+    display:grid;grid-template-columns:1fr 1fr;gap:4px;
+    background:var(--bg-elev);border:1px solid var(--glass-border);
+    padding:4px;border-radius:999px;
+    position:relative;
+  }
+  .segment-indicator{
+    position:absolute;top:4px;left:4px;width:calc(50% - 4px);height:calc(100% - 8px);
+    background:linear-gradient(180deg, #1A241F, #132018);
+    border:1px solid rgba(165,255,90,0.25);
+    border-radius:999px;
+    box-shadow:inset 0 0 0 1px rgba(255,255,255,0.04),0 0 20px rgba(165,255,90,0.12);
+    transition:transform .3s cubic-bezier(.2,.8,.2,1);
+  }
+  .segment button{
+    position:relative;z-index:1;
+    appearance:none;border:0;background:transparent;color:var(--text-dim);
+    font-size:14px;font-weight:700;padding:10px 0;border-radius:999px;
+    cursor:pointer;transition:color .2s;
+  }
+  .segment button.active{color:var(--text)}
+  .segment[data-active="1"] .segment-indicator{transform:translateX(100%)}
+
+  /* Screens */
+  .screens{flex:1;position:relative}
+  .screen{
+    position:absolute;inset:0;
+    padding:16px 16px calc(88px + var(--safe-bottom));
+    overflow-y:auto;scrollbar-width:none;
+  }
+  .screen::-webkit-scrollbar{display:none}
+  .screen[hidden]{display:none}
+
+  h1.greet{
+    font-size:28px;line-height:1.15;margin:8px 0 14px;
+    font-weight:800;letter-spacing:-0.3px;
+  }
+  h1.greet span{display:block;color:var(--text-dim);font-weight:700;font-size:18px;margin-top:4px}
+
+  /* Search */
+  .search{
+    display:flex;align-items:center;gap:10px;
+    background:var(--bg-elev);border:1px solid var(--glass-border);
+    padding:12px 14px;border-radius:16px;
+    margin-bottom:16px;
+  }
+  .search input{
+    flex:1;background:transparent;border:0;outline:none;color:var(--text);
+    font-size:15px;
+  }
+  .search input::placeholder{color:var(--text-mute)}
+
+  /* Chips */
+  .chip-row{
+    display:flex;gap:8px;overflow-x:auto;padding-bottom:6px;margin-bottom:12px;
+    scrollbar-width:none;
+  }
+  .chip-row::-webkit-scrollbar{display:none}
+  .chip{
+    flex:0 0 auto;
+    padding:9px 14px;border-radius:999px;
+    background:var(--bg-elev);border:1px solid var(--glass-border);
+    color:var(--text-dim);font-size:13px;font-weight:700;
+    cursor:pointer;white-space:nowrap;transition:all .2s;
+  }
+  .chip.active{
+    background:linear-gradient(180deg, rgba(165,255,90,0.18), rgba(165,255,90,0.08));
+    border-color:rgba(165,255,90,0.5);
+    color:var(--accent);
+    box-shadow:var(--shadow-neon);
+  }
+
+  /* Product Grid */
+  .grid{
+    display:grid;grid-template-columns:1fr 1fr;gap:12px;
+  }
+  .card{
+    background:linear-gradient(180deg, var(--bg-elev), var(--bg-elev2));
+    border:1px solid var(--glass-border);
+    border-radius:var(--radius-lg);
+    overflow:hidden;
+    display:flex;flex-direction:column;
+    box-shadow:var(--shadow);
+    transition:transform .2s ease, border-color .2s;
+  }
+  .card:active{transform:scale(0.98)}
+  .card-top{
+    height:110px;position:relative;
+    display:grid;place-items:center;
+  }
+  .card-top .emoji{font-size:48px;filter:drop-shadow(0 8px 20px rgba(0,0,0,0.5))}
+  .card-badge{
+    position:absolute;top:10px;left:10px;
+    font-size:10px;font-weight:800;letter-spacing:.5px;text-transform:uppercase;
+    padding:5px 8px;border-radius:999px;
+    background:rgba(0,0,0,0.45);backdrop-filter:blur(6px);
+    border:1px solid rgba(255,255,255,0.12);color:#fff;
+  }
+  .card-body{padding:12px}
+  .card-name{font-weight:800;font-size:15px;line-height:1.2}
+  .card-meta{font-size:12px;color:var(--text-mute);margin:4px 0 8px}
+  .card-price{font-size:13px;font-weight:700;color:var(--text-dim)}
+  .card-price b{color:var(--text)}
+  .add{
+    margin-top:10px;width:100%;
+    display:flex;align-items:center;justify-content:space-between;
+    background:var(--glass);border:1px solid var(--glass-border);
+    border-radius:12px;padding:8px 10px;cursor:pointer;
+    transition:background .2s, transform .15s;
+  }
+  .add:hover{background:rgba(255,255,255,0.08)}
+  .add:active{transform:scale(0.98)}
+  .add .plus{
+    width:24px;height:24px;border-radius:8px;
+    background:var(--accent);color:#0A0F0D;display:grid;place-items:center;font-weight:900;
+    box-shadow:var(--shadow-neon);
+  }
+
+  /* Bottom Nav */
+  .bottom-nav{
+    position:fixed;bottom:0;left:50%;transform:translateX(-50%);
+    width:100%;max-width:390px;
+    padding:10px 14px calc(10px + var(--safe-bottom));
+    z-index:40;
+    background:linear-gradient(180deg, transparent, rgba(10,15,13,0.9) 30%);
+    backdrop-filter:blur(16px);
+  }
+  .nav-inner{
+    background:rgba(15,23,20,0.9);
+    border:1px solid var(--glass-border);
+    border-radius:24px;
+    display:grid;grid-template-columns:repeat(4,1fr);
+    padding:6px;
+    box-shadow:var(--shadow);
+  }
+  .nav-btn{
+    display:flex;flex-direction:column;align-items:center;gap:4px;
+    padding:8px 0;border-radius:16px;
+    color:var(--text-mute);font-size:11px;font-weight:700;
+    cursor:pointer;transition:all .2s;
+  }
+  .nav-btn svg{opacity:.8}
+  .nav-btn.active{
+    background:linear-gradient(180deg, rgba(165,255,90,0.15), transparent);
+    color:var(--accent);
+  }
+  .nav-btn.active svg{opacity:1;filter:drop-shadow(0 0 10px rgba(165,255,90,0.5))}
+
+  /* Subscription Screen */
+  .sub-header{
+    margin:4px 0 12px;
+  }
+  .sub-header h2{font-size:26px;margin:0 0 6px;font-weight:800}
+  .sub-header p{margin:0;color:var(--text-dim);font-size:14px}
+
+  .toggle{
+    display:flex;align-items:center;justify-content:center;gap:8px;
+    background:var(--bg-elev);border:1px solid var(--glass-border);
+    border-radius:999px;padding:4px;margin:16px auto;max-width:260px;
+  }
+  .toggle button{
+    flex:1;padding:9px 0;border-radius:999px;border:0;background:transparent;
+    color:var(--text-dim);font-weight:700;font-size:13px;cursor:pointer;
+  }
+  .toggle button.active{
+    background:linear-gradient(180deg, rgba(165,255,90,0.2), rgba(165,255,90,0.08));
+    color:var(--accent);border:1px solid rgba(165,255,90,0.4);
+    box-shadow:var(--shadow-neon);
+  }
+
+  .plan{
+    background:linear-gradient(180deg, #0F1714, #0D1411);
+    border:1px solid var(--glass-border);
+    border-radius:24px;
+    padding:16px;
+    margin-bottom:14px;
+    box-shadow:var(--shadow);
+    position:relative;
+    overflow:hidden;
+  }
+  .plan::before{
+    content:"";position:absolute;inset:-1px;
+    background:radial-gradient(400px 120px at 0% 0%, rgba(165,255,90,0.12), transparent 60%);
+    pointer-events:none;
+  }
+  .plan-head{
+    display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;
+  }
+  .plan-title{font-weight:800;font-size:18px}
+  .plan-badge{
+    font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.5px;
+    padding:5px 8px;border-radius:999px;background:rgba(165,255,90,0.12);
+    color:var(--accent);border:1px solid rgba(165,255,90,0.3);
+  }
+  .size-selector{
+    display:flex;gap:6px;margin:10px 0 12px;
+  }
+  .size-btn{
+    flex:1;padding:8px;border-radius:12px;
+    background:var(--bg-elev2);border:1px solid var(--glass-border);
+    color:var(--text-dim);font-size:12px;font-weight:700;cursor:pointer;
+  }
+  .size-btn.active{
+    background:rgba(165,255,90,0.12);border-color:rgba(165,255,90,0.5);color:var(--accent);
+  }
+  .price{
+    font-size:22px;font-weight:900;letter-spacing:-0.5px;
+  }
+  .price span{font-size:13px;font-weight:700;color:var(--text-dim)}
+  .features{
+    margin:12px 0 14px;padding:0;list-style:none;
+    display:grid;gap:8px;
+  }
+  .features li{
+    display:flex;align-items:center;gap:8px;font-size:13px;color:var(--text-dim);
+  }
+  .features svg{flex:0 0 auto}
+  .cta{
+    width:100%;padding:14px;border-radius:14px;border:1px solid rgba(165,255,90,0.5);
+    background:linear-gradient(180deg, var(--accent), #8AE434);
+    color:#0A0F0D;font-weight:900;font-size:15px;cursor:pointer;
+    box-shadow:0 8px 24px rgba(165,255,90,0.25);
+    transition:transform .15s;
+  }
+  .cta:active{transform:scale(0.98)}
+
+  .note{
+    text-align:center;font-size:12px;color:var(--text-mute);
+    margin-top:8px;line-height:1.5;
+  }
+
+  /* Gradients */
+  .g-delight{background:linear-gradient(135deg,#FF8A65 0%,#FFD54F 100%)}
+  .g-premium{background:linear-gradient(135deg,#AB47BC 0%,#42A5F5 100%)}
+  .g-signature{background:linear-gradient(135deg,#66BB6A 0%,#26C6DA 100%)}
+
+  /* Animations */
+  @keyframes pop{
+    0%{transform:scale(1)}50%{transform:scale(1.15)}100%{transform:scale(1)}
+  }
+  .pop{animation:pop .3s ease}
+</style>
+</head>
+<body>
+<div class="app" id="app">
+  <!-- Top Bar -->
+  <div class="topbar">
+    <div class="status">
+      <div class="time">22:32</div>
+      <div class="logo">
+        <div class="logo-mark"></div>
+        BookMyJuice
+      </div>
+      <button class="cart-btn" id="cartBtn" aria-label="Cart">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M7 7H19.5L18 13.5H8.5L7 4.5H3" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/><circle cx="10" cy="19" r="1.8" fill="currentColor"/><circle cx="17" cy="19" r="1.8" fill="currentColor"/></svg>
+        <span class="badge" id="cartBadge">0</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- Segment -->
+  <div class="segment-wrap">
+    <div class="segment" id="segment" data-active="0">
+      <div class="segment-indicator"></div>
+      <button class="active" data-screen="one">One-Time</button>
+      <button data-screen="sub">Subscribe</button>
+    </div>
+  </div>
+
+  <div class="screens">
+    <!-- ONE TIME SCREEN -->
+    <section class="screen" id="screen-one">
+      <h1 class="greet">Pick your fresh press<span>100% cold-pressed, no sugar</span></h1>
+
+      <div class="search">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><circle cx="11" cy="11" r="7" stroke="currentColor" stroke-width="1.8"/><path d="M20 20L17 17" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
+        <input id="searchInput" type="search" placeholder="Search juices, fruits..." />
+      </div>
+
+      <div class="chip-row" id="catChips">
+        <button class="chip active" data-cat="all">All</button>
+        <button class="chip" data-cat="Delight">Delight</button>
+        <button class="chip" data-cat="Premium">Premium</button>
+        <button class="chip" data-cat="Signature">Signature</button>
+      </div>
+
+      <div class="chip-row" id="sizeChips">
+        <button class="chip active" data-size="200">200ml</button>
+        <button class="chip" data-size="300">300ml</button>
+        <button class="chip" data-size="500">500ml</button>
+      </div>
+
+      <div class="grid" id="productGrid"></div>
+    </section>
+
+    <!-- SUBSCRIPTION SCREEN -->
+    <section class="screen" id="screen-sub" hidden>
+      <div class="sub-header">
+        <h2>Juice Subscription</h2>
+        <p>Fresh bottles delivered on your schedule. Pause anytime.</p>
+      </div>
+
+      <div class="toggle" id="freqToggle">
+        <button class="active" data-freq="weekly">Weekly</button>
+        <button data-freq="monthly">Monthly</button>
+      </div>
+
+      <div id="plansContainer"></div>
+
+      <p class="note">Secure checkout & billing powered by Chargebee.<br/>Manage, pause or cancel from your account.</p>
+    </section>
+  </div>
+
+  <!-- Bottom Nav -->
+  <nav class="bottom-nav">
+    <div class="nav-inner">
+      <div class="nav-btn">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none"><path d="M4 10L12 4L20 10V20H4V10Z" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/></svg>
+        Home
+      </div>
+      <div class="nav-btn active">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none"><path d="M4 6H20M4 12H20M4 18H14" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></svg>
+        Menu
+      </div>
+      <div class="nav-btn">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none"><path d="M6 6H18V9H6zM6 12H18V15H6zM6 18H14V21H6z" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/></svg>
+        Orders
+      </div>
+      <div class="nav-btn">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="9" r="4" stroke="currentColor" stroke-width="1.7"/><path d="M5 20c1.5-3.5 4.5-5 7-5s5.5 1.5 7 5" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></svg>
+        Profile
+      </div>
+    </div>
+  </nav>
+</div>
+
+<script>
+(function(){
+  const products = [
+    {id:1,name:"Mango Tango",cat:"Delight",cal:110,emoji:"🥭",grad:"g-delight",badge:"Bestseller",base:129},
+    {id:2,name:"Berry Blast",cat:"Premium",cal:95,emoji:"🫐",grad:"g-premium",badge:"New",base:179},
+    {id:3,name:"Green Detox",cat:"Signature",cal:80,emoji:"🥝",grad:"g-signature",badge:"Cleanse",base:199},
+    {id:4,name:"Orange Zing",cat:"Delight",cal:105,emoji:"🍊",grad:"g-delight",badge:"Vit C",base:139},
+    {id:5,name:"Pine Mint",cat:"Premium",cal:90,emoji:"🍍",grad:"g-premium",badge:"Cool",base:169},
+    {id:6,name:"Beet Boost",cat:"Signature",cal:85,emoji:"🍓",grad:"g-signature",badge:"Energy",base:189},
+  ];
+
+  const sizeMulti = {200:1,300:1.4,500:2.2};
+  let selectedCat = 'all';
+  let selectedSize = 200;
+  let cartCount = 0;
+
+  const grid = document.getElementById('productGrid');
+  const searchInput = document.getElementById('searchInput');
+
+  function formatPrice(base){
+    return Math.round(base * sizeMulti[selectedSize]);
+  }
+
+  function renderProducts(){
+    const q = searchInput.value.toLowerCase().trim();
+    grid.innerHTML = '';
+    products.filter(p => (selectedCat==='all'||p.cat===selectedCat) && p.name.toLowerCase().includes(q))
+      .forEach(p=>{
+        const price = formatPrice(p.base);
+        const card = document.createElement('div');
+        card.className='card';
+        card.innerHTML = `
+          <div class="card-top ${p.grad}">
+            <div class="card-badge">${p.badge}</div>
+            <div class="emoji">${p.emoji}</div>
+          </div>
+          <div class="card-body">
+            <div class="card-name">${p.name}</div>
+            <div class="card-meta">${p.cal} kcal • ${p.cat}</div>
+            <div class="card-price"><b>Rs. ${price}</b> per bottle</div>
+            <button class="add" data-id="${p.id}">
+              <span>Add</span>
+              <span class="plus">+</span>
+            </button>
+          </div>
+        `;
+        grid.appendChild(card);
+      });
+  }
+
+  renderProducts();
+
+  // Chips
+  document.getElementById('catChips').addEventListener('click', e=>{
+    const btn = e.target.closest('.chip'); if(!btn) return;
+    document.querySelectorAll('#catChips .chip').forEach(c=>c.classList.remove('active'));
+    btn.classList.add('active');
+    selectedCat = btn.dataset.cat;
+    renderProducts();
+  });
+  document.getElementById('sizeChips').addEventListener('click', e=>{
+    const btn = e.target.closest('.chip'); if(!btn) return;
+    document.querySelectorAll('#sizeChips .chip').forEach(c=>c.classList.remove('active'));
+    btn.classList.add('active');
+    selectedSize = +btn.dataset.size;
+    renderProducts();
+  });
+
+  searchInput.addEventListener('input', renderProducts);
+
+  // Add to cart
+  grid.addEventListener('click', e=>{
+    const btn = e.target.closest('.add'); if(!btn) return;
+    cartCount++;
+    const badge = document.getElementById('cartBadge');
+    badge.textContent = cartCount;
+    badge.classList.remove('pop'); void badge.offsetWidth; badge.classList.add('pop');
+    btn.querySelector('.plus').textContent = '✓';
+    setTimeout(()=>{ btn.querySelector('.plus').textContent = '+'; }, 800);
+  });
+
+  // Segment toggle
+  const segment = document.getElementById('segment');
+  const screenOne = document.getElementById('screen-one');
+  const screenSub = document.getElementById('screen-sub');
+  segment.addEventListener('click', e=>{
+    const btn = e.target.closest('button'); if(!btn) return;
+    const isSub = btn.dataset.screen === 'sub';
+    segment.dataset.active = isSub ? '1' : '0';
+    segment.querySelectorAll('button').forEach(b=>b.classList.toggle('active', b===btn));
+    screenOne.hidden = isSub;
+    screenSub.hidden = !isSub;
+  });
+
+  // Subscription plans
+  const plans = [
+    {key:'Delight',title:'Delight Plan',badge:'Most loved',grad:'g-delight',features:['3 bottles / week','Seasonal fruits','Free delivery'],base:129},
+    {key:'Premium',title:'Premium Plan',badge:'Best value',grad:'g-premium',features:['5 bottles / week','Exotic blends','Priority slots'],base:169},
+    {key:'Signature',title:'Signature Plan',badge:'Detox',grad:'g-signature',features:['Daily bottle','Nutritionist curated','Glass bottles'],base:199},
+  ];
+  let freq = 'weekly';
+  const freqToggle = document.getElementById('freqToggle');
+  const plansContainer = document.getElementById('plansContainer');
+
+  function renderPlans(){
+    plansContainer.innerHTML='';
+    plans.forEach((p,idx)=>{
+      const card = document.createElement('div');
+      card.className='plan';
+      card.dataset.planIdx = idx;
+      card.innerHTML = `
+        <div class="plan-head">
+          <div class="plan-title">${p.title}</div>
+          <div class="plan-badge">${p.badge}</div>
+        </div>
+        <div class="size-selector" data-idx="${idx}">
+          <button class="size-btn active" data-sz="200">200ml</button>
+          <button class="size-btn" data-sz="300">300ml</button>
+          <button class="size-btn" data-sz="500">500ml</button>
+        </div>
+        <div class="price" id="price-${idx}">Rs. ${calcPlanPrice(p.base,200)} <span>/ bottle • ${freq}</span></div>
+        <ul class="features">
+          ${p.features.map(f=>`<li><svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M5 13l4 4L19 7" stroke="var(--accent)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>${f}</li>`).join('')}
+        </ul>
+        <button class="cta">Subscribe with Chargebee</button>
+      `;
+      plansContainer.appendChild(card);
+    });
+  }
+
+  function calcPlanPrice(base,size){
+    let price = base * sizeMulti[size];
+    if(freq==='monthly') price = price * 0.9; // 10% off
+    return Math.round(price);
+  }
+
+  function updatePlanPrice(idx,size){
+    const p = plans[idx];
+    const el = document.getElementById(`price-${idx}`);
+    if(el) el.innerHTML = `Rs. ${calcPlanPrice(p.base,size)} <span>/ bottle • ${freq}</span>`;
+  }
+
+  renderPlans();
+
+  freqToggle.addEventListener('click', e=>{
+    const btn = e.target.closest('button'); if(!btn) return;
+    freqToggle.querySelectorAll('button').forEach(b=>b.classList.toggle('active', b===btn));
+    freq = btn.dataset.freq;
+    document.querySelectorAll('.plan').forEach((card,idx)=>{
+      const activeSize = +card.querySelector('.size-btn.active').dataset.sz;
+      updatePlanPrice(idx, activeSize);
+    });
+  });
+
+  plansContainer.addEventListener('click', e=>{
+    const szBtn = e.target.closest('.size-btn');
+    if(szBtn){
+      const wrap = szBtn.parentElement;
+      wrap.querySelectorAll('.size-btn').forEach(b=>b.classList.remove('active'));
+      szBtn.classList.add('active');
+      const idx = +wrap.dataset.idx;
+      updatePlanPrice(idx, +szBtn.dataset.sz);
+    }
+    const cta = e.target.closest('.cta');
+    if(cta){
+      cta.textContent = 'Redirecting to Chargebee...';
+      setTimeout(()=>{cta.textContent='Subscribe with Chargebee';},1800);
+    }
+  });
+
+  // Cart button pulse
+  document.getElementById('cartBtn').addEventListener('click', ()=>{
+    const b = document.getElementById('cartBadge');
+    b.classList.remove('pop'); void b.offsetWidth; b.classList.add('pop');
+  });
+
+  // Update time
+  const timeEl = document.querySelector('.time');
+  function updateTime(){
+    const now = new Date();
+    timeEl.textContent = now.toLocaleTimeString([], {hour:'2-digit', minute:'2-digit', hour12:false});
+  }
+  updateTime();
+  setInterval(updateTime, 30000);
+})();
+</script>
+<script>(function(){document.addEventListener("click",function(e){var a=e.target.closest("[data-product-id]");if(!a)return;e.preventDefault();var pid=a.getAttribute("data-product-id");if(pid)parent.postMessage({type:"ecto-artifact-link-click",productId:pid},"*")})})();</script>
+</body>
+</html>

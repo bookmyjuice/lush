@@ -52,7 +52,7 @@ class _SubscriptionPlanScreenState extends State<SubscriptionPlanScreen> {
     );
   }
 
-  Widget _buildEmpty() => Center(child: Text('No plans available', style: TextStyle(color: AppColors.lightTextSecondary)));
+  Widget _buildEmpty() => const Center(child: Text('No plans available', style: TextStyle(color: AppColors.lightTextSecondary)));
 }
 
 class _STitle extends StatelessWidget {

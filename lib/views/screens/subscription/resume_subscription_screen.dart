@@ -23,8 +23,8 @@ class _ResumeSubscriptionScreenState
       appBar: AppBar(
         backgroundColor: AppColors.white,
         elevation: 0,
-        title: Text('Resume Subscription',
-            style: TextStyle(color: AppColors.lightTextPrimary)),
+        title: const Text('Resume Subscription',
+            style: TextStyle(color: AppColors.lightTextPrimary),),
         leading: IconButton(
           icon: Icon(Icons.arrow_back_ios,
               color: AppColors.lightTextPrimary, size: 20.sp),
@@ -60,11 +60,11 @@ class _ResumeSubscriptionScreenState
                           Text(sub.plan.name,
                               style: TextStyle(
                                   fontSize: 18.sp,
-                                  fontWeight: FontWeight.bold)),
+                                  fontWeight: FontWeight.bold,),),
                           SizedBox(height: 8.h),
                           Text('Paused since: ${DateFormat('dd MMM yyyy').format(sub.startDate)}',
                               style: TextStyle(
-                                  fontSize: 14.sp, color: AppColors.grey)),
+                                  fontSize: 14.sp, color: AppColors.grey,),),
                         ],
                       ),
                     ),
@@ -88,7 +88,7 @@ class _ResumeSubscriptionScreenState
                         : () {
                             final subId = sub?.id ?? '';
                             context.read<SubscriptionBloc>().add(
-                                ResumeSubscription(subscriptionId: subId));
+                                ResumeSubscription(subscriptionId: subId),);
                           },
                     icon: isLoading
                         ? const SizedBox(
@@ -103,7 +103,7 @@ class _ResumeSubscriptionScreenState
                       foregroundColor: AppColors.white,
                       padding: EdgeInsets.symmetric(vertical: 14.h),
                       shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12.r)),
+                          borderRadius: BorderRadius.circular(12.r),),
                     ),
                   ),
                 ),

@@ -13,21 +13,21 @@ void registerRepositories() {
 
   if (!getIt.isRegistered<CartRepository>()) {
     getIt.registerLazySingleton<CartRepository>(
-      () => CartRepository(),
+      CartRepository.new,
     );
   }
   if (!getIt.isRegistered<UserRepository>()) {
     getIt.registerLazySingleton<UserRepository>(
-      () => UserRepository(),
+      UserRepository.new,
     );
   }
   if (!getIt.isRegistered<ItemService>()) {
-    getIt.registerLazySingleton<ItemService>(() => ItemService());
+    getIt.registerLazySingleton<ItemService>(ItemService.new);
   }
   if (!getIt.isRegistered<BottleService>()) {
-    getIt.registerLazySingleton<BottleService>(() => BottleService());
+    getIt.registerLazySingleton<BottleService>(BottleService.new);
   }
   if (!getIt.isRegistered<SubscriptionService>()) {
-    getIt.registerLazySingleton<SubscriptionService>(() => SubscriptionService());
+    getIt.registerLazySingleton<SubscriptionService>(SubscriptionService.new);
   }
 }

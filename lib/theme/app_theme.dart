@@ -23,6 +23,9 @@ class AppRadius {
 
   /// 16dp — Large radius (bottom sheets, large cards).
   static const double lg = 16.0;
+
+  /// 24dp — Extra large radius (glass cards, nav bar, hero sections).
+  static const double xl = 24.0;
 }
 
 /// Factory for BMJ light and dark [ThemeData].
@@ -228,7 +231,7 @@ class AppTheme {
 
       // ── Progress Indicator ──
       progressIndicatorTheme: const ProgressIndicatorThemeData(
-        color: AppColors.primaryOrange,
+        color: AppColors.primaryGreen,
         linearTrackColor: AppColors.lightGrey,
       ),
     );
@@ -241,11 +244,11 @@ class AppTheme {
   /// Based on tokens in DESIGN_SYSTEM.md
   static ThemeData get dark {
     final colorScheme = ColorScheme.fromSeed(
-      seedColor: AppColors.primaryOrange,
+      seedColor: AppColors.primaryGreen,
       brightness: Brightness.dark,
-      primary: AppColors.primaryOrange,
+      primary: AppColors.primaryGreen,
       onPrimary: AppColors.white,
-      primaryContainer: AppColors.primaryOrangeDark,
+      primaryContainer: AppColors.primaryGreenDark,
       secondary: AppColors.secondaryTeal,
       onSecondary: AppColors.white,
       secondaryContainer: AppColors.secondaryTealDark,
@@ -425,7 +428,7 @@ class AppTheme {
 
       // ── Progress Indicator ──
       progressIndicatorTheme: const ProgressIndicatorThemeData(
-        color: AppColors.primaryOrange,
+        color: AppColors.primaryGreen,
         linearTrackColor: AppColors.darkGrey,
       ),
     );
