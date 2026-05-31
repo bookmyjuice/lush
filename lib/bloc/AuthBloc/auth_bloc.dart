@@ -361,32 +361,47 @@ class AuthenticationBloc extends Bloc<AuthenticationEvent, AuthenticationState> 
     });
 
     // Legacy events
-    on<GoogleSignIn>((event, emit) async {
-      final res = await userRepository.googleSignIn();
-      if (res == null) {
-        emit(const SignUpFailed(
-            error: 'Google Sign-In Failed', errorHeading: 'Google Sign-In Failed!'));
-      } else if (res is Map && res['type'] == 'login_success') {
-        // User found - login successful
-        emit(AuthenticationSuccess(userRepository.user));
-      } else if (res is Map && res['type'] == 'link_required') {
-        // BUG FIX: Use null-safe casts to prevent crash if keys are missing
-        emit(GoogleLinkRequired(
-          googleEmail: (res['googleEmail'] as String?) ?? '',
-          googleFirstName: (res['googleFirstName'] as String?) ?? '',
-          googleLastName: (res['googleLastName'] as String?) ?? '',
-          googleId: (res['googleId'] as String?) ?? '',
-          photoUrl: res['photoUrl'] as String?,
-        ),);
-      } else if (res is Map && res['type'] == 'signup_required') {
-        // User not found - start signup flow
-        emit(SignUpStarted(user: userRepository.user));
-      } else {
-        // Error case
-        emit(SignUpFailed(
-            error: res.toString(), errorHeading: 'Google Sign-In Failed!'));
-      }
-    });
+    // FIX: GoogleSignIn handler - distinguish new vs returning users
+    on<GoogleSignIn>((event, emit) async {
+      final res = await userRepository.googleSignIn();
+      if (res == null) {
+        emit(const SignUpFailed(
+            error: 'Google Sign-In Failed', errorHeading: 'Google Sign-In Failed!'));
+      } else if (res is Map && res['type'] == 'login_success') {
+        // User found - login successful
+        emit(AuthenticationSuccess(userRepository.user));
+      } else if (res is Map && res['type'] == 'link_required') {
+        // BUG FIX: Use null-safe casts to prevent crash if keys are missing
+        emit(GoogleLinkRequired(
+          googleEmail: (res['googleEmail'] as String?) ?? '',
+          googleFirstName: (res['googleFirstName'] as String?) ?? '',
+          googleLastName: (res['googleLastName'] as String?) ?? '',
+          googleId: (res['googleId'] as String?) ?? '',
+          photoUrl: res['photoUrl'] as String?,
+        ),);
+      } else if (res is Map && res['type'] == 'signup_required') {
+        // FIX: Check if user email already exists in backend before assuming new user
+        final email = userRepository.user.getEmail;
+        if (email.isNotEmpty) {
+          final userExists = await userRepository.checkEmailExists(email);
+          if (userExists) {
+            // User exists but Google link failed - prompt to use email/password login
+            debugPrint('⚠️ GoogleSignIn: Email $email exists in system but Google link failed. Use email/password login.');
+            emit(const SignUpFailed(
+              errorHeading: 'Sign In Failed',
+              error: 'An account with this email already exists. Please sign in with your email and password.',
+            ));
+            return;
+          }
+        }
+        // User not found in backend - start signup flow for new user
+        emit(SignUpStarted(user: userRepository.user));
+      } else {
+        // Error case
+        emit(SignUpFailed(
+            error: res.toString(), errorHeading: 'Google Sign-In Failed!'));
+      }
+    });
 
     on<MobileSignUp>((event, emit) {
       userRepository.user.setPhone = event.mobileNumber;

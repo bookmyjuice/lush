@@ -88,6 +88,35 @@ class UserRepository {
     }
   }
 
+  /// BR-006: Check if an email already exists in the system
+  /// GET /api/auth/check-email?email={email}
+  /// Returns true if user exists, false otherwise
+  Future<bool> checkEmailExists(String email) async {
+    try {
+      ioc.badCertificateCallback =
+          (X509Certificate cert, String host, int port) => true;
+      final http = IOClient(ioc);
+      final response = await http.get(
+        Uri.parse('$server/api/auth/check-email?email=${Uri.encodeComponent(email)}'),
+        headers: {
+          'Accept': 'application/json',
+          'Content-Type': 'application/json',
+        },
+      );
+      if (response.statusCode == 200) {
+        final body = const Utf8Decoder().convert(response.bodyBytes);
+        final decoded = json.decode(body);
+        if (decoded is Map<String, dynamic>) {
+          return decoded['exists'] == true;
+        }
+      }
+      return false;
+    } catch (e) {
+      debugPrint('⚠️ checkEmailExists error: $e');
+      return false;
+    }
+  }
+
   Future<bool> isInternetAvailable() async {
     try {
       final result = await InternetAddress.lookup('google.com');
