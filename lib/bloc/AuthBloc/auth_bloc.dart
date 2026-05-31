@@ -380,21 +380,19 @@ class AuthenticationBloc extends Bloc<AuthenticationEvent, AuthenticationState> 
           photoUrl: res['photoUrl'] as String?,
         ),);
       } else if (res is Map && res['type'] == 'signup_required') {
-        // FIX: Check if user email already exists in backend before assuming new user
+        // FIX: Check if user email already exists in backend before routing to signup
         final email = userRepository.user.getEmail;
         if (email.isNotEmpty) {
           final userExists = await userRepository.checkEmailExists(email);
           if (userExists) {
-            // User exists but Google link failed - prompt to use email/password login
-            debugPrint('⚠️ GoogleSignIn: Email $email exists in system but Google link failed. Use email/password login.');
-            emit(const SignUpFailed(
-              errorHeading: 'Sign In Failed',
-              error: 'An account with this email already exists. Please sign in with your email and password.',
-            ));
+            // User already registered — sign them in directly
+            debugPrint('✅ GoogleSignIn: Email $email found in system. Signing in existing user.');
+            userRepository.userLoggedIn = true;
+            emit(AuthenticationSuccess(userRepository.user));
             return;
           }
         }
-        // User not found in backend - start signup flow for new user
+        // User not found in backend — start signup flow for new user
         emit(SignUpStarted(user: userRepository.user));
       } else {
         // Error case
