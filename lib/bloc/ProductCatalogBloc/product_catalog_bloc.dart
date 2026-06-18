@@ -95,17 +95,21 @@ class ProductCatalogLoaded extends ProductCatalogState {
 
 class ProductCatalogFiltered extends ProductCatalogState {
   final List<CatalogItem> items;
+  final List<String> categories;
+  final List<String> sizes;
   final String? selectedCategory;
   final String? selectedSize;
 
   const ProductCatalogFiltered({
     required this.items,
+    required this.categories,
+    required this.sizes,
     this.selectedCategory,
     this.selectedSize,
   });
 
   @override
-  List<Object> get props => [items, selectedCategory ?? '', selectedSize ?? ''];
+  List<Object> get props => [items, categories, sizes, selectedCategory ?? '', selectedSize ?? ''];
 }
 
 class ProductCatalogError extends ProductCatalogState {
@@ -255,6 +259,8 @@ class ProductCatalogBloc extends Bloc<ProductCatalogEvent, ProductCatalogState> 
 
     emit(ProductCatalogFiltered(
       items: filteredItems,
+      categories: _extractCategories(_allItems),
+      sizes: _extractSizes(_allItems),
       selectedCategory: _selectedCategory,
       selectedSize: _selectedSize,
     ),);
@@ -308,6 +314,8 @@ class ProductCatalogBloc extends Bloc<ProductCatalogEvent, ProductCatalogState> 
     } else {
       emit(ProductCatalogFiltered(
         items: filteredItems,
+        categories: _extractCategories(_allItems),
+        sizes: _extractSizes(_allItems),
         selectedCategory: _selectedCategory,
         selectedSize: _selectedSize,
       ),);

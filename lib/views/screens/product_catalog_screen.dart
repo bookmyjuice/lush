@@ -26,8 +26,6 @@ class ProductCatalogScreenState extends State<ProductCatalogScreen> {
   String? _selectedCategory;
   String? _selectedSize;
   final TextEditingController _searchController = TextEditingController();
-  List<String> _cachedCategories = [];
-  List<String> _cachedSizes = [];
 
   @override
   void initState() {
@@ -57,77 +55,83 @@ class ProductCatalogScreenState extends State<ProductCatalogScreen> {
           ),
         ],
       ),
-      body: Column(
-        children: [
-          _buildSearchBar(),
-          _buildCategoryFilter(),
-          _buildSizeFilter(),
-          Expanded(
-            child: RefreshIndicator(
-              onRefresh: () async {
-                context.read<ProductCatalogBloc>().add(const LoadProductCatalog());
-                await Future<void>.delayed(const Duration(seconds: 1));
-              },
-              child: BlocBuilder<ProductCatalogBloc, ProductCatalogState>(
-                builder: (context, state) {
-                  if (state is ProductCatalogLoading) {
-                    return GridView.builder(
-                      padding: const EdgeInsets.all(16),
-                      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                        crossAxisCount: 2, childAspectRatio: 0.75,
-                        crossAxisSpacing: 16, mainAxisSpacing: 16,
-                      ),
-                      itemCount: 6,
-                      itemBuilder: (_, __) => const ShimmerProductCard(),
-                    );
-                  }
-                  if (state is ProductCatalogError) {
-                    return Center(
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          const Icon(Icons.error_outline, size: 64, color: Colors.grey),
-                          const SizedBox(height: 16),
-                          Text(state.message, style: const TextStyle(color: Colors.grey)),
-                          const SizedBox(height: 16),
-                          ElevatedButton(
-                            onPressed: () => context.read<ProductCatalogBloc>().add(const LoadProductCatalog()),
-                            child: const Text('Retry'),
-                          ),
-                        ],
-                      ),
-                    );
-                  }
-                  if (state is ProductCatalogEmpty || (state is ProductCatalogFiltered && state.items.isEmpty)) {
-                    return const Center(
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Icon(Icons.inventory_2_outlined, size: 64, color: Colors.grey),
-                          SizedBox(height: 16),
-                          Text('No products found', style: TextStyle(fontSize: 18, color: Colors.grey)),
-                        ],
-                      ),
-                    );
-                  }
-                  if (state is ProductCatalogLoaded) {
-                    _cachedCategories = state.categories;
-                    _cachedSizes = state.sizes;
-                    _selectedSize ??= state.sizes.isNotEmpty ? state.sizes.first : null;
-                    if (_selectedCategory == null && state.categories.isNotEmpty) {
-                      _selectedCategory = state.categories.first;
-                      context.read<ProductCatalogBloc>().add(FilterByCategory(category: _selectedCategory!));
-                      return const Center(child: CircularProgressIndicator());
-                    }
-                    return _buildProductGrid(state.items);
-                  }
-                  if (state is ProductCatalogFiltered) return _buildProductGrid(state.items);
-                  return const Center(child: Text('Something went wrong'));
+      body: BlocListener<ProductCatalogBloc, ProductCatalogState>(
+        listener: (context, state) {
+          if (state is ProductCatalogLoaded) {
+            // Auto-select first category and size on initial load
+            if (_selectedCategory == null && state.categories.isNotEmpty) {
+              setState(() {
+                _selectedCategory = state.categories.first;
+                _selectedSize = state.sizes.isNotEmpty ? state.sizes.first : null;
+              });
+              context.read<ProductCatalogBloc>().add(FilterByCategory(category: _selectedCategory!));
+            }
+          }
+        },
+        child: Column(
+          children: [
+            _buildSearchBar(),
+            _buildCategoryFilter(),
+            _buildSizeFilter(),
+            Expanded(
+              child: RefreshIndicator(
+                onRefresh: () async {
+                  context.read<ProductCatalogBloc>().add(const LoadProductCatalog());
+                  await Future<void>.delayed(const Duration(seconds: 1));
                 },
+                child: BlocBuilder<ProductCatalogBloc, ProductCatalogState>(
+                  builder: (context, state) {
+                    if (state is ProductCatalogLoading) {
+                      return GridView.builder(
+                        padding: const EdgeInsets.all(16),
+                        gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                          crossAxisCount: 2, childAspectRatio: 0.75,
+                          crossAxisSpacing: 16, mainAxisSpacing: 16,
+                        ),
+                        itemCount: 6,
+                        itemBuilder: (_, __) => const ShimmerProductCard(),
+                      );
+                    }
+                    if (state is ProductCatalogError) {
+                      return Center(
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            const Icon(Icons.error_outline, size: 64, color: Colors.grey),
+                            const SizedBox(height: 16),
+                            Text(state.message, style: const TextStyle(color: Colors.grey)),
+                            const SizedBox(height: 16),
+                            ElevatedButton(
+                              onPressed: () => context.read<ProductCatalogBloc>().add(const LoadProductCatalog()),
+                              child: const Text('Retry'),
+                            ),
+                          ],
+                        ),
+                      );
+                    }
+                    if (state is ProductCatalogEmpty || (state is ProductCatalogFiltered && state.items.isEmpty)) {
+                      return const Center(
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Icon(Icons.inventory_2_outlined, size: 64, color: Colors.grey),
+                            SizedBox(height: 16),
+                            Text('No products found', style: TextStyle(fontSize: 18, color: Colors.grey)),
+                          ],
+                        ),
+                      );
+                    }
+                    if (state is ProductCatalogLoaded) {
+                      return _buildProductGrid(state.items, _selectedSize);
+                    }
+                    if (state is ProductCatalogFiltered) return _buildProductGrid(state.items, _selectedSize);
+                    return const Center(child: Text('Something went wrong'));
+                  },
+                ),
               ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
@@ -168,7 +172,12 @@ class ProductCatalogScreenState extends State<ProductCatalogScreen> {
   Widget _buildCategoryFilter() {
     return BlocBuilder<ProductCatalogBloc, ProductCatalogState>(
       builder: (context, state) {
-        List<String> categories = _cachedCategories;
+        List<String> categories = [];
+        if (state is ProductCatalogLoaded) {
+          categories = state.categories;
+        } else if (state is ProductCatalogFiltered) {
+          categories = state.categories;
+        }
         if (categories.isEmpty) return const SizedBox.shrink();
 
         return SizedBox(
@@ -209,7 +218,12 @@ class ProductCatalogScreenState extends State<ProductCatalogScreen> {
   Widget _buildSizeFilter() {
     return BlocBuilder<ProductCatalogBloc, ProductCatalogState>(
       builder: (context, state) {
-        List<String> sizes = _cachedSizes;
+        List<String> sizes = [];
+        if (state is ProductCatalogLoaded) {
+          sizes = state.sizes;
+        } else if (state is ProductCatalogFiltered) {
+          sizes = state.sizes;
+        }
         if (sizes.isEmpty) return const SizedBox.shrink();
 
         return SizedBox(
@@ -246,7 +260,7 @@ class ProductCatalogScreenState extends State<ProductCatalogScreen> {
     );
   }
 
-  Widget _buildProductGrid(List<CatalogItem> items) {
+  Widget _buildProductGrid(List<CatalogItem> items, String? selectedSize) {
     return GridView.builder(
       padding: const EdgeInsets.all(16),
       gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
@@ -254,14 +268,12 @@ class ProductCatalogScreenState extends State<ProductCatalogScreen> {
         crossAxisSpacing: 16, mainAxisSpacing: 16,
       ),
       itemCount: items.length,
-      itemBuilder: (context, index) => _buildProductCard(items[index]),
+      itemBuilder: (context, index) => _buildProductCard(items[index], selectedSize),
     );
   }
 
-  Widget _buildProductCard(CatalogItem item) {
-    final defaultPrice = item.prices.isNotEmpty
-        ? item.prices.firstWhere((p) => p.name?.contains('500ml') ?? false, orElse: () => item.prices.first)
-        : null;
+  Widget _buildProductCard(CatalogItem item, String? selectedSize) {
+    final defaultPrice = _getDisplayPrice(item, selectedSize);
 
     return Card(
       elevation: 4,
@@ -327,6 +339,22 @@ class ProductCatalogScreenState extends State<ProductCatalogScreen> {
         ],
       ),
     );
+  }
+
+  /// Returns the price matching the given size filter,
+  /// or the first available price as fallback.
+  ItemPrice? _getDisplayPrice(CatalogItem item, String? selectedSize) {
+    if (item.prices.isEmpty) return null;
+
+    if (selectedSize != null && selectedSize.isNotEmpty) {
+      final match = item.prices.firstWhere(
+        (p) => (p.name?.toLowerCase().contains(selectedSize.toLowerCase()) ?? false),
+        orElse: () => item.prices.first,
+      );
+      return match;
+    }
+
+    return item.prices.first;
   }
 
   void _showSizeSelectionDialog(CatalogItem item) {

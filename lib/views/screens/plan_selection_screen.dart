@@ -51,8 +51,8 @@ class _PlanSelectionScreenState extends State<PlanSelectionScreen> {
         _isLoading = false;
         // Auto-select first category and size
         if (plans.isNotEmpty) {
-          _selectedCategory = _extractCategory(plans.first);
-          _selectedSize = _extractSize(plans.first);
+          _selectedCategory = _getCategory(plans.first);
+          _selectedSize = _getSize(plans.first);
           _selectedPeriod = 'Weekly';
           _updateSelectedItemPrice();
         }
@@ -65,56 +65,23 @@ class _PlanSelectionScreenState extends State<PlanSelectionScreen> {
     }
   }
 
-  String _extractCategory(Map<String, dynamic> plan) {
-    final name = (plan['name'] as String?) ?? '';
-    final itemId = (plan['id'] as String?) ?? '';
-    // Try to infer from item_family_id or item_id
-    final familyId = (plan['itemFamilyId'] as String?) ?? '';
-    if (familyId.isNotEmpty) return familyId;
+  /// Read category from the structured response field.
+  String _getCategory(Map<String, dynamic> plan) =>
+      (plan['category'] as String? ?? 'delight').toLowerCase();
 
-    if (itemId.startsWith('delight') || name.toLowerCase().contains('delight')) {
-      return 'delight';
-    } else if (itemId.startsWith('signature') || name.toLowerCase().contains('signature')) {
-      return 'signature';
-    } else if (itemId.startsWith('premium') || name.toLowerCase().contains('premium')) {
-      return 'premium';
-    }
-    return 'delight';
-  }
+  /// Read size label from the structured response field.
+  String _getSize(Map<String, dynamic> plan) =>
+      plan['sizeLabel'] as String? ?? '200';
 
-  String _extractSize(Map<String, dynamic> plan) {
-    final name = (plan['name'] as String?) ?? '';
-    final itemId = (plan['id'] as String?) ?? '';
-    // Try to find size in name or id
-    for (final size in ['200', '300', '500']) {
-      if (name.contains('${size}ml') || itemId.contains('-$size') || itemId.endsWith('-$size')) {
-        return size;
-      }
-    }
-    return '200';
-  }
-
-  String _extractPeriod(Map<String, dynamic> plan) {
-    final name = (plan['name'] as String?) ?? '';
-    if (name.toLowerCase().contains('weekly') || name.toLowerCase().contains('week')) {
-      return 'Weekly';
-    } else if (name.toLowerCase().contains('monthly') || name.toLowerCase().contains('month')) {
-      return 'Monthly';
-    }
-    // Check period data
-    final periodUnit = (plan['periodUnit'] as String?) ?? '';
-    final period = (plan['period'] as int?) ?? 0;
-    if (periodUnit == 'month' || period >= 24) {
-      return 'Monthly';
-    }
-    return 'Weekly';
-  }
+  /// Read period label from the structured response field.
+  String _getPeriod(Map<String, dynamic> plan) =>
+      plan['period'] as String? ?? 'Weekly';
 
   /// Get all unique categories from plans
   List<String> get _categories {
     final cats = <String>{};
     for (final plan in _allPlans) {
-      cats.add(_extractCategory(plan));
+      cats.add(_getCategory(plan));
     }
     return cats.toList()..sort();
   }
@@ -123,7 +90,7 @@ class _PlanSelectionScreenState extends State<PlanSelectionScreen> {
   List<String> get _sizes {
     final sz = <String>{};
     for (final plan in _allPlans) {
-      sz.add(_extractSize(plan));
+      sz.add(_getSize(plan));
     }
     return sz.toList()..sort((a, b) => int.parse(a).compareTo(int.parse(b)));
   }
@@ -132,8 +99,8 @@ class _PlanSelectionScreenState extends State<PlanSelectionScreen> {
   List<Map<String, dynamic>> get _filteredPlans {
     if (_selectedCategory == null || _selectedSize == null) return [];
     return _allPlans.where((p) =>
-        _extractCategory(p) == _selectedCategory &&
-        _extractSize(p) == _selectedSize,).toList();
+        _getCategory(p) == _selectedCategory &&
+        _getSize(p) == _selectedSize,).toList();
   }
 
   /// Get the display name for a category
@@ -188,7 +155,7 @@ class _PlanSelectionScreenState extends State<PlanSelectionScreen> {
     // Find the plan with matching period
     Map<String, dynamic>? match;
     for (final plan in filtered) {
-      if (_extractPeriod(plan) == _selectedPeriod) {
+      if (_getPeriod(plan) == _selectedPeriod) {
         match = plan;
         break;
       }
@@ -269,7 +236,7 @@ class _PlanSelectionScreenState extends State<PlanSelectionScreen> {
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      Icon(Icons.error_outline, size: 64, color: Colors.red[300]),
+                      Icon(Icons.error_outline, size: 64, color: AppColors.error),
                       const SizedBox(height: 16),
                       Text('Error: $_error'),
                       const SizedBox(height: 16),
@@ -285,7 +252,7 @@ class _PlanSelectionScreenState extends State<PlanSelectionScreen> {
                       child: Column(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          Icon(Icons.subscriptions_outlined, size: 64, color: Colors.grey[400]),
+                          Icon(Icons.subscriptions_outlined, size: 64, color: AppColors.grey),
                           const SizedBox(height: 16),
                           const Text(
                             'No subscription plans available',
@@ -294,7 +261,7 @@ class _PlanSelectionScreenState extends State<PlanSelectionScreen> {
                           const SizedBox(height: 8),
                           Text(
                             'Plans will appear once configured in Chargebee.',
-                            style: TextStyle(fontSize: 14, color: Colors.grey[500]),
+                            style: TextStyle(fontSize: 14, color: Colors.grey.shade600),
                           ),
                         ],
                       ),
@@ -320,7 +287,7 @@ class _PlanSelectionScreenState extends State<PlanSelectionScreen> {
                             const SizedBox(height: 24),
 
                             // Step 3: Select Period
-                            if (_filteredPlans.length > 1) ...[
+                            if (_filteredPlans.isNotEmpty) ...[
                               _buildSectionTitle('3. Choose Plan Duration'),
                               const SizedBox(height: 8),
                               _buildPeriodSelector(),
@@ -343,7 +310,7 @@ class _PlanSelectionScreenState extends State<PlanSelectionScreen> {
       style: TextStyle(
         fontSize: 16,
         fontWeight: FontWeight.w600,
-        color: Colors.grey[700],
+        color: AppColors.darkGrey,
       ),
     );
   }
@@ -370,10 +337,10 @@ class _PlanSelectionScreenState extends State<PlanSelectionScreen> {
                 duration: const Duration(milliseconds: 200),
                 padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 12),
                 decoration: BoxDecoration(
-                  color: isSelected ? color.withValues(alpha: 0.1) : Colors.grey[50],
+                  color: isSelected ? color.withValues(alpha: 0.1) : AppColors.lightGrey,
                   borderRadius: BorderRadius.circular(16),
                   border: Border.all(
-                    color: isSelected ? color : Colors.grey[300]!,
+                    color: isSelected ? color : AppColors.lightDivider,
                     width: isSelected ? 2 : 1,
                   ),
                   boxShadow: isSelected
@@ -390,7 +357,7 @@ class _PlanSelectionScreenState extends State<PlanSelectionScreen> {
                   children: [
                     Icon(
                       _categoryIcon(cat),
-                      color: isSelected ? color : Colors.grey[400],
+                      color: isSelected ? color : AppColors.grey,
                       size: 28,
                     ),
                     const SizedBox(height: 8),
@@ -399,7 +366,7 @@ class _PlanSelectionScreenState extends State<PlanSelectionScreen> {
                       style: TextStyle(
                         fontSize: 14,
                         fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
-                        color: isSelected ? color : Colors.grey[600],
+                        color: isSelected ? color : Colors.grey.shade600,
                       ),
                     ),
                   ],
@@ -433,16 +400,16 @@ class _PlanSelectionScreenState extends State<PlanSelectionScreen> {
                 duration: const Duration(milliseconds: 200),
                 padding: const EdgeInsets.symmetric(vertical: 16),
                 decoration: BoxDecoration(
-                  color: isSelected ? Colors.blue.withValues(alpha: 0.1) : Colors.grey[50],
+                  color: isSelected ? AppColors.info.withValues(alpha: 0.1) : AppColors.lightGrey,
                   borderRadius: BorderRadius.circular(16),
                   border: Border.all(
-                    color: isSelected ? Colors.blue : Colors.grey[300]!,
+                    color: isSelected ? AppColors.info : AppColors.lightDivider,
                     width: isSelected ? 2 : 1,
                   ),
                   boxShadow: isSelected
                       ? [
                           BoxShadow(
-                            color: Colors.blue.withValues(alpha: 0.2),
+                            color: AppColors.info.withValues(alpha: 0.2),
                             blurRadius: 8,
                             offset: const Offset(0, 4),
                           ),
@@ -455,7 +422,7 @@ class _PlanSelectionScreenState extends State<PlanSelectionScreen> {
                   style: TextStyle(
                     fontSize: 16,
                     fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
-                    color: isSelected ? Colors.blue : Colors.grey[600],
+                    color: isSelected ? AppColors.info : Colors.grey.shade600,
                   ),
                 ),
               ),
@@ -469,13 +436,24 @@ class _PlanSelectionScreenState extends State<PlanSelectionScreen> {
   Widget _buildPeriodSelector() {
     final periods = <String>{};
     for (final plan in _filteredPlans) {
-      periods.add(_extractPeriod(plan));
+      periods.add(_getPeriod(plan));
     }
 
     return Row(
       children: periods.map((period) {
         final isSelected = _selectedPeriod == period;
         final isWeekly = period == 'Weekly';
+        final periodColor = isWeekly ? AppColors.secondaryTeal : AppColors.primaryOrangeDark;
+
+        // Find the matching plan for this period to show its specific price
+        final matchingPlan = _filteredPlans.firstWhere(
+          (p) => _getPeriod(p) == period,
+          orElse: () => <String, dynamic>{},
+        );
+        final periodPrice = matchingPlan.isNotEmpty
+            ? _formatPrice(matchingPlan['price'])
+            : '';
+
         return Expanded(
           child: Padding(
             padding: EdgeInsets.only(
@@ -493,13 +471,13 @@ class _PlanSelectionScreenState extends State<PlanSelectionScreen> {
                 padding: const EdgeInsets.all(16),
                 decoration: BoxDecoration(
                   color: isSelected
-                      ? (isWeekly ? Colors.teal : Colors.deepPurple).withValues(alpha: 0.1)
-                      : Colors.grey[50],
+                      ? periodColor.withValues(alpha: 0.1)
+                      : AppColors.lightGrey,
                   borderRadius: BorderRadius.circular(16),
                   border: Border.all(
                     color: isSelected
-                        ? (isWeekly ? Colors.teal : Colors.deepPurple)
-                        : Colors.grey[300]!,
+                        ? periodColor
+                        : AppColors.lightDivider,
                     width: isSelected ? 2 : 1,
                   ),
                 ),
@@ -508,8 +486,8 @@ class _PlanSelectionScreenState extends State<PlanSelectionScreen> {
                     Icon(
                       isWeekly ? Icons.calendar_view_week : Icons.calendar_month,
                       color: isSelected
-                          ? (isWeekly ? Colors.teal : Colors.deepPurple)
-                          : Colors.grey[400],
+                          ? periodColor
+                          : AppColors.grey,
                       size: 24,
                     ),
                     const SizedBox(height: 8),
@@ -519,18 +497,18 @@ class _PlanSelectionScreenState extends State<PlanSelectionScreen> {
                         fontSize: 15,
                         fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
                         color: isSelected
-                            ? (isWeekly ? Colors.teal : Colors.deepPurple)
-                            : Colors.grey[600],
+                            ? periodColor
+                            : Colors.grey.shade600,
                       ),
                     ),
-                    if (_selectedItemPrice != null) ...[
+                    if (periodPrice.isNotEmpty) ...[
                       const SizedBox(height: 4),
                       Text(
-                        _formatPrice(_selectedItemPrice!['price']),
+                        periodPrice,
                         style: TextStyle(
                           fontSize: 13,
                           fontWeight: FontWeight.w600,
-                          color: isSelected ? Colors.green[700] : Colors.grey[500],
+                          color: isSelected ? AppColors.success : Colors.grey.shade500,
                         ),
                       ),
                     ],
@@ -591,13 +569,13 @@ class _PlanSelectionScreenState extends State<PlanSelectionScreen> {
                 Container(
                   padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                   decoration: BoxDecoration(
-                    color: Colors.blue.withValues(alpha: 0.1),
+                    color: AppColors.info.withValues(alpha: 0.1),
                     borderRadius: BorderRadius.circular(20),
                   ),
                   child: Text(
                     '${_selectedSize}ml',
                     style: const TextStyle(
-                      color: Colors.blue,
+                      color: AppColors.info,
                       fontWeight: FontWeight.bold,
                       fontSize: 13,
                     ),
@@ -619,7 +597,7 @@ class _PlanSelectionScreenState extends State<PlanSelectionScreen> {
                 description,
                 style: TextStyle(
                   fontSize: 14,
-                  color: Colors.grey[600],
+                  color: Colors.grey.shade600,
                 ),
               ),
             ],
@@ -629,9 +607,9 @@ class _PlanSelectionScreenState extends State<PlanSelectionScreen> {
                 Container(
                   padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                   decoration: BoxDecoration(
-                    color: Colors.green[50],
+                    color: AppColors.success.withValues(alpha: 0.1),
                     borderRadius: BorderRadius.circular(12),
-                    border: Border.all(color: Colors.green[200]!),
+                    border: Border.all(color: AppColors.success.withValues(alpha: 0.3)),
                   ),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -640,7 +618,7 @@ class _PlanSelectionScreenState extends State<PlanSelectionScreen> {
                         '$period Plan',
                         style: TextStyle(
                           fontSize: 13,
-                          color: Colors.grey[600],
+                          color: Colors.grey.shade600,
                         ),
                       ),
                       Text(
@@ -648,7 +626,7 @@ class _PlanSelectionScreenState extends State<PlanSelectionScreen> {
                         style: const TextStyle(
                           fontSize: 28,
                           fontWeight: FontWeight.bold,
-                          color: Colors.green,
+                          color: AppColors.success,
                         ),
                       ),
                     ],
@@ -674,7 +652,7 @@ class _PlanSelectionScreenState extends State<PlanSelectionScreen> {
                   style: const TextStyle(fontSize: 16),
                 ),
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.green,
+                  backgroundColor: AppColors.success,
                   foregroundColor: Colors.white,
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(12),
@@ -688,7 +666,7 @@ class _PlanSelectionScreenState extends State<PlanSelectionScreen> {
               textAlign: TextAlign.center,
               style: TextStyle(
                 fontSize: 12,
-                color: Colors.grey[500],
+                color: Colors.grey.shade500,
               ),
             ),
           ],
