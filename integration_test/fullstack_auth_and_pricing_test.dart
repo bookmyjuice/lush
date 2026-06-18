@@ -6,10 +6,10 @@ import 'package:http/http.dart' as http;
 import 'package:integration_test/integration_test.dart';
 
 // Gated execution to avoid accidental hits to live/staging
-const bool runE2E = bool.fromEnvironment('E2E', defaultValue: false);
-const String baseUrl = String.fromEnvironment('API_BASE_URL', defaultValue: '');
-const String e2eUser = String.fromEnvironment('E2E_USER', defaultValue: '');
-const String e2ePass = String.fromEnvironment('E2E_PASS', defaultValue: '');
+const bool runE2E = bool.fromEnvironment('E2E');
+const String baseUrl = String.fromEnvironment('API_BASE_URL');
+const String e2eUser = String.fromEnvironment('E2E_USER');
+const String e2ePass = String.fromEnvironment('E2E_PASS');
 
 void main() {
   IntegrationTestWidgetsFlutterBinding.ensureInitialized();
@@ -25,7 +25,7 @@ void main() {
     }
     assert(baseUrl.isNotEmpty, 'API_BASE_URL is required');
     assert(e2eUser.isNotEmpty && e2ePass.isNotEmpty,
-        'E2E_USER and E2E_PASS are required');
+        'E2E_USER and E2E_PASS are required',);
 
     // 1) Sign in
     final signinRes = await http.post(
@@ -42,7 +42,7 @@ void main() {
 
     // 2) Fetch profile (sanity check token)
     final profileRes = await http.get(Uri.parse('$baseUrl/api/test/user'),
-        headers: authHeader);
+        headers: authHeader,);
     expect(profileRes.statusCode, 200);
 
     // 3) Pricing page session URLs
@@ -57,9 +57,9 @@ void main() {
     bool hasChargebeeHost(String? url) =>
         url?.contains('bookmyjuice-test.chargebee.com') ?? false;
 
-    final premiumUrl = (pricingJson['premium']?['url']) as String?;
-    final signatureUrl = (pricingJson['signature']?['url']) as String?;
-    final delightUrl = (pricingJson['delight']?['url']) as String?;
+    final premiumUrl = pricingJson['premium']?['url'] as String?;
+    final signatureUrl = pricingJson['signature']?['url'] as String?;
+    final delightUrl = pricingJson['delight']?['url'] as String?;
 
     expect(hasChargebeeHost(premiumUrl), isTrue);
     expect(hasChargebeeHost(signatureUrl), isTrue);
@@ -111,5 +111,5 @@ void main() {
     final portalJson = jsonDecode(portalRes.body) as Map<String, dynamic>;
     final accessUrl = portalJson['access_url'] as String?;
     expect(hasChargebeeHost(accessUrl), isTrue);
-  }, semanticsEnabled: false);
+  }, semanticsEnabled: false,);
 }

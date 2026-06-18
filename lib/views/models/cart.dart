@@ -7,7 +7,7 @@ class Cart {
   // Helper method to get total price
   double getTotalPrice() {
     double total = 0;
-    for (var item in items) {
+    for (final item in items) {
       total += item.price ?? 0;
     }
     return total;

@@ -12,7 +12,7 @@ class ItemService {
   /// Get all items (ItemData objects)
   Future<List<ItemData>> getItems() async {
     try {
-      List<Map<String, dynamic>> apiResponse =
+      final List<Map<String, dynamic>> apiResponse =
           await _userRepository.getChargeItems();
 
       return apiResponse
@@ -20,7 +20,7 @@ class ItemService {
               id: json['id'] as String? ?? '',
               name: json['name'] as String? ?? 'Unknown Item',
               description: json['description'] as String?,
-              status: json['status'] as String? ?? 'INACTIVE'))
+              status: json['status'] as String? ?? 'INACTIVE',),)
           .toList();
     } catch (e) {
       // Return empty list on error
@@ -31,13 +31,13 @@ class ItemService {
   /// Fetch items from backend and convert to DynamicItem objects
   Future<List<DynamicItem>> fetchItems() async {
     try {
-      List<Map<String, dynamic>> apiResponse =
+      final List<Map<String, dynamic>> apiResponse =
           await _userRepository.getChargeItems();
 
-      List<DynamicItem> items = apiResponse
-          .map((json) => DynamicItem.fromApiResponse(json))
+      final List<DynamicItem> items = apiResponse
+          .map(DynamicItem.fromApiResponse)
           .where((item) =>
-              item.isDisplayReady()) // Filter out inactive/incomplete items
+              item.isDisplayReady(),) // Filter out inactive/incomplete items
           .toList();
 
       // Sort by popularity (if available) or alphabetically

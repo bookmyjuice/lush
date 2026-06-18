@@ -50,7 +50,6 @@ class FirebasePhoneAuth {
     try {
       await _auth.verifyPhoneNumber(
         phoneNumber: phone,
-        timeout: const Duration(seconds: 30),
         verificationCompleted: (PhoneAuthCredential credential) {
           // This fires on Android when SMS auto-retrieval or
           // Play Integrity / SafetyNet instantly verifies the number.
@@ -75,7 +74,7 @@ class FirebasePhoneAuth {
           _pendingVerificationId = verificationId;
           if (kDebugMode) {
             debugPrint(
-                '📱 Firebase code sent, verificationId: ${verificationId.substring(0, 8)}...');
+                '📱 Firebase code sent, verificationId: ${verificationId.substring(0, 8)}...',);
           }
           onCodeSent(verificationId);
           // Note: we do NOT cancel the global timeout here —
@@ -108,7 +107,7 @@ class FirebasePhoneAuth {
     if (verificationId == null || verificationId.isEmpty) {
       if (kDebugMode) {
         debugPrint(
-            '📱 verifyPhoneOtp called but no pending verificationId');
+            '📱 verifyPhoneOtp called but no pending verificationId',);
       }
       return false;
     }
@@ -129,7 +128,7 @@ class FirebasePhoneAuth {
       _globalTimeout?.cancel();
       if (kDebugMode) {
         debugPrint(
-            '📱 Firebase OTP verification failed: ${e.message}');
+            '📱 Firebase OTP verification failed: ${e.message}',);
       }
       return false;
     } catch (e) {

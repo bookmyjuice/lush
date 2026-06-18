@@ -5,6 +5,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:lush/services/order_service.dart' show OrderService;
 import 'package:sentry_flutter/sentry_flutter.dart';
 import 'package:lush/services/firebase_notification_service.dart';
 import 'package:lush/services/firebase_options.dart';
@@ -22,6 +23,9 @@ import 'bloc/AuthBloc/auth_events.dart';
 import 'bloc/AuthBloc/auth_state.dart';
 import 'bloc/CartBloc/cart_bloc.dart';
 import 'bloc/CartBloc/cart_event.dart';
+import 'bloc/NotificationBloc/notification_bloc.dart';
+import 'bloc/ReferralBloc/referral_bloc.dart';
+import 'bloc/OrderBloc/order_bloc.dart';
 // Product Catalog BLoC
 import 'bloc/ProductCatalogBloc/product_catalog_bloc.dart';
 import 'bloc/ProductsBloc/products_bloc.dart' as ProductsBloc;
@@ -29,6 +33,7 @@ import 'bloc/SubscriptionBloc/subscription_bloc.dart';
 // Enhanced BLoCs for additional functionality
 import 'bloc/UserBloc/user_bloc.dart';
 import 'get_it.dart';
+import 'repositories/referral_repository.dart';
 import 'views/all_screens.dart';
 import 'views/models/model.dart';
 import 'views/screens/address_entry_screen.dart';
@@ -67,6 +72,7 @@ import 'views/screens/subscription/subscription_plan_screen.dart';
 import 'views/screens/subscription/subscription_schedule_screen.dart';
 import 'views/screens/subscription/subscription_summary_screen.dart';
 import 'views/models/subscription_selection.dart';
+
 
 void main() async {
   
@@ -108,7 +114,6 @@ Future<void> _initializeApp() async {
       (options) {
         options..dsn = const String.fromEnvironment(
           'SENTRY_DSN_FLUTTER',
-          defaultValue: '',
         )
         ..tracesSampleRate = 0.1
         ..environment = const String.fromEnvironment(
@@ -232,6 +237,19 @@ class BookMyJuiceApp extends StatelessWidget {
                 return cubit;
               },
             ),
+          BlocProvider<OrderBloc>(create: (_) => OrderBloc(orderService: OrderService())),
+            // Referral BLoC (requires ReferralRepository from getIt)
+            BlocProvider<ReferralBloc>(
+              lazy: false,
+              create: (_) => ReferralBloc(
+                referralRepository: getIt.get<ReferralRepository>(),
+              ),
+            ),
+            // Notification BLoC
+            BlocProvider<NotificationBloc>(
+              lazy: false,
+              create: (_) => NotificationBloc(),
+            ),
           ],
           child: ToastificationWrapper(
             child: BlocBuilder<ThemeCubit, ThemeState>(
@@ -256,15 +274,15 @@ class BookMyJuiceApp extends StatelessWidget {
               initialRoute: '/',
               routes: {
                 '/': (_) => const AuthWrapper(),
-                '/mobileNumberPage': (_) => MobileNumberPage(),
+                '/mobileNumberPage': (_) => const MobileNumberPage(),
                 '/phone-login': (_) => const PhoneLoginScreen(),
-                '/otp': (_) => OTPLoginPage(),
+                '/otp': (_) => const OTPLoginPage(),
                 // '/otpSignUpScreen': (_) => OTPSignUpScreen(),
-                '/forgotPasswordPage': (_) => ForgotPasswordPage(),
-                '/forgot-password': (_) => ForgotPasswordScreen(),
-                '/reset-password-mobile-otp': (_) => ResetPasswordMobileScreen(),
-                '/reset-password-email-code': (_) => ResetPasswordEmailScreen(),
-                '/day-wise-schedule': (_) => DayWiseScheduleScreen(
+                '/forgotPasswordPage': (_) => const ForgotPasswordPage(),
+                '/forgot-password': (_) => const ForgotPasswordScreen(),
+                '/reset-password-mobile-otp': (_) => const ResetPasswordMobileScreen(),
+                '/reset-password-email-code': (_) => const ResetPasswordEmailScreen(),
+                '/day-wise-schedule': (_) => const DayWiseScheduleScreen(
                       availableJuices: [],
                       selectedPlan: {},
                     ),
@@ -295,18 +313,18 @@ class BookMyJuiceApp extends StatelessWidget {
                 '/address-entry': (_) => const AddressEntryScreen(),
                 '/create-password': (_) => const CreatePasswordScreen(),
                 '/login': (_) => const LoginPage(
-                    toastMessage: '', toastHeading: ''),
+                    toastMessage: '', toastHeading: '',),
                 '/dashboard': (_) => Dashboard(),
-                '/product-catalog': (_) => ProductCatalogScreen(),
+                '/product-catalog': (_) => const ProductCatalogScreen(),
                 '/plan-selection': (_) => const PlanSelectionScreen(),
               },
               onGenerateRoute: (settings) {
                 if (settings.name == '/myaccount') {
                   return MaterialPageRoute(builder: (_) {
                     return MyAccountPage(settings.arguments as String);
-                  });
+                  },);
                 }
-                if (settings.name == "/productDetails") {
+                if (settings.name == '/productDetails') {
                   return MaterialPageRoute(
                     builder: (_) {
                       return DetailPage(
@@ -325,7 +343,7 @@ class BookMyJuiceApp extends StatelessWidget {
                 } else if (settings.name == '/checkout') {
                   return MaterialPageRoute(
                     builder: (_) => CheckoutScreen(
-                        checkoutUrl: settings.arguments as String),
+                        checkoutUrl: settings.arguments as String,),
                   );
                 } else if (settings.name == '/menu') {
                   return MaterialPageRoute(
@@ -403,7 +421,7 @@ class AuthWrapper extends StatelessWidget {
       builder: (context, state) {
         // ── Authenticated: Full Dashboard ──
         if (state is AuthenticationSuccess) {
-          return Dashboard(mode: DashboardMode.full);
+          return Dashboard();
         }
 
         // ── Signup flow continues ──
@@ -501,7 +519,7 @@ class AuthenticationBlocObserver extends BlocObserver {
 
   @override
   void onTransition(
-      Bloc<dynamic, dynamic> bloc, Transition<dynamic, dynamic> transition) {
+      Bloc<dynamic, dynamic> bloc, Transition<dynamic, dynamic> transition,) {
     super.onTransition(bloc, transition);
     if (kDebugMode) {
       print('[DEBUG] BLoC Transition: ${bloc.runtimeType} - $transition');
@@ -510,7 +528,7 @@ class AuthenticationBlocObserver extends BlocObserver {
 
   @override
   void onError(
-      BlocBase<dynamic> bloc, Object error, StackTrace stackTrace) {
+      BlocBase<dynamic> bloc, Object error, StackTrace stackTrace,) {
     super.onError(bloc, error, stackTrace);
     if (kDebugMode) {
       print('[ERROR] BLoC Error: ${bloc.runtimeType} - $error');

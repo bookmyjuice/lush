@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:lush/get_it.dart';
 import 'package:lush/services/item_service.dart';
@@ -38,7 +37,7 @@ class _OrderCatalogScreenState extends State<OrderCatalogScreen> {
       appBar: AppBar(
         backgroundColor: AppColors.white,
         elevation: 0,
-        title: Text(
+        title: const Text(
           'Order Juice',
           style: TextStyle(
             fontWeight: FontWeight.bold,
@@ -64,7 +63,7 @@ class _OrderCatalogScreenState extends State<OrderCatalogScreen> {
                       Icon(Icons.error_outline, size: 48.sp, color: AppColors.error),
                       SizedBox(height: 16.h),
                       Text('Failed to load items',
-                          style: TextStyle(color: AppColors.lightTextSecondary, fontSize: 16.sp)),
+                          style: TextStyle(color: AppColors.lightTextSecondary, fontSize: 16.sp),),
                       SizedBox(height: 16.h),
                       ElevatedButton(
                         onPressed: _retry,
@@ -90,7 +89,7 @@ class _OrderCatalogScreenState extends State<OrderCatalogScreen> {
               if (filtered.isEmpty) {
                 return Center(
                   child: Text('No items found',
-                      style: TextStyle(color: AppColors.lightTextSecondary, fontSize: 16.sp)),
+                      style: TextStyle(color: AppColors.lightTextSecondary, fontSize: 16.sp),),
                 );
               }
 
@@ -116,7 +115,7 @@ class _OrderCatalogScreenState extends State<OrderCatalogScreen> {
                 },
               );
             },
-          )),
+          ),),
         ],
       ),
     );
@@ -185,7 +184,7 @@ class _JuiceItemCard extends StatelessWidget {
               child: Center(
                 child: Text(
                   item.displayName.replaceAll('-', ' ').split(' ').map((w) =>
-                      w.isNotEmpty ? '${w[0].toUpperCase()}${w.substring(1)}' : '').join(' '),
+                      w.isNotEmpty ? '${w[0].toUpperCase()}${w.substring(1)}' : '',).join(' '),
                   style: TextStyle(
                     fontSize: 16.sp,
                     fontWeight: FontWeight.bold,

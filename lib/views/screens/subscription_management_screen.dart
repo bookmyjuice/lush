@@ -55,7 +55,7 @@ class _SubscriptionManagementScreenState
     // All users and servers are in IST (Asia/Kolkata) timezone.
     final now = DateTime.now();
     // Convert to IST if device is in a different timezone
-    final istOffset = Duration(hours: 5, minutes: 30);
+    const istOffset = Duration(hours: 5, minutes: 30);
     final utcNow = now.toUtc();
     final istNow = utcNow.add(istOffset);
     return istNow.hour < 21; // Before 9 PM
@@ -68,7 +68,6 @@ class _SubscriptionManagementScreenState
       _showDialog(
         title: 'Action Unavailable',
         content: 'Subscription actions are available until 9 PM IST only. Changes will take effect next day.',
-        confirmText: 'OK',
         isWarning: true,
       );
       return;
@@ -118,7 +117,6 @@ class _SubscriptionManagementScreenState
       _showDialog(
         title: 'Action Unavailable',
         content: 'Subscription actions are available until 9 PM IST only. Changes will take effect next day.',
-        confirmText: 'OK',
         isWarning: true,
       );
       return;
@@ -264,7 +262,7 @@ class _SubscriptionManagementScreenState
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                       Icon(Icons.error_outline,
-                          size: 64, color: Colors.red[300]),
+                          size: 64, color: Colors.red[300],),
                       const SizedBox(height: 16),
                       Text('Error: $_error'),
                       const SizedBox(height: 16),
@@ -281,7 +279,7 @@ class _SubscriptionManagementScreenState
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
                           Icon(Icons.subscriptions_outlined,
-                              size: 64, color: Colors.grey[400]),
+                              size: 64, color: Colors.grey[400],),
                           const SizedBox(height: 16),
                           const Text(
                             'No active subscriptions',
@@ -394,7 +392,7 @@ class _SubscriptionManagementScreenState
             Text('ID: $subscriptionId'),
             if (subscription['nextBillingAt'] != null)
               Text(
-                  'Next Billing: ${DateTime.fromMillisecondsSinceEpoch((subscription['nextBillingAt'] as int) * 1000).toString().split(' ')[0]}'),
+                  'Next Billing: ${DateTime.fromMillisecondsSinceEpoch((subscription['nextBillingAt'] as int) * 1000).toString().split(' ')[0]}',),
             if (!isBefore9PM && (status == 'ACTIVE' || status == 'PAUSED'))
               Padding(
                 padding: const EdgeInsets.only(top: 8),

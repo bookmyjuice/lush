@@ -34,9 +34,7 @@ Widget buildTestApp({
   });
   when(mockAuthBloc.isClosed).thenAnswer((_) => false);
 
-  addTearDown(() {
-    streamController.close();
-  });
+  addTearDown(streamController.close);
 
   return ToastificationWrapper(
     child: MultiBlocProvider(
@@ -193,7 +191,7 @@ void main() {
       await tester.pumpAndSettle();
 
       await tester.enterText(
-          find.byType(TextFormField).at(0), 'test@example.com');
+          find.byType(TextFormField).at(0), 'test@example.com',);
       await tester.pumpAndSettle();
 
       await tapButton(tester, 'Sign In');
@@ -208,11 +206,11 @@ void main() {
       await tester.pumpAndSettle();
 
       await tester.enterText(
-          find.byType(TextFormField).at(0), 'test@example.com');
+          find.byType(TextFormField).at(0), 'test@example.com',);
       await tester.pumpAndSettle();
 
       await tester.enterText(
-          find.byType(TextFormField).at(1), 'SecurePass123!');
+          find.byType(TextFormField).at(1), 'SecurePass123!',);
       await tester.pumpAndSettle();
 
       await tapButton(tester, 'Sign In');
@@ -286,7 +284,7 @@ void main() {
       expect(find.text('Enter your email address'), findsOneWidget);
       expect(find.text('Enter your mobile number'), findsOneWidget);
       expect(
-          find.text('Quick signup with your Google account'), findsOneWidget);
+          find.text('Quick signup with your Google account'), findsOneWidget,);
     });
 
     testWidgets('Sign Up tab shows "Already have an account?" text',
@@ -351,7 +349,7 @@ void main() {
       await tester.pumpWidget(buildTestApp(
         toastHeading: 'Test Heading',
         toastMessage: 'Test Message',
-      ));
+      ),);
       await tester.pump(const Duration(milliseconds: 500));
 
       // Toastification doesn't always render title text in test env,

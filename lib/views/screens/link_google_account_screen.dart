@@ -152,7 +152,6 @@ class _LinkGoogleAccountScreenState extends State<LinkGoogleAccountScreen> {
       title: Text(title),
       description: Text(message),
       type: type,
-      closeButton: const ToastCloseButton(),
     );
   }
 
@@ -170,7 +169,6 @@ class _LinkGoogleAccountScreenState extends State<LinkGoogleAccountScreen> {
           child: Form(
             key: _formKey,
             child: Column(
-              crossAxisAlignment: CrossAxisAlignment.center,
               children: [
                 const SizedBox(height: 30),
                 const Icon(Icons.link, size: 80, color: AppColors.primaryOrangeDark),
@@ -260,7 +258,7 @@ class _LinkGoogleAccountScreenState extends State<LinkGoogleAccountScreen> {
                           ? GestureDetector(
                               onTap: _resendOTP,
                               child: const Text('Resend OTP',
-                                  style: TextStyle(color: AppColors.primaryOrangeDark, fontWeight: FontWeight.bold, decoration: TextDecoration.underline)),
+                                  style: TextStyle(color: AppColors.primaryOrangeDark, fontWeight: FontWeight.bold, decoration: TextDecoration.underline),),
                             )
                           : Text('Resend in ${_resendCountdown}s', style: const TextStyle(color: Colors.grey)),
                     ],

@@ -3,11 +3,22 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 /// Secure storage service for sensitive data (tokens, passwords, etc.)
 /// Replaces SharedPreferences for security-critical data
 class SecureStorageService {
-  static SecureStorageService _instance = SecureStorageService._internal();
+  static final SecureStorageService _instance = SecureStorageService._internal();
+  static SecureStorageService? _testInstance;
   
-  factory SecureStorageService() => _instance;
+  factory SecureStorageService() => _testInstance ?? _instance;
   
   SecureStorageService._internal();
+
+  /// Override singleton for testing. Call [resetTestInstance] after tests.
+  static void setTestInstance(SecureStorageService instance) {
+    _testInstance = instance;
+  }
+
+  /// Restore production singleton after test.
+  static void resetTestInstance() {
+    _testInstance = null;
+  }
   
   static const _storage = FlutterSecureStorage(
     aOptions: AndroidOptions(
@@ -20,7 +31,7 @@ class SecureStorageService {
 
   /// Get auth token
   Future<String?> getAuthToken() async {
-    return await _storage.read(key: 'auth_token');
+    return _storage.read(key: 'auth_token');
   }
 
   /// Save auth token
@@ -35,7 +46,7 @@ class SecureStorageService {
 
   /// Get user ID
   Future<String?> getUserId() async {
-    return await _storage.read(key: 'user_id');
+    return _storage.read(key: 'user_id');
   }
 
   /// Save user ID

@@ -1,7 +1,7 @@
 import 'package:flutter/foundation.dart';
 
 const String _envApiBaseUrl =
-    String.fromEnvironment('API_BASE_URL', defaultValue: '');
+    String.fromEnvironment('API_BASE_URL');
 
 /// Environment-aware Chargebee configuration.
 /// All values from build-time --dart-define flags.

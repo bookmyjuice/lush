@@ -54,6 +54,7 @@ dependencies:
   firebase_analytics: ^12.4.1
   # Structured logging
   logger: ^2.0.0
+  package_info_plus: ^9.0.1
 
 dev_dependencies:
   flutter_test:
@@ -78,6 +79,7 @@ dev_dependencies:
   test: ^1.25.7
   patrol_cli: ^4.3.0
 
+  test_api: any
 flutter:
   uses-material-design: true
   assets:

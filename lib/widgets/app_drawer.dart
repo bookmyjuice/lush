@@ -90,7 +90,6 @@ class AppDrawer extends StatelessWidget {
                       borderRadius: BorderRadius.circular(20.r),
                       border: Border.all(
                         color: Colors.white.withValues(alpha: 0.3),
-                        width: 1,
                       ),
                     ),
                     child: Row(
@@ -155,7 +154,7 @@ class AppDrawer extends StatelessWidget {
             title: 'Profile & Address',
             onTap: () {
               Navigator.pushNamed(context, '/myaccount',
-                  arguments: 'profile');
+                  arguments: 'profile',);
             },
           ),
           _drawerItem(
@@ -233,7 +232,7 @@ class AppDrawer extends StatelessWidget {
           color: textColor ?? AppColors.lightTextPrimary,
         ),
       ),
-      trailing: Icon(Icons.chevron_right, size: 18, color: AppColors.lightTextSecondary),
+      trailing: const Icon(Icons.chevron_right, size: 18, color: AppColors.lightTextSecondary),
       onTap: onTap,
     );
   }

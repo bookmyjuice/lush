@@ -42,7 +42,6 @@ class _MobileNumberPageState extends State<MobileNumberPage> {
           child: SafeArea(
             child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
-                crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
                   Padding(
                     padding: const EdgeInsets.all(16.0),

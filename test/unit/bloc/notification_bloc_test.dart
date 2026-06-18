@@ -1,13 +1,29 @@
-import 'package:flutter/services.dart';
+import 'package:firebase_analytics/firebase_analytics.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:lush/bloc/NotificationBloc/notification_bloc.dart';
 import 'package:lush/models/notification_model.dart';
+import 'package:lush/utils/analytics_service.dart';
+import 'package:mocktail/mocktail.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+class MockFirebaseAnalytics extends Mock implements FirebaseAnalytics {}
+
 void main() {
+  late MockFirebaseAnalytics mockAnalytics;
+
   setUp(() {
     TestWidgetsFlutterBinding.ensureInitialized();
     SharedPreferences.setMockInitialValues({});
+    mockAnalytics = MockFirebaseAnalytics();
+    AnalyticsService.setAnalyticsForTesting(mockAnalytics);
+    when(() => mockAnalytics.logEvent(
+          name: any(named: 'name'),
+          parameters: any(named: 'parameters'),
+        )).thenAnswer((_) async {});
+  });
+
+  tearDown(() {
+    AnalyticsService.resetAnalyticsForTesting();
   });
 
   group('LoadNotifications', () {
@@ -64,7 +80,7 @@ void main() {
       bloc.add(AddNotification(item: NotificationItem(
         id: 'r1', type: 'test', title: 'Read Test', body: 'Body',
         createdAt: DateTime.now(),
-      )));
+      ),),);
       await Future.delayed(const Duration(milliseconds: 50));
 
       bloc.add(const MarkAsRead(id: 'r1'));
@@ -88,12 +104,12 @@ void main() {
       bloc.add(AddNotification(item: NotificationItem(
         id: 'a1', type: 'test', title: 'A', body: 'Body',
         createdAt: DateTime.now(),
-      )));
+      ),),);
       await Future.delayed(const Duration(milliseconds: 30));
       bloc.add(AddNotification(item: NotificationItem(
         id: 'a2', type: 'test', title: 'B', body: 'Body',
         createdAt: DateTime.now(),
-      )));
+      ),),);
       await Future.delayed(const Duration(milliseconds: 50));
 
       // MarkAllAsRead currently resets to empty + unreadCount: 0
@@ -116,7 +132,7 @@ void main() {
       bloc.add(AddNotification(item: NotificationItem(
         id: 'c1', type: 'test', title: 'C', body: 'Body',
         createdAt: DateTime.now(),
-      )));
+      ),),);
       await Future.delayed(const Duration(milliseconds: 50));
 
       bloc.add(const ClearNotifications());
@@ -148,7 +164,7 @@ void main() {
       expect(item.body, 'Your juice arrives today');
       expect(item.route, '/order-history');
       expect(item.isRead, false);
-      expect(item.createdAt, DateTime(2026, 5, 28, 10, 0, 0));
+      expect(item.createdAt, DateTime(2026, 5, 28, 10));
     });
 
     test('fromJson handles missing fields with defaults', () {

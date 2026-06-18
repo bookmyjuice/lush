@@ -63,7 +63,7 @@ class CartBadgeIcon extends StatelessWidget {
                     ),
                     child: Text(
                       '$itemCount',
-                      style: TextStyle(
+                      style: const TextStyle(
                         fontSize: 10,
                         fontWeight: FontWeight.bold,
                         color: Colors.black,

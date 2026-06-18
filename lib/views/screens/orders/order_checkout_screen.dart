@@ -69,14 +69,14 @@ class _OrderCheckoutScreenState extends State<OrderCheckoutScreen> {
                             style: TextStyle(fontSize: 14.sp, color: AppColors.lightTextPrimary),
                           ),),
                           Text('₹${item.totalPrice.toStringAsFixed(0)}',
-                              style: TextStyle(fontSize: 14.sp, fontWeight: FontWeight.w600, color: AppColors.lightTextPrimary)),
+                              style: TextStyle(fontSize: 14.sp, fontWeight: FontWeight.w600, color: AppColors.lightTextPrimary),),
                         ],),
                       ),),
                       Divider(color: AppColors.lightDivider, height: 24.h),
                       Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
                         Text('$itemCount items', style: TextStyle(fontSize: 14.sp, color: AppColors.lightTextSecondary)),
                         Text('Total: ₹${grandTotal.toStringAsFixed(0)}',
-                            style: TextStyle(fontSize: 18.sp, fontWeight: FontWeight.bold, color: AppColors.primaryOrange)),
+                            style: TextStyle(fontSize: 18.sp, fontWeight: FontWeight.bold, color: AppColors.primaryOrange),),
                       ],),
                     ]),
                     SizedBox(height: 16.h),
@@ -86,7 +86,7 @@ class _OrderCheckoutScreenState extends State<OrderCheckoutScreen> {
                       ListTile(
                         contentPadding: EdgeInsets.zero,
                         title: Text(_formatDate(_selectedDate),
-                            style: TextStyle(fontSize: 16.sp, fontWeight: FontWeight.w600, color: AppColors.lightTextPrimary)),
+                            style: TextStyle(fontSize: 16.sp, fontWeight: FontWeight.w600, color: AppColors.lightTextPrimary),),
                         subtitle: const Text('Tap to change', style: TextStyle(color: AppColors.lightTextSecondary)),
                         trailing: const Icon(Icons.calendar_today, color: AppColors.primaryOrange),
                         onTap: () => _pickDate(context),
@@ -105,7 +105,7 @@ class _OrderCheckoutScreenState extends State<OrderCheckoutScreen> {
                             items: items,
                             deliveryAddress: 'User address',
                             deliveryDate: _selectedDate,
-                          ));
+                          ),);
                         },
                         style: ElevatedButton.styleFrom(
                           backgroundColor: AppColors.primaryOrange,
@@ -134,7 +134,7 @@ class _OrderCheckoutScreenState extends State<OrderCheckoutScreen> {
         Text('Delivery Date', style: TextStyle(fontSize: 16.sp, fontWeight: FontWeight.w600, color: AppColors.lightTextPrimary)),
         SizedBox(height: 12.h),
         ...children,
-      ]),
+      ],),
     );
   }
 

@@ -34,7 +34,7 @@ class _OrderHistoryPageState extends State<OrderHistoryPage> {
     try {
       final data = await _userRepository.fetchOrders();
       setState(() {
-        _orders = data.map((e) => Order.fromJson(e)).toList();
+        _orders = data.map(Order.fromJson).toList();
         _loading = false;
       });
     } catch (e) {
@@ -90,7 +90,7 @@ class _OrderHistoryPageState extends State<OrderHistoryPage> {
           // Content
           Expanded(
             child: _loading
-                ? Center(child: CircularProgressIndicator())
+                ? const Center(child: CircularProgressIndicator())
                 : _error != null
                     ? Center(child: Text(_error!))
                     : _buildOrdersList(),
@@ -110,7 +110,7 @@ class _OrderHistoryPageState extends State<OrderHistoryPage> {
           .toList();
     }
     if (filtered.isEmpty) {
-      return Center(child: Text('No orders found.'));
+      return const Center(child: Text('No orders found.'));
     }
     return ListView(
       padding: EdgeInsets.symmetric(horizontal: 20.w),
@@ -124,7 +124,7 @@ class _OrderHistoryPageState extends State<OrderHistoryPage> {
                 items: order.items.isNotEmpty ? order.items : ['No items'],
                 total: '?${order.total}',
                 statusColor: _getStatusColor(order.status),
-              ))
+              ),)
           .toList(),
     );
   }
@@ -144,7 +144,7 @@ class _OrderHistoryPageState extends State<OrderHistoryPage> {
   }
 
   Widget _buildTab(String title, int index) {
-    bool isSelected = _selectedTab == index;
+    final bool isSelected = _selectedTab == index;
     return Expanded(
       child: GestureDetector(
         onTap: () => setState(() => _selectedTab = index),
@@ -156,11 +156,11 @@ class _OrderHistoryPageState extends State<OrderHistoryPage> {
             borderRadius: BorderRadius.circular(20.r),
             boxShadow: isSelected
                 ? [
-                    BoxShadow(
+                    const BoxShadow(
                       color: AppColors.grey,
                       spreadRadius: 1,
                       blurRadius: 4,
-                      offset: const Offset(0, 2),
+                      offset: Offset(0, 2),
                     ),
                   ]
                 : null,
@@ -260,7 +260,7 @@ class _OrderHistoryPageState extends State<OrderHistoryPage> {
                         Container(
                           width: 4.w,
                           height: 4.w,
-                          decoration: BoxDecoration(
+                          decoration: const BoxDecoration(
                             color: AppColors.lightTextSecondary,
                             shape: BoxShape.circle,
                           ),
@@ -275,7 +275,7 @@ class _OrderHistoryPageState extends State<OrderHistoryPage> {
                         ),
                       ],
                     ),
-                  )),
+                  ),),
             ],
           ),
 
@@ -299,7 +299,7 @@ class _OrderHistoryPageState extends State<OrderHistoryPage> {
                   color: AppColors.lightTextPrimary,
                 ),
               ),
-              Spacer(),
+              const Spacer(),
               if (status == 'Delivered') ...[
                 TextButton(
                   onPressed: () {

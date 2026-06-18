@@ -186,7 +186,7 @@ class SubscriptionInfoCard extends StatelessWidget {
               ),
               style: OutlinedButton.styleFrom(
                 foregroundColor: AppColors.info,
-                side: BorderSide(color: AppColors.info, width: 1.5),
+                side: const BorderSide(color: AppColors.info, width: 1.5),
                 padding: EdgeInsets.symmetric(vertical: 12.h),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(12.r),

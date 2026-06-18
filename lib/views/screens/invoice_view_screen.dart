@@ -131,12 +131,12 @@ class _InvoiceViewScreenState extends State<InvoiceViewScreen> {
 
   String _formatCurrency(dynamic amount) {
     try {
-      if (amount == null) return '\$0.00';
+      if (amount == null) return r'$0.00';
       final value =
           amount is int ? amount / 100 : double.parse(amount.toString());
       return '\$${value.toStringAsFixed(2)}';
     } catch (e) {
-      return '\$0.00';
+      return r'$0.00';
     }
   }
 
@@ -163,7 +163,7 @@ class _InvoiceViewScreenState extends State<InvoiceViewScreen> {
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                       Icon(Icons.error_outline,
-                          size: 64, color: Colors.red[300]),
+                          size: 64, color: Colors.red[300],),
                       const SizedBox(height: 16),
                       Text('Error: $_error'),
                       const SizedBox(height: 16),
@@ -180,7 +180,7 @@ class _InvoiceViewScreenState extends State<InvoiceViewScreen> {
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
                           Icon(Icons.receipt,
-                              size: 64, color: Colors.grey[400]),
+                              size: 64, color: Colors.grey[400],),
                           const SizedBox(height: 16),
                           const Text(
                             'No invoices found',
@@ -340,7 +340,7 @@ class _InvoiceViewScreenState extends State<InvoiceViewScreen> {
                         fontSize: 18,
                         fontWeight: FontWeight.bold,
                         color:
-                            amountDue == '\$0.00' ? Colors.green : Colors.red,
+                            amountDue == r'$0.00' ? Colors.green : Colors.red,
                       ),
                     ),
                   ],
@@ -438,20 +438,20 @@ class _InvoiceDetailsDialog extends StatelessWidget {
               children: [
                 _buildDetailRow('Status', invoice['status'].toString()),
                 _buildDetailRow('Total',
-                    '\$${(invoice['total'] / 100).toStringAsFixed(2)}'),
+                    '\$${(invoice['total'] / 100).toStringAsFixed(2)}',),
                 _buildDetailRow('Amount Due',
-                    '\$${(invoice['amountDue'] / 100).toStringAsFixed(2)}'),
+                    '\$${(invoice['amountDue'] / 100).toStringAsFixed(2)}',),
                 _buildDetailRow('Amount Paid',
-                    '\$${(invoice['amountPaid'] / 100).toStringAsFixed(2)}'),
+                    '\$${(invoice['amountPaid'] / 100).toStringAsFixed(2)}',),
                 if (invoice['customerId'] != null)
                   _buildDetailRow(
-                      'Customer ID', invoice['customerId'].toString()),
+                      'Customer ID', invoice['customerId'].toString(),),
                 if (invoice['date'] != null)
                   _buildDetailRow(
                     'Date',
                     DateFormat('MMM dd, yyyy').format(
                       DateTime.fromMillisecondsSinceEpoch(
-                          (invoice['date'] as int) * 1000),
+                          (invoice['date'] as int) * 1000,),
                     ),
                   ),
                 if (invoice['dueDate'] != null)
@@ -459,7 +459,7 @@ class _InvoiceDetailsDialog extends StatelessWidget {
                     'Due Date',
                     DateFormat('MMM dd, yyyy').format(
                       DateTime.fromMillisecondsSinceEpoch(
-                          (invoice['dueDate'] as int) * 1000),
+                          (invoice['dueDate'] as int) * 1000,),
                     ),
                   ),
               ],

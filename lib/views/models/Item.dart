@@ -65,7 +65,7 @@ class Item {
       this.kacl,
       this.price,
       this.rating,
-      required this.servingSize});
+      required this.servingSize,});
 
   factory Item.fromJson(Map<String, dynamic> json) {
     // Handle item_prices field which could be in different formats
@@ -75,7 +75,7 @@ class Item {
         itemPrices = (json['item_prices'] as List)
             .map((e) => e is Map<String, dynamic>
                 ? ItemPrice.fromJson(e)
-                : ItemPrice(id: e.toString()))
+                : ItemPrice(id: e.toString()),)
             .toList();
       }
     }

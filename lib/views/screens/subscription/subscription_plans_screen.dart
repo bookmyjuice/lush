@@ -35,7 +35,7 @@ class _SubscriptionPlansScreenState extends State<SubscriptionPlansScreen> {
             ),
           ),
           const SizedBox(height: 16),
-          const Text("You selected", style: TextStyle(color: Colors.grey, fontSize: 13)),
+          const Text('You selected', style: TextStyle(color: Colors.grey, fontSize: 13)),
           const SizedBox(height: 4),
           Text(
             plan.name,
@@ -63,12 +63,12 @@ class _SubscriptionPlansScreenState extends State<SubscriptionPlansScreen> {
                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
               ),
               child: Text(
-                "Confirm & Continue →",
+                'Confirm & Continue →',
                 style: GoogleFonts.poppins(fontWeight: FontWeight.w600, fontSize: 15),
               ),
             ),
           ),
-        ]),
+        ],),
       ),
     );
   }
@@ -80,7 +80,7 @@ class _SubscriptionPlansScreenState extends State<SubscriptionPlansScreen> {
         const Icon(Icons.check_circle, color: Color(0xFF2E7D32), size: 16),
         const SizedBox(width: 8),
         Expanded(child: Text(text, style: TextStyle(fontSize: 13, color: Colors.grey.shade700))),
-      ]),
+      ],),
     );
   }
 
@@ -102,15 +102,15 @@ class _SubscriptionPlansScreenState extends State<SubscriptionPlansScreen> {
             child: SafeArea(
               child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
                 Text(
-                  "Choose Your Plan",
+                  'Choose Your Plan',
                   style: GoogleFonts.poppins(fontSize: 24, fontWeight: FontWeight.bold, color: Colors.white),
                 ),
                 const SizedBox(height: 4),
                 Text(
-                  "Fresh juice, delivered daily ✓",
+                  'Fresh juice, delivered daily ✓',
                   style: GoogleFonts.poppins(fontSize: 13, color: Colors.white70),
                 ),
-              ]),
+              ],),
             ),
           ),
           // Plan list
@@ -123,7 +123,7 @@ class _SubscriptionPlansScreenState extends State<SubscriptionPlansScreen> {
                 if (state is SubscriptionCatalogLoaded) {
                   final plans = state.plans.where((p) => p.isGeneric).toList();
                   if (plans.isEmpty) {
-                    return const Center(child: Text("No plans available"));
+                    return const Center(child: Text('No plans available'));
                   }
                   return ListView.builder(
                     padding: const EdgeInsets.only(top: 16),
@@ -147,7 +147,7 @@ class _SubscriptionPlansScreenState extends State<SubscriptionPlansScreen> {
                               ),
                               const SizedBox(height: 2),
                               Text(
-                                plan.metadata['description'] as String? ?? "Premium daily juice delivery",
+                                plan.metadata['description'] as String? ?? 'Premium daily juice delivery',
                                 style: GoogleFonts.poppins(fontSize: 13, color: Colors.grey, fontStyle: FontStyle.italic),
                                 maxLines: 1, overflow: TextOverflow.ellipsis,
                               ),
@@ -157,7 +157,7 @@ class _SubscriptionPlansScreenState extends State<SubscriptionPlansScreen> {
                                   '₹${price.toStringAsFixed(0)}',
                                   style: GoogleFonts.poppins(fontSize: 28, fontWeight: FontWeight.bold, color: const Color(0xFF2E7D32)),
                                 ),
-                                const Text("/month", style: TextStyle(fontSize: 14, color: Colors.grey)),
+                                const Text('/month', style: TextStyle(fontSize: 14, color: Colors.grey)),
                                 const SizedBox(width: 8),
                                 Container(
                                   padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
@@ -170,11 +170,11 @@ class _SubscriptionPlansScreenState extends State<SubscriptionPlansScreen> {
                                     style: const TextStyle(fontSize: 11, color: Color(0xFF2E7D32)),
                                   ),
                                 ),
-                              ]),
+                              ],),
                               const SizedBox(height: 12),
-                              _featureRow("Choose your daily juice variety"),
-                              _featureRow("Free doorstep delivery"),
-                              _featureRow("Pause or cancel anytime"),
+                              _featureRow('Choose your daily juice variety'),
+                              _featureRow('Free doorstep delivery'),
+                              _featureRow('Pause or cancel anytime'),
                               const SizedBox(height: 16),
                               SizedBox(
                                 width: double.infinity,
@@ -187,12 +187,12 @@ class _SubscriptionPlansScreenState extends State<SubscriptionPlansScreen> {
                                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                                   ),
                                   child: Text(
-                                    "Select This Plan →",
+                                    'Select This Plan →',
                                     style: GoogleFonts.poppins(fontSize: 15, fontWeight: FontWeight.w600),
                                   ),
                                 ),
                               ),
-                            ]),
+                            ],),
                           ),
                           // POPULAR badge on index 1
                           if (index == 1)
@@ -205,16 +205,16 @@ class _SubscriptionPlansScreenState extends State<SubscriptionPlansScreen> {
                                       child: Transform.rotate(angle: 0.785,
                                         child: Container(width: 90, height: 22,
                                           color: Colors.amber,
-                                          child: const Center(child: Text("⭐ POPULAR",
-                                            style: TextStyle(fontSize: 8, color: Colors.white, fontWeight: FontWeight.bold))),
+                                          child: const Center(child: Text('⭐ POPULAR',
+                                            style: TextStyle(fontSize: 8, color: Colors.white, fontWeight: FontWeight.bold),),),
                                         ),
                                       ),
                                     ),
-                                  ]),
+                                  ],),
                                 ),
                               ),
                             ),
-                        ]),
+                        ],),
                       );
                     },
                   );
@@ -228,10 +228,10 @@ class _SubscriptionPlansScreenState extends State<SubscriptionPlansScreen> {
                         onPressed: () => context.read<SubscriptionBloc>().add(const LoadSubscriptionCatalog()),
                         child: const Text('Retry'),
                       ),
-                    ]),
+                    ],),
                   );
                 }
-                return const Center(child: Text("Loading..."));
+                return const Center(child: Text('Loading...'));
               },
             ),
           ),

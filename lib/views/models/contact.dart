@@ -19,33 +19,9 @@ class Contact {
     required this.sendBillingEmail,
   });
 
-  String get firstname => firstName;
-
-  set firstname(String value) => firstName = value;
-
-  String get lastname => lastName;
-
-  set lastname(String value) => lastName = value;
-
-  String get getEmail => email;
-
-  set setEmail(String email) => this.email = email;
-
-  String get getPhone => phone;
-
-  set setPhone(String phone) => this.phone = phone;
-
-  bool get getEnabled => enabled;
-
-  set setEnabled(bool enabled) => this.enabled = enabled;
-
-  bool get sendaccountEmail => sendAccountEmail;
-
-  set sendaccountEmail(bool value) => sendAccountEmail = value;
-
-  bool get sendbillingEmail => sendBillingEmail;
-
-  set sendbillingEmail(bool value) => sendBillingEmail = value;
+  // Direct field access via dart getters/setters is preferred.
+  // Redundant getters/setters have been removed to eliminate
+  // inconsistent casing (e.g. sendaccountEmail vs sendAccountEmail).
 
   factory Contact.fromJson(Map<String, dynamic> json) {
     // snake_case from Chargebee, camelCase fallback for internal API

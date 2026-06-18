@@ -26,10 +26,11 @@ class OrderBloc extends Bloc<OrderEvent, OrderState> {
     return super.close();
   }
 
+  @override
   bool get isClosed => _isClosed;
 
   Future<void> _onLoadOrderHistory(
-      LoadOrderHistory event, Emitter<OrderState> emit) async {
+      LoadOrderHistory event, Emitter<OrderState> emit,) async {
     emit(const OrderHistoryLoading());
     try {
       final rawOrders = await _orderService.getMyOrders();
@@ -48,7 +49,7 @@ class OrderBloc extends Bloc<OrderEvent, OrderState> {
                       quantity: (item['quantity'] as num?)?.toInt() ?? 1,
                       unitPrice: (item['unit_price'] as num?)?.toDouble() ?? 0.0,
                       lineTotal: (item['amount'] as num?)?.toDouble() ?? 0.0,
-                    ))
+                    ),)
                 .toList() ??
             [];
 
@@ -70,13 +71,13 @@ class OrderBloc extends Bloc<OrderEvent, OrderState> {
   }
 
   Future<void> _onRefreshOrderHistory(
-      RefreshOrderHistory event, Emitter<OrderState> emit) async {
+      RefreshOrderHistory event, Emitter<OrderState> emit,) async {
     emit(const OrderHistoryLoading());
     await _onLoadOrderHistory(const LoadOrderHistory(), emit);
   }
 
   Future<void> _onLoadOrderDetail(
-      LoadOrderDetail event, Emitter<OrderState> emit) async {
+      LoadOrderDetail event, Emitter<OrderState> emit,) async {
     emit(const OrderDetailLoading());
     try {
       final raw = await _orderService.getOrderDetails(event.orderId);
@@ -89,7 +90,7 @@ class OrderBloc extends Bloc<OrderEvent, OrderState> {
                     quantity: (item['quantity'] as num?)?.toInt() ?? 1,
                     unitPrice: (item['unit_price'] as num?)?.toDouble() ?? 0.0,
                     lineTotal: (item['amount'] as num?)?.toDouble() ?? 0.0,
-                  ))
+                  ),)
               .toList() ??
           [];
 

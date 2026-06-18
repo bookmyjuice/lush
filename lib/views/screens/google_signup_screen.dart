@@ -544,7 +544,7 @@ class GoogleSignupScreenState extends State<GoogleSignupScreen> {
       {'text': 'At least 8 characters', 'met': _passwordController.text.length >= 8},
       {'text': '1 uppercase letter', 'met': _passwordController.text.contains(RegExp(r'[A-Z]'))},
       {'text': '1 lowercase letter', 'met': _passwordController.text.contains(RegExp(r'[a-z]'))},
-      {'text': '1 number', 'met': _passwordController.text.contains(RegExp(r'\d'))},
+      {'text': '2 numbers', 'met': (RegExp(r'\d').allMatches(_passwordController.text).length) >= 2},
       {'text': '1 special character', 'met': _passwordController.text.contains(RegExp(r'[@$!%*?&]'))},
     ];
 
@@ -576,13 +576,13 @@ class GoogleSignupScreenState extends State<GoogleSignupScreen> {
               ),
             ],
           ),
-        )),
+        ),),
       ],
     );
   }
 
   bool isValidPassword(String password) {
-    return RegExp(r'^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$')
+    return RegExp(r'^(?=.*[a-z])(?=.*[A-Z])(?=(?:.*\d){2})(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$')
         .hasMatch(password);
   }
 }

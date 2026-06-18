@@ -2,17 +2,20 @@
 library;
 
 import 'package:bloc_test/bloc_test.dart';
+import 'package:firebase_analytics/firebase_analytics.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:lush/CartRepository/cart_repository.dart';
 import 'package:lush/bloc/CartBloc/cart_bloc.dart';
 import 'package:lush/bloc/CartBloc/cart_event.dart';
 import 'package:lush/bloc/CartBloc/cart_state.dart';
+import 'package:lush/utils/analytics_service.dart';
 import 'package:lush/views/models/cart_item.dart';
 import 'package:lush/views/models/item.dart';
 import 'package:lush/views/models/one_time_order_item.dart';
 import 'package:mocktail/mocktail.dart';
 
 class MockCartRepository extends Mock implements CartRepository {}
+class MockFirebaseAnalytics extends Mock implements FirebaseAnalytics {}
 
 Item createTestItem({String id = 'item-1', String name = 'Test Juice', String size = '200ml'}) {
   return Item(id: id, name: name, servingSize: size);
@@ -27,32 +30,32 @@ CartItem createTestCartItem({String itemId = 'item-1', String priceId = 'price-1
 void main() {
   group('OneTimeOrderItem model', () {
     test('priceInRupees = priceInPaise / 100', () {
-      final item = OneTimeOrderItem(itemId:'abc',itemPriceId:'abc-w',name:'Test',family:'delight',size:'200ml',priceInPaise:69900);
+      const item = OneTimeOrderItem(itemId:'abc',itemPriceId:'abc-w',name:'Test',family:'delight',size:'200ml',priceInPaise:69900);
       expect(item.priceInRupees, 699.0);
     });
     test('totalPaise = priceInPaise × quantity', () {
-      final item = OneTimeOrderItem(itemId:'abc',itemPriceId:'abc-w',name:'Test',family:'delight',size:'200ml',priceInPaise:69900,quantity:3);
+      const item = OneTimeOrderItem(itemId:'abc',itemPriceId:'abc-w',name:'Test',family:'delight',size:'200ml',priceInPaise:69900,quantity:3);
       expect(item.totalPaise, 209700);
     });
     test('totalRupees = totalPaise / 100', () {
-      final item = OneTimeOrderItem(itemId:'abc',itemPriceId:'abc-w',name:'Test',family:'delight',size:'200ml',priceInPaise:69900,quantity:2);
+      const item = OneTimeOrderItem(itemId:'abc',itemPriceId:'abc-w',name:'Test',family:'delight',size:'200ml',priceInPaise:69900,quantity:2);
       expect(item.totalRupees, 1398.0);
     });
     test('copyWith preserves unchanged fields', () {
-      final original = OneTimeOrderItem(itemId:'abc',itemPriceId:'abc-w',name:'Test',family:'delight',size:'200ml',priceInPaise:69900);
+      const original = OneTimeOrderItem(itemId:'abc',itemPriceId:'abc-w',name:'Test',family:'delight',size:'200ml',priceInPaise:69900);
       final copied = original.copyWith();
       expect(copied.itemId, original.itemId);
       expect(copied.family, original.family);
       expect(copied.size, original.size);
     });
     test('copyWith updates quantity', () {
-      final original = OneTimeOrderItem(itemId:'abc',itemPriceId:'abc-w',name:'Test',family:'delight',size:'200ml',priceInPaise:69900);
+      const original = OneTimeOrderItem(itemId:'abc',itemPriceId:'abc-w',name:'Test',family:'delight',size:'200ml',priceInPaise:69900);
       final copied = original.copyWith(quantity:5);
       expect(copied.quantity, 5);
       expect(copied.itemId, original.itemId);
     });
     test('toChargebeeLineItem has itemPriceId, quantity, unit_price', () {
-      final item = OneTimeOrderItem(itemId:'abc',itemPriceId:'abc-w',name:'Test',family:'delight',size:'200ml',priceInPaise:69900,quantity:2);
+      const item = OneTimeOrderItem(itemId:'abc',itemPriceId:'abc-w',name:'Test',family:'delight',size:'200ml',priceInPaise:69900,quantity:2);
       final li = item.toChargebeeLineItem();
       expect(li['item_price_id'], 'abc-w');
       expect(li['quantity'], 2);
@@ -62,7 +65,21 @@ void main() {
 
   group('CartBloc', () {
     late MockCartRepository mockRepo;
-    setUp(() { TestWidgetsFlutterBinding.ensureInitialized(); mockRepo = MockCartRepository(); });
+    late MockFirebaseAnalytics mockAnalytics;
+
+    setUp(() {
+      TestWidgetsFlutterBinding.ensureInitialized();
+      mockRepo = MockCartRepository();
+      mockAnalytics = MockFirebaseAnalytics();
+      // Prevent Firebase crash by injecting a mock analytics instance
+      AnalyticsService.setAnalyticsForTesting(mockAnalytics);
+      when(() => mockAnalytics.logEvent(name: any(named: 'name'), parameters: any(named: 'parameters')))
+          .thenAnswer((_) async => {});
+    });
+
+    tearDown(() {
+      AnalyticsService.resetAnalyticsForTesting();
+    });
 
     blocTest<CartBloc, CartState>(
       'AddToCart emits CartLoaded with item',
@@ -88,7 +105,7 @@ void main() {
     blocTest<CartBloc, CartState>(
       'PlaceOneTimeOrder emits Loading then OrderPlaced',
       build: () { when(()=>mockRepo.clearCart()).thenAnswer((_)=>Future.value()); return CartBloc(mockRepo); },
-      act: (bloc)=>bloc.add(PlaceOneTimeOrder(items:[],deliveryAddress:'addr',deliveryDate:DateTime(2026,5,29))),
+      act: (bloc)=>bloc.add(PlaceOneTimeOrder(items:const [],deliveryAddress:'addr',deliveryDate:DateTime(2026,5,29))),
       expect: ()=>[isA<CartLoading>(),isA<OrderPlaced>(),isA<CartLoaded>()],
       wait: const Duration(seconds: 2),
     );

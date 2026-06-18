@@ -37,7 +37,7 @@ void main() {
             referralCode: 'TEST123',
             referralCount: 2,
             totalRewardAmount: 100.0,
-          ));
+          ),);
       return ReferralBloc(
         referralRepository: mockRepo,
         analyticsService: AnalyticsService(),

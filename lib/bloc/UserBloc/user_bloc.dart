@@ -32,7 +32,7 @@ class UserBloc extends Bloc<UserEvent, UserState> {
       if (userRepository.user.id.isNotEmpty) {
         emit(UserLoaded(user: userRepository.user));
       } else {
-        bool loginSuccess = await userRepository.autoLogin();
+        final bool loginSuccess = await userRepository.autoLogin();
         if (isClosed) return;
         if (loginSuccess && userRepository.user.id.isNotEmpty) {
           emit(UserLoaded(user: userRepository.user));
@@ -72,9 +72,9 @@ class UserBloc extends Bloc<UserEvent, UserState> {
   ) async {
     if (state is UserLoaded) {
       try {
-        bool internetAvailable = await userRepository.isInternetAvailable();
+        final bool internetAvailable = await userRepository.isInternetAvailable();
         if (internetAvailable) {
-          bool loginSuccess = await userRepository.autoLogin();
+          final bool loginSuccess = await userRepository.autoLogin();
           if (isClosed) return;
           if (loginSuccess && userRepository.user.id.isNotEmpty) {
             emit(UserLoaded(user: userRepository.user));
@@ -114,7 +114,7 @@ class UserBloc extends Bloc<UserEvent, UserState> {
   ) async {
     try {
       await bottleService.recordReturn(event.orderId, event.bottleType,
-          event.quantity, notes: event.notes);
+          event.quantity, notes: event.notes,);
       if (isClosed) return;
       emit(const BottleReportSuccess(message: 'Bottle return recorded'));
       add(const LoadBottleLedger());
@@ -130,7 +130,7 @@ class UserBloc extends Bloc<UserEvent, UserState> {
   ) async {
     try {
       await bottleService.recordBroken(event.orderId, event.bottleType,
-          event.quantity, notes: event.notes);
+          event.quantity, notes: event.notes,);
       if (isClosed) return;
       emit(const BottleReportSuccess(message: 'Bottle report recorded'));
       add(const LoadBottleLedger());

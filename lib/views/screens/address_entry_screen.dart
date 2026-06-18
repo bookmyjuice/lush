@@ -358,7 +358,7 @@ class AddressEntryScreenState extends State<AddressEntryScreen> {
                               inputFormatters: [
                                 LengthLimitingTextInputFormatter(2),
                                 FilteringTextInputFormatter.allow(
-                                    RegExp('[a-zA-Z]')),
+                                    RegExp('[a-zA-Z]'),),
                               ],
                               validator: (value) {
                                 if (value == null || value.isEmpty) {

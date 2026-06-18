@@ -44,7 +44,6 @@ class SignupMethodSelectionScreenState
         child: SingleChildScrollView(
           padding: const EdgeInsets.all(AppSpacing.lg),
           child: Column(
-            crossAxisAlignment: CrossAxisAlignment.center,
             children: [
               const SizedBox(height: AppSpacing.xl),
               // App Logo
@@ -209,7 +208,7 @@ class SignupMethodSelectionScreenState
                 ],
               ),
             ),
-            Icon(
+            const Icon(
               Icons.arrow_forward_ios,
               size: 18,
               color: AppColors.darkGrey,
@@ -259,7 +258,7 @@ class SignupMethodSelectionScreenState
                 ],
               ),
             ),
-            Icon(
+            const Icon(
               Icons.arrow_forward_ios,
               size: 18,
               color: AppColors.darkGrey,

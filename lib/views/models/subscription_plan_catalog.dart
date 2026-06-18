@@ -20,9 +20,9 @@ class SubscriptionPriceOption extends Equatable {
     final rawPeriod = json['period_unit'] as String? ?? '';
 
     // Determine period: 'week' → 'weekly', 'month' → 'monthly'
-    String period = rawPeriod == 'week' ? 'weekly' : 'monthly';
+    final String period = rawPeriod == 'week' ? 'weekly' : 'monthly';
     // Bottle count from metadata: 6 for weekly, 24 for monthly
-    int bottleCount = period == 'weekly' ? 6 : 24;
+    final int bottleCount = period == 'weekly' ? 6 : 24;
 
     return SubscriptionPriceOption(
       itemPriceId: json['id'] as String? ?? '',
@@ -79,7 +79,7 @@ class SubscriptionPlanCatalog extends Equatable {
   factory SubscriptionPlanCatalog.fromMap(Map<String, dynamic> itemData, List<Map<String, dynamic>> priceData) {
     final metadata = itemData['metadata'] as Map<String, dynamic>? ?? {};
     final prices = priceData
-        .map((p) => SubscriptionPriceOption.fromJson(p))
+        .map(SubscriptionPriceOption.fromJson)
         .toList();
 
     return SubscriptionPlanCatalog(

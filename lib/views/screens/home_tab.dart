@@ -439,7 +439,7 @@ class _HomeTabState extends State<HomeTab> {
                   SizedBox(height: 16.h),
                   Container(
                     padding: const EdgeInsets.symmetric(
-                        horizontal: 12, vertical: 8),
+                        horizontal: 12, vertical: 8,),
                     decoration: BoxDecoration(
                       color: isDark
                           ? AppColors.glassAccent.withValues(alpha: 0.1)
@@ -449,8 +449,8 @@ class _HomeTabState extends State<HomeTab> {
                     child: Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        Icon(Icons.schedule,
-                            size: 14, color: AppColors.glassAccent),
+                        const Icon(Icons.schedule,
+                            size: 14, color: AppColors.glassAccent,),
                         SizedBox(width: 6.w),
                         Text(
                           'Next: $nextDelivery',
@@ -473,14 +473,14 @@ class _HomeTabState extends State<HomeTab> {
                       label: isActive ? 'Pause' : 'Subscribe',
                       color: AppColors.glassAccent,
                       onTap: () => Navigator.pushNamed(
-                          context, '/manage-subscriptions'),
+                          context, '/manage-subscriptions',),
                     ),
                     SizedBox(width: 8.w),
                     _buildTinyButton(
                       label: 'Modify',
                       color: AppColors.glassOrange,
                       onTap: () => Navigator.pushNamed(
-                          context, '/manage-subscriptions'),
+                          context, '/manage-subscriptions',),
                     ),
                     const Spacer(),
                     TextButton(
@@ -607,7 +607,7 @@ class _HomeTabState extends State<HomeTab> {
               padding: EdgeInsets.symmetric(horizontal: 16.w),
               child: Row(
                 children: [
-                  Icon(Icons.trending_up, size: 18, color: AppColors.glassAccent),
+                  const Icon(Icons.trending_up, size: 18, color: AppColors.glassAccent),
                   SizedBox(width: 6.w),
                   Text(
                     'Trending Juices',
@@ -674,7 +674,7 @@ class _HomeTabState extends State<HomeTab> {
                   begin: Alignment.topLeft,
                   end: Alignment.bottomRight,
                 ),
-                borderRadius: BorderRadius.vertical(
+                borderRadius: const BorderRadius.vertical(
                   top: Radius.circular(AppRadius.lg),
                 ),
               ),
@@ -705,8 +705,8 @@ class _HomeTabState extends State<HomeTab> {
                   SizedBox(height: 2.h),
                   Row(
                     children: [
-                      Icon(Icons.local_fire_department,
-                          size: 10, color: AppColors.glassOrange),
+                      const Icon(Icons.local_fire_department,
+                          size: 10, color: AppColors.glassOrange,),
                       SizedBox(width: 2.w),
                       Text(
                         '${item.calories} cal',
@@ -868,7 +868,7 @@ class _HomeTabState extends State<HomeTab> {
             ),
           ),
           SizedBox(width: 8.w),
-          Icon(
+          const Icon(
             Icons.add_circle,
             color: AppColors.glassAccent,
             size: 24,
@@ -893,7 +893,7 @@ class _HomeTabState extends State<HomeTab> {
             padding: EdgeInsets.symmetric(horizontal: 16.w),
             child: Row(
               children: [
-                SizedBox(
+                const SizedBox(
                   width: 16,
                   height: 16,
                   child: CircularProgressIndicator(
@@ -926,7 +926,7 @@ class _HomeTabState extends State<HomeTab> {
             children: [
               Row(
                 children: [
-                  Icon(Icons.receipt_long, size: 18, color: AppColors.glassAccent),
+                  const Icon(Icons.receipt_long, size: 18, color: AppColors.glassAccent),
                   SizedBox(width: 6.w),
                   Text(
                     'Recent Orders',

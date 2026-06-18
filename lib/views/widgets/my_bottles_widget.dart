@@ -63,7 +63,7 @@ class _MyBottlesScreenState extends State<MyBottlesScreen> {
           SizedBox(height: 16.h),
 
           // Ledger cards
-          ...state.ledger.map((entry) => _buildLedgerCard(entry)),
+          ...state.ledger.map(_buildLedgerCard),
           SizedBox(height: 24.h),
 
           // Recent transactions section
@@ -80,7 +80,7 @@ class _MyBottlesScreenState extends State<MyBottlesScreen> {
               ),
             ),
             ...state.transactions.take(10).map(
-                  (tx) => _buildTransactionTile(tx),
+                  _buildTransactionTile,
                 ),
           ],
         ],

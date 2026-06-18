@@ -72,7 +72,7 @@ class _ActiveSubscriptionScreenState extends State<ActiveSubscriptionScreen> {
         ),
         leading: IconButton(
           icon: Icon(Icons.arrow_back_ios,
-              color: AppColors.lightTextPrimary, size: 20.sp),
+              color: AppColors.lightTextPrimary, size: 20.sp,),
           onPressed: () => Navigator.pop(context),
         ),
       ),
@@ -101,7 +101,7 @@ class _ActiveSubscriptionScreenState extends State<ActiveSubscriptionScreen> {
             Icon(Icons.error_outline, size: 64.sp, color: AppColors.error),
             SizedBox(height: 16.h),
             Text(message,
-                style: TextStyle(fontSize: 16.sp, color: AppColors.error)),
+                style: TextStyle(fontSize: 16.sp, color: AppColors.error),),
             SizedBox(height: 24.h),
             ElevatedButton(
               onPressed: () =>
@@ -175,10 +175,10 @@ class _ActiveSubscriptionScreenState extends State<ActiveSubscriptionScreen> {
                 _infoRow('Started', dateFmt.format(sub.startDate)),
                 SizedBox(height: 8.h),
                 _infoRow('Next Renewal',
-                    sub.nextDeliveryDate != null ? dateFmt.format(sub.nextDeliveryDate!) : 'N/A'),
+                    sub.nextDeliveryDate != null ? dateFmt.format(sub.nextDeliveryDate!) : 'N/A',),
                 SizedBox(height: 8.h),
                 _infoRow(
-                    'Amount', '₹${(sub.plan.planID * 499).toString()} / month'),
+                    'Amount', '₹${(sub.plan.planID * 499).toString()} / month',),
               ],
             ),
           ),
@@ -224,7 +224,7 @@ class _ActiveSubscriptionScreenState extends State<ActiveSubscriptionScreen> {
                     minHeight: 8.h,
                     backgroundColor: AppColors.grey.withValues(alpha: 0.2),
                     valueColor:
-                        AlwaysStoppedAnimation<Color>(AppColors.success),
+                        const AlwaysStoppedAnimation<Color>(AppColors.success),
                   ),
                 ),
               ],
@@ -260,12 +260,12 @@ class _ActiveSubscriptionScreenState extends State<ActiveSubscriptionScreen> {
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
         Text(label,
-            style: TextStyle(fontSize: 14.sp, color: AppColors.grey)),
+            style: TextStyle(fontSize: 14.sp, color: AppColors.grey),),
         Text(value,
             style: TextStyle(
                 fontSize: 14.sp,
                 fontWeight: FontWeight.w600,
-                color: AppColors.lightTextPrimary)),
+                color: AppColors.lightTextPrimary,),),
       ],
     );
   }
@@ -286,7 +286,7 @@ class _ActiveSubscriptionScreenState extends State<ActiveSubscriptionScreen> {
                   foregroundColor: AppColors.white,
                   padding: EdgeInsets.symmetric(vertical: 14.h),
                   shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12.r)),
+                      borderRadius: BorderRadius.circular(12.r),),
                 ),
               ),
             ),
@@ -302,7 +302,7 @@ class _ActiveSubscriptionScreenState extends State<ActiveSubscriptionScreen> {
                   side: const BorderSide(color: AppColors.warning),
                   padding: EdgeInsets.symmetric(vertical: 14.h),
                   shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12.r)),
+                      borderRadius: BorderRadius.circular(12.r),),
                 ),
               ),
             ),
@@ -333,7 +333,7 @@ class _ActiveSubscriptionScreenState extends State<ActiveSubscriptionScreen> {
                   foregroundColor: AppColors.white,
                   padding: EdgeInsets.symmetric(vertical: 14.h),
                   shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12.r)),
+                      borderRadius: BorderRadius.circular(12.r),),
                 ),
               ),
             ),
@@ -362,7 +362,7 @@ class _ActiveSubscriptionScreenState extends State<ActiveSubscriptionScreen> {
               foregroundColor: AppColors.white,
               padding: EdgeInsets.symmetric(vertical: 14.h),
               shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12.r)),
+                  borderRadius: BorderRadius.circular(12.r),),
             ),
           ),
         );

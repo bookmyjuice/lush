@@ -51,7 +51,7 @@ class _PhoneLoginScreenState extends State<PhoneLoginScreen> {
 
     setState(() => _isLoadingBackend = false);
 
-    if (response == "OTP_SENT" || response.contains('Success') || response.contains('sent')) {
+    if (response == 'OTP_SENT' || response.contains('Success') || response.contains('sent')) {
       if (mounted) {
         Navigator.pushNamed(
           context,
@@ -120,7 +120,6 @@ class _PhoneLoginScreenState extends State<PhoneLoginScreen> {
       title: Text(title),
       description: Text(message),
       type: type,
-      closeButton: ToastCloseButton(),
     );
   }
 
@@ -138,17 +137,16 @@ class _PhoneLoginScreenState extends State<PhoneLoginScreen> {
           child: Form(
             key: _formKey,
             child: Column(
-              crossAxisAlignment: CrossAxisAlignment.center,
               children: [
                 const SizedBox(height: 40),
-                Icon(Icons.phone_android, size: 80, color: AppColors.primaryOrangeDark),
+                const Icon(Icons.phone_android, size: 80, color: AppColors.primaryOrangeDark),
                 const SizedBox(height: 24),
-                Text(
+                const Text(
                   'Enter Your Phone Number',
                   style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: AppColors.lightTextPrimary, fontFamily: 'Roboto'),
                 ),
                 const SizedBox(height: 8),
-                Text(
+                const Text(
                   'Choose how to verify your number',
                   style: TextStyle(fontSize: 14, color: AppColors.lightTextSecondary, fontFamily: 'Roboto'),
                   textAlign: TextAlign.center,
@@ -162,17 +160,17 @@ class _PhoneLoginScreenState extends State<PhoneLoginScreen> {
                   decoration: InputDecoration(
                     labelText: 'Phone Number *',
                     hintText: 'Enter 10-digit mobile number',
-                    prefixIcon: Icon(Icons.phone, color: AppColors.primaryOrangeDark),
+                    prefixIcon: const Icon(Icons.phone, color: AppColors.primaryOrangeDark),
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(12),
                     ),
                     enabledBorder: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(12),
-                      borderSide: BorderSide(color: AppColors.lightDivider),
+                      borderSide: const BorderSide(color: AppColors.lightDivider),
                     ),
                     focusedBorder: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(12),
-                      borderSide: BorderSide(color: AppColors.primaryOrange, width: 2),
+                      borderSide: const BorderSide(color: AppColors.primaryOrange, width: 2),
                     ),
                     counterText: '',
                   ),
@@ -237,7 +235,7 @@ class _PhoneLoginScreenState extends State<PhoneLoginScreen> {
                 const SizedBox(height: 24),
                 TextButton(
                   onPressed: () => Navigator.of(context).pop(),
-                  child: Text(
+                  child: const Text(
                     'Back to Login',
                     style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600, color: AppColors.primaryOrangeDark, fontFamily: 'Roboto'),
                   ),

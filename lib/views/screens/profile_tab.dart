@@ -63,7 +63,7 @@ class ProfileTab extends StatelessWidget {
               width: 2,
             ),
           ),
-          child: Icon(
+          child: const Icon(
             Icons.person_outline,
             size: 40,
             color: AppColors.glassAccent,
@@ -223,7 +223,6 @@ class ProfileTab extends StatelessWidget {
     return GlassCard(
       padding: const EdgeInsets.all(20),
       width: double.infinity,
-      borderRadius: AppRadius.xl,
       child: Row(
         children: [
           // Avatar
@@ -231,7 +230,7 @@ class ProfileTab extends StatelessWidget {
             width: 64,
             height: 64,
             decoration: BoxDecoration(
-              gradient: LinearGradient(
+              gradient: const LinearGradient(
                 colors: [
                   AppColors.primaryGreen,
                   AppColors.primaryGreenLight,
@@ -334,7 +333,7 @@ class ProfileTab extends StatelessWidget {
                   ),
                 ),
               ),
-              Icon(
+              const Icon(
                 Icons.chevron_right,
                 size: 20,
                 color: AppColors.glassTextDim,
@@ -450,7 +449,7 @@ class ProfileTab extends StatelessWidget {
   }
 
   void _confirmLogout(BuildContext context, bool isDark) {
-    showModalBottomSheet(
+    showModalBottomSheet<dynamic>(
       context: context,
       backgroundColor: Colors.transparent,
       builder: (ctx) {
@@ -473,7 +472,7 @@ class ProfileTab extends StatelessWidget {
                   color: AppColors.error.withValues(alpha: 0.1),
                   shape: BoxShape.circle,
                 ),
-                child: Icon(
+                child: const Icon(
                   Icons.logout,
                   size: 28,
                   color: AppColors.error,

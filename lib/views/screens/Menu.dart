@@ -41,7 +41,7 @@ class MenuState extends State<Menu> with TickerProviderStateMixin {
     topBarAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
         CurvedAnimation(
             parent: animationController,
-            curve: const Interval(0, 0.5, curve: Curves.fastOutSlowIn)));
+            curve: const Interval(0, 0.5, curve: Curves.fastOutSlowIn),),);
     animationController.forward();
     super.initState();
   }
@@ -61,7 +61,7 @@ class MenuState extends State<Menu> with TickerProviderStateMixin {
           return const Center(child: CircularProgressIndicator());
         }
         if (snapshot.hasError) {
-          return Center(child: Text('Error loading sizes'));
+          return const Center(child: Text('Error loading sizes'));
         }
         _sizes = snapshot.data ?? [];
         if (_selectedSize.isEmpty && _sizes.isNotEmpty) {
@@ -69,7 +69,7 @@ class MenuState extends State<Menu> with TickerProviderStateMixin {
         }
         return Scaffold(
           backgroundColor: AppColors.lightBackground,
-          body: Container(
+          body: DecoratedBox(
             decoration: const BoxDecoration(color: AppColors.lightBackground),
             child: Stack(
               fit: StackFit.passthrough,
@@ -81,7 +81,7 @@ class MenuState extends State<Menu> with TickerProviderStateMixin {
                       // Filter options widget
                       Padding(
                         padding: EdgeInsets.symmetric(
-                            horizontal: 16.w, vertical: 8.h),
+                            horizontal: 16.w, vertical: 8.h,),
                         child: FilterOptions(
                           selectedCategory: _selectedCategory,
                           categories: _categories,
@@ -109,7 +109,7 @@ class MenuState extends State<Menu> with TickerProviderStateMixin {
                               CurvedAnimation(
                                 parent: animationController,
                                 curve: const Interval(0.3, 0.7,
-                                    curve: Curves.easeOutCubic),
+                                    curve: Curves.easeOutCubic,),
                               ),
                             ),
                             mainScreenAnimationController: animationController,
@@ -157,8 +157,8 @@ class MenuState extends State<Menu> with TickerProviderStateMixin {
               opacity: topBarAnimation,
               child: Transform(
                 transform: Matrix4.translationValues(
-                    0.0, 30 * (1.0 - topBarAnimation.value), 0.0),
-                child: Container(
+                    0.0, 30 * (1.0 - topBarAnimation.value), 0.0,),
+                child: DecoratedBox(
                   decoration: BoxDecoration(
                     color: AppColors.white.withAlpha(242),
                     borderRadius: BorderRadius.only(
@@ -169,7 +169,7 @@ class MenuState extends State<Menu> with TickerProviderStateMixin {
                       BoxShadow(
                           color: AppColors.grey.withAlpha(76),
                           offset: const Offset(0, 2),
-                          blurRadius: 10.0),
+                          blurRadius: 10.0,),
                     ],
                   ),
                   child: Column(
@@ -234,16 +234,16 @@ class MenuState extends State<Menu> with TickerProviderStateMixin {
                             const SizedBox(width: 8),
                             PopupMenuButton<String>(
                               icon: const Icon(Icons.more_vert,
-                                  color: AppColors.white),
+                                  color: AppColors.white,),
                               onSelected: (value) {
                                 switch (value) {
                                   case 'subscriptions':
                                     Navigator.pushNamed(
-                                        context, '/manage-subscriptions');
+                                        context, '/manage-subscriptions',);
                                     break;
                                   case 'orders':
                                     Navigator.pushNamed(
-                                        context, '/order-history');
+                                        context, '/order-history',);
                                     break;
                                   case 'invoices':
                                     Navigator.pushNamed(context, '/invoices');
@@ -274,7 +274,7 @@ class MenuState extends State<Menu> with TickerProviderStateMixin {
               ),
             );
           },
-        )
+        ),
       ],
     );
   }

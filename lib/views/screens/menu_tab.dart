@@ -34,6 +34,7 @@ class MenuTabState extends State<MenuTab> {
   String? _selectedCategory;
   String _searchQuery = '';
   final TextEditingController _searchController = TextEditingController();
+  List<String> _categories = [];
 
   @override
   void initState() {
@@ -105,14 +106,14 @@ class MenuTabState extends State<MenuTab> {
             fontSize: 14.sp,
             color: AppColors.glassTextDim,
           ),
-          prefixIcon: Icon(
+          prefixIcon: const Icon(
             Icons.search,
             color: AppColors.glassTextDim,
             size: 20,
           ),
           suffixIcon: _searchQuery.isNotEmpty
               ? IconButton(
-                  icon: Icon(Icons.clear, size: 18, color: AppColors.glassTextDim),
+                  icon: const Icon(Icons.clear, size: 18, color: AppColors.glassTextDim),
                   onPressed: () {
                     _searchController.clear();
                     setState(() => _searchQuery = '');
@@ -147,9 +148,17 @@ class MenuTabState extends State<MenuTab> {
         if (state is ProductCatalogLoaded) {
           items = state.items;
           categories = state.categories;
-          _selectedCategory ??= categories.isNotEmpty ? categories[0] : null;
+          _categories = categories;
+          if (_selectedCategory == null && categories.isNotEmpty) {
+            _selectedCategory = categories[0];
+            // Auto-apply the first category filter (usually "Delight")
+            context.read<ProductCatalogBloc>().add(FilterByCategory(category: _selectedCategory!));
+            // Return early; the filter event will rebuild with filtered state
+            return const SizedBox.shrink();
+          }
         } else if (state is ProductCatalogFiltered) {
           items = state.items;
+          categories = _categories;
         } else if (state is ProductCatalogLoading) {
           return const Center(child: CircularProgressIndicator());
         } else if (state is ProductCatalogEmpty) {
@@ -157,8 +166,8 @@ class MenuTabState extends State<MenuTab> {
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Icon(Icons.inventory_2_outlined, size: 64,
-                    color: AppColors.glassTextDim),
+                const Icon(Icons.inventory_2_outlined, size: 64,
+                    color: AppColors.glassTextDim,),
                 SizedBox(height: 16.h),
                 Text(
                   'No products found',
@@ -176,18 +185,18 @@ class MenuTabState extends State<MenuTab> {
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Icon(Icons.error_outline, size: 64,
-                    color: AppColors.glassTextDim),
+                const Icon(Icons.error_outline, size: 64,
+                    color: AppColors.glassTextDim,),
                 SizedBox(height: 16.h),
                 Text(state.message,
-                    style: TextStyle(color: AppColors.glassTextDim)),
+                    style: const TextStyle(color: AppColors.glassTextDim),),
                 SizedBox(height: 16.h),
                 GestureDetector(
                   onTap: () => context.read<ProductCatalogBloc>().add(const LoadProductCatalog()),
-                  child: GlassCard(
-                    padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                  child: const GlassCard(
+                    padding: EdgeInsets.symmetric(horizontal: 24, vertical: 12),
                     borderRadius: AppRadius.lg,
-                    child: const Text('Retry'),
+                    child: Text('Retry'),
                   ),
                 ),
               ],
@@ -266,7 +275,7 @@ class MenuTabState extends State<MenuTab> {
   Widget _buildProductCard(CatalogItem item, bool isDark) {
     final defaultPrice = item.prices.isNotEmpty
         ? item.prices.firstWhere(
-            (p) => (p.name?.contains('500ml') ?? false),
+            (p) => p.name?.contains('500ml') ?? false,
             orElse: () => item.prices.first,
           )
         : null;
@@ -291,7 +300,7 @@ class MenuTabState extends State<MenuTab> {
                   begin: Alignment.topLeft,
                   end: Alignment.bottomRight,
                 ),
-                borderRadius: BorderRadius.vertical(
+                borderRadius: const BorderRadius.vertical(
                   top: Radius.circular(AppRadius.lg),
                 ),
               ),
@@ -376,7 +385,7 @@ class MenuTabState extends State<MenuTab> {
                           width: 0.5,
                         ),
                       ),
-                      child: Icon(
+                      child: const Icon(
                         Icons.add,
                         size: 18,
                         color: AppColors.glassAccent,
@@ -417,19 +426,18 @@ class MenuTabState extends State<MenuTab> {
         if (plans.isEmpty) {
           // Fallback plans
           plans = [
-            SubscriptionPlan(
+            const SubscriptionPlan(
               id: '1', name: 'Delight', planID: 1,
               description: 'Perfect for beginners',
               features: ['2 juices/week', 'Flexible schedule', 'Free delivery'],
-              startColor: '#FF9800', endColor: '#FF5722',
             ),
-            SubscriptionPlan(
+            const SubscriptionPlan(
               id: '2', name: 'Premium', planID: 2,
               description: 'Our most popular plan',
               features: ['Daily juice', 'Choice of any size', 'Priority support', 'Free delivery'],
               startColor: '#22C55E', endColor: '#16A34A',
             ),
-            SubscriptionPlan(
+            const SubscriptionPlan(
               id: '3', name: 'Signature', planID: 3,
               description: 'The ultimate experience',
               features: ['2 juices/day', 'All sizes included', 'VIP support', 'Free delivery', 'Exclusive recipes'],
@@ -546,7 +554,7 @@ class MenuTabState extends State<MenuTab> {
                 padding: EdgeInsets.only(bottom: 8.h),
                 child: Row(
                   children: [
-                    Icon(
+                    const Icon(
                       Icons.check_circle,
                       size: 16,
                       color: AppColors.glassAccent,
@@ -564,7 +572,7 @@ class MenuTabState extends State<MenuTab> {
                     ),
                   ],
                 ),
-              )),
+              ),),
           SizedBox(height: 16.h),
           // Subscribe button
           GestureDetector(
@@ -579,8 +587,6 @@ class MenuTabState extends State<MenuTab> {
               decoration: BoxDecoration(
                 gradient: LinearGradient(
                   colors: colors,
-                  begin: Alignment.centerLeft,
-                  end: Alignment.centerRight,
                 ),
                 borderRadius: BorderRadius.circular(AppRadius.md),
                 boxShadow: [
@@ -773,7 +779,7 @@ class _SizeSelectionSheetState extends State<_SizeSelectionSheet> {
                         : AppColors.glassSurfaceLight.withValues(alpha: 0.6),
                     shape: BoxShape.circle,
                   ),
-                  child: Icon(Icons.close, size: 18, color: AppColors.glassTextDim),
+                  child: const Icon(Icons.close, size: 18, color: AppColors.glassTextDim),
                 ),
               ),
             ],
@@ -845,10 +851,9 @@ class _SizeSelectionSheetState extends State<_SizeSelectionSheet> {
                     context.read<CartBloc>().add(AddToCart(
                       CartItem(
                         item: widget.item.item,
-                        quantity: 1,
-                        selectedPrice: _selectedPrice!,
+                        selectedPrice: _selectedPrice,
                       ),
-                    ));
+                    ),);
                     Navigator.pop(context);
                     ScaffoldMessenger.of(context).showSnackBar(
                       SnackBar(

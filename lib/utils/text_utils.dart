@@ -14,7 +14,7 @@ class TextUtils {
   }) {
     return Text(
       text,
-      style: style ?? TextStyle(fontSize: 16, fontFamily: 'Roboto'),
+      style: style ?? const TextStyle(fontSize: 16, fontFamily: 'Roboto'),
       textAlign: textAlign,
       maxLines: maxLines,
       overflow: overflow,

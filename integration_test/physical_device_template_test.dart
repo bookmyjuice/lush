@@ -20,10 +20,10 @@ import 'package:lush/get_it.dart';
 import 'package:lush/main.dart';
 
 // Gated execution to avoid accidental hits to live/staging
-const bool runE2E = bool.fromEnvironment('E2E', defaultValue: false);
-const String baseUrl = String.fromEnvironment('API_BASE_URL', defaultValue: '');
-const String e2eUser = String.fromEnvironment('E2E_USER', defaultValue: '');
-const String e2ePass = String.fromEnvironment('E2E_PASS', defaultValue: '');
+const bool runE2E = bool.fromEnvironment('E2E');
+const String baseUrl = String.fromEnvironment('API_BASE_URL');
+const String e2eUser = String.fromEnvironment('E2E_USER');
+const String e2ePass = String.fromEnvironment('E2E_PASS');
 
 // Test timeouts
 const Duration appLaunchTimeout = Duration(seconds: 30);
@@ -43,7 +43,7 @@ void main() {
       }
       assert(baseUrl.isNotEmpty, 'API_BASE_URL is required');
       assert(e2eUser.isNotEmpty && e2ePass.isNotEmpty,
-          'E2E_USER and E2E_PASS are required');
+          'E2E_USER and E2E_PASS are required',);
 
       if (kDebugMode) {
         // ignore: avoid_print
@@ -157,7 +157,7 @@ void main() {
         // ignore: avoid_print
         print('[TEST 1] Email-first signup completed');
       }
-    }, semanticsEnabled: false);
+    }, semanticsEnabled: false,);
 
     // ============================================================
     // TEST 2: Phone-first Signup Flow
@@ -219,7 +219,7 @@ void main() {
         // ignore: avoid_print
         print('[TEST 2] Phone-first signup completed');
       }
-    }, semanticsEnabled: false);
+    }, semanticsEnabled: false,);
 
     // ============================================================
     // TEST 3: Login → [Test] → Logout (Existing flow)
@@ -298,7 +298,7 @@ void main() {
 
       // Verify back at login
       expect(find.byType(TextFormField), findsWidgets);
-    }, semanticsEnabled: false);
+    }, semanticsEnabled: false,);
 
     // ============================================================
     // API SANITY CHECK
@@ -343,6 +343,6 @@ void main() {
         // ignore: avoid_print
         print('[API Check] Backend connectivity verified');
       }
-    }, semanticsEnabled: false);
+    }, semanticsEnabled: false,);
   });
 }

@@ -1,5 +1,8 @@
 import 'package:equatable/equatable.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:lush/bloc/CartBloc/cart_bloc.dart';
+import 'package:lush/bloc/CartBloc/cart_event.dart' as cart;
+import 'package:lush/views/models/cart_item.dart';
 
 import '../../UserRepository/user_repository.dart';
 import '../../get_it.dart';
@@ -167,12 +170,13 @@ class CatalogItem extends Equatable {
 // BLoC
 class ProductCatalogBloc extends Bloc<ProductCatalogEvent, ProductCatalogState> {
   final UserRepository _userRepository = getIt.get<UserRepository>();
+  final CartBloc? _cartBloc;
 
   List<CatalogItem> _allItems = [];
   String? _selectedCategory;
   String? _selectedSize;
 
-  ProductCatalogBloc() : super(const ProductCatalogInitial()) {
+  ProductCatalogBloc({CartBloc? cartBloc}) : _cartBloc = cartBloc, super(const ProductCatalogInitial()) {
     on<LoadProductCatalog>(_onLoadProductCatalog);
     on<FilterByCategory>(_onFilterByCategory);
     on<FilterBySize>(_onFilterBySize);
@@ -209,7 +213,7 @@ class ProductCatalogBloc extends Bloc<ProductCatalogEvent, ProductCatalogState> 
           items: _allItems,
           categories: categories,
           sizes: sizes,
-        ));
+        ),);
       }
     } catch (e) {
       print('ProductCatalogBloc: Error loading products: $e');
@@ -253,21 +257,30 @@ class ProductCatalogBloc extends Bloc<ProductCatalogEvent, ProductCatalogState> 
       items: filteredItems,
       selectedCategory: _selectedCategory,
       selectedSize: _selectedSize,
-    ));
+    ),);
   }
 
   Future<void> _onAddToCart(
     AddToCart event,
     Emitter<ProductCatalogState> emit,
   ) async {
-    // This would integrate with CartBloc
-    // For now, just log the action
-    print('ProductCatalogBloc: Adding to cart - ${event.item.name}, '
+    if (_cartBloc == null) {
+      print('ProductCatalogBloc: CartBloc not provided — cannot add to cart');
+      return;
+    }
+
+    final cartItem = CartItem(
+      item: event.item,
+      quantity: event.quantity,
+      selectedSize: event.selectedPrice.name,
+      selectedPrice: event.selectedPrice,
+    );
+
+    _cartBloc!.add(cart.AddToCart(cartItem));
+    
+    print('ProductCatalogBloc: Added to cart - ${event.item.name}, '
         'Size: ${event.selectedPrice.name}, '
         'Qty: ${event.quantity}');
-    
-    // TODO: Integrate with CartBloc
-    // context.read<CartBloc>().add(AddToCartEvent(...));
   }
 
   void _applyFilters(Emitter<ProductCatalogState> emit) {
@@ -277,7 +290,7 @@ class ProductCatalogBloc extends Bloc<ProductCatalogEvent, ProductCatalogState> 
     if (_selectedCategory != null && _selectedCategory!.isNotEmpty) {
       filteredItems = filteredItems
           .where((item) =>
-              item.category.toLowerCase() == _selectedCategory!.toLowerCase())
+              item.category.toLowerCase() == _selectedCategory!.toLowerCase(),)
           .toList();
     }
 
@@ -286,7 +299,7 @@ class ProductCatalogBloc extends Bloc<ProductCatalogEvent, ProductCatalogState> 
       filteredItems = filteredItems.where((item) {
         return item.prices.any((price) =>
             price.name != null &&
-            price.name!.toLowerCase().contains(_selectedSize!.toLowerCase()));
+            price.name!.toLowerCase().contains(_selectedSize!.toLowerCase()),);
       }).toList();
     }
 
@@ -297,17 +310,17 @@ class ProductCatalogBloc extends Bloc<ProductCatalogEvent, ProductCatalogState> 
         items: filteredItems,
         selectedCategory: _selectedCategory,
         selectedSize: _selectedSize,
-      ));
+      ),);
     }
   }
 
   List<CatalogItem> _convertToCatalogItems(List<Map<String, dynamic>> apiResponse) {
     return apiResponse.map((json) {
       // Parse category from metadata or item_family_id
-      String category = _extractCategoryFromJson(json);
+      final String category = _extractCategoryFromJson(json);
       
       // Parse item prices
-      List<ItemPrice> prices = _parseItemPrices(json);
+      final List<ItemPrice> prices = _parseItemPrices(json);
 
       // Create Item object
       final item = Item(
@@ -363,11 +376,11 @@ class ProductCatalogBloc extends Bloc<ProductCatalogEvent, ProductCatalogState> 
   }
 
   List<ItemPrice> _parseItemPrices(Map<String, dynamic> json) {
-    List<ItemPrice> prices = [];
+    final List<ItemPrice> prices = [];
 
     if (json.containsKey('prices') && json['prices'] is List) {
       final pricesList = json['prices'] as List;
-      for (var priceJson in pricesList) {
+      for (final priceJson in pricesList) {
         if (priceJson is Map<String, dynamic>) {
           final price = ItemPrice.fromJson(priceJson);
           prices.add(price);
@@ -386,8 +399,8 @@ class ProductCatalogBloc extends Bloc<ProductCatalogEvent, ProductCatalogState> 
 
   List<String> _extractSizes(List<CatalogItem> items) {
     final sizes = <String>{};
-    for (var item in items) {
-      for (var price in item.prices) {
+    for (final item in items) {
+      for (final price in item.prices) {
         if (price.name != null) {
           // Extract size from price name (e.g., "200ml" from "200ml Price")
           final sizeMatch = RegExp(r'(\d+ml)').firstMatch(price.name!);

@@ -100,13 +100,13 @@ class _OrderItemScreenState extends State<OrderItemScreen> {
         backgroundColor: AppColors.white,
         elevation: 0,
         title: Text(_item?.displayName ?? 'Item Details',
-            style: TextStyle(fontWeight: FontWeight.bold, color: AppColors.lightTextPrimary)),
+            style: const TextStyle(fontWeight: FontWeight.bold, color: AppColors.lightTextPrimary),),
         iconTheme: const IconThemeData(color: AppColors.lightTextPrimary),
       ),
       body: _loading
           ? const Center(child: CircularProgressIndicator())
           : _error != null
-              ? Center(child: Text(_error!, style: TextStyle(color: AppColors.error)))
+              ? Center(child: Text(_error!, style: const TextStyle(color: AppColors.error)))
               : _item == null
                   ? const Center(child: Text('Item not found'))
                   : SingleChildScrollView(
@@ -114,7 +114,7 @@ class _OrderItemScreenState extends State<OrderItemScreen> {
                       child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
                         Text(
                           _item!.displayName.replaceAll('-', ' ').split(' ').map((w) =>
-                              '${w[0].toUpperCase()}${w.substring(1)}').join(' '),
+                              '${w[0].toUpperCase()}${w.substring(1)}',).join(' '),
                           style: TextStyle(fontSize: 24.sp, fontWeight: FontWeight.bold, color: AppColors.lightTextPrimary),
                         ),
                         SizedBox(height: 12.h),
@@ -122,7 +122,7 @@ class _OrderItemScreenState extends State<OrderItemScreen> {
                           padding: EdgeInsets.symmetric(horizontal: 10.w, vertical: 4.h),
                           decoration: BoxDecoration(color: AppColors.primaryOrange.withAlpha(30), borderRadius: BorderRadius.circular(8.r)),
                           child: Text((_item!.metaData['family'] as String? ?? 'delight').toUpperCase(),
-                              style: TextStyle(fontSize: 12.sp, fontWeight: FontWeight.bold, color: AppColors.primaryOrange)),
+                              style: TextStyle(fontSize: 12.sp, fontWeight: FontWeight.bold, color: AppColors.primaryOrange),),
                         ),
                         SizedBox(height: 24.h),
                         Text('Select Size', style: TextStyle(fontSize: 16.sp, fontWeight: FontWeight.w600, color: AppColors.lightTextPrimary)),
@@ -137,30 +137,30 @@ class _OrderItemScreenState extends State<OrderItemScreen> {
                               onSelected: (_) => setState(() => _selectedSize = s),
                             ),
                           );
-                        }).toList()),
+                        }).toList(),),
                         SizedBox(height: 24.h),
                         Text('Quantity', style: TextStyle(fontSize: 16.sp, fontWeight: FontWeight.w600, color: AppColors.lightTextPrimary)),
                         SizedBox(height: 12.h),
                         Row(children: [
                           _QtyButton(icon: Icons.remove, onTap: _quantity > 1 ? () => setState(() => _quantity--) : null),
                           Container(width: 48.w, alignment: Alignment.center,
-                              child: Text('$_quantity', style: TextStyle(fontSize: 18.sp, fontWeight: FontWeight.bold))),
+                              child: Text('$_quantity', style: TextStyle(fontSize: 18.sp, fontWeight: FontWeight.bold)),),
                           _QtyButton(icon: Icons.add, onTap: _quantity < 10 ? () => setState(() => _quantity++) : null),
-                        ]),
+                        ],),
                         SizedBox(height: 24.h),
                         Container(
                           width: double.infinity, padding: EdgeInsets.all(16.r),
                           decoration: BoxDecoration(color: AppColors.white, borderRadius: BorderRadius.circular(12.r),
-                              border: Border.all(color: AppColors.lightDivider)),
+                              border: Border.all(color: AppColors.lightDivider),),
                           child: Column(children: [
                             _PriceRow('Unit price', '₹${_selectedPrice.toStringAsFixed(0)}'),
                             SizedBox(height: 8.h),
                             _PriceRow('Quantity', '$_quantity'),
                             SizedBox(height: 8.h),
-                            Divider(color: AppColors.lightDivider),
+                            const Divider(color: AppColors.lightDivider),
                             SizedBox(height: 8.h),
                             _PriceRow('Total', '₹${_total.toStringAsFixed(0)}', bold: true),
-                          ]),
+                          ],),
                         ),
                         SizedBox(height: 24.h),
                         SizedBox(
@@ -168,12 +168,12 @@ class _OrderItemScreenState extends State<OrderItemScreen> {
                           child: ElevatedButton(
                             onPressed: _addToCart,
                             style: ElevatedButton.styleFrom(backgroundColor: AppColors.primaryOrange,
-                                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12.r))),
+                                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12.r)),),
                             child: Text('Add to Cart', style: TextStyle(fontSize: 16.sp, fontWeight: FontWeight.bold, color: AppColors.white)),
                           ),
                         ),
                         SizedBox(height: 16.h),
-                      ]),
+                      ],),
                     ),
     );
   }
@@ -208,6 +208,6 @@ class _PriceRow extends StatelessWidget {
     return Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
       Text(label, style: TextStyle(fontSize: 14.sp, color: AppColors.lightTextSecondary)),
       Text(value, style: TextStyle(fontSize: bold ? 18.sp : 14.sp, fontWeight: bold ? FontWeight.bold : FontWeight.w500, color: bold ? AppColors.primaryOrange : AppColors.lightTextPrimary)),
-    ]);
+    ],);
   }
 }

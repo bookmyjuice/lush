@@ -55,8 +55,8 @@ class AppTextField extends StatelessWidget {
     this.maxLength,
     this.maxLines = 1,
     this.suffixWidget,
-    Key? key,
-  }) : super(key: key);
+    super.key,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -98,14 +98,12 @@ class AppTextField extends StatelessWidget {
               borderRadius: BorderRadius.circular(AppRadius.sm),
               borderSide: const BorderSide(
                 color: AppColors.lightDivider,
-                width: 1,
               ),
             ),
             enabledBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(AppRadius.sm),
               borderSide: const BorderSide(
                 color: AppColors.lightDivider,
-                width: 1,
               ),
             ),
             focusedBorder: OutlineInputBorder(
@@ -119,7 +117,6 @@ class AppTextField extends StatelessWidget {
               borderRadius: BorderRadius.circular(AppRadius.sm),
               borderSide: const BorderSide(
                 color: AppColors.error,
-                width: 1,
               ),
             ),
             focusedErrorBorder: OutlineInputBorder(
@@ -133,7 +130,6 @@ class AppTextField extends StatelessWidget {
               borderRadius: BorderRadius.circular(AppRadius.sm),
               borderSide: const BorderSide(
                 color: AppColors.lightDivider,
-                width: 1,
               ),
             ),
             contentPadding: const EdgeInsets.symmetric(
@@ -157,10 +153,10 @@ bool isValidPhone(String phone) {
   return RegExp(r'^[6-9]\d{9}$').hasMatch(phone);
 }
 
-/// Password validation helper
+/// Password validation helper (FLAG-010: 2 numbers required)
 bool isValidPassword(String password) {
-  // Minimum 8 characters, at least 1 uppercase, 1 lowercase, 1 number, 1 special character
-  return RegExp(r'^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$')
+  // Minimum 8 characters, at least 1 uppercase, 1 lowercase, 2 numbers, 1 special character
+  return RegExp(r'^(?=.*[a-z])(?=.*[A-Z])(?=(?:.*[0-9]){2})(?=.*[@$!%*?&])[A-Za-z0-9@$!%*?&]{8,}$')
       .hasMatch(password);
 }
 

@@ -7,8 +7,8 @@ import 'package:lush/get_it.dart';
 import 'package:lush/main.dart';
 
 // Enable with: --dart-define=E2E=true
-const bool runE2E = bool.fromEnvironment('E2E', defaultValue: false);
-const String baseUrl = String.fromEnvironment('API_BASE_URL', defaultValue: '');
+const bool runE2E = bool.fromEnvironment('E2E');
+const String baseUrl = String.fromEnvironment('API_BASE_URL');
 
 void main() {
   IntegrationTestWidgetsFlutterBinding.ensureInitialized();
@@ -32,5 +32,5 @@ void main() {
     await tester.pump(const Duration(milliseconds: 500));
 
     expect(find.byType(MaterialApp), findsOneWidget);
-  }, semanticsEnabled: false);
+  }, semanticsEnabled: false,);
 }

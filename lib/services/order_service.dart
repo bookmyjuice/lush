@@ -9,9 +9,12 @@ import '../utils/app_logger.dart';
 class OrderService {
   static String get baseUrl => ApiConfig.baseUrl;
   final SecureStorageService _secureStorage = SecureStorageService();
+  final http.Client? _client;
+
+  OrderService({http.Client? client}) : _client = client;
 
   Future<String?> _getToken() async {
-    return await _secureStorage.getAuthToken();
+    return _secureStorage.getAuthToken();
   }
 
   Future<Map<String, String>> _getHeaders() async {
@@ -26,7 +29,8 @@ class OrderService {
   Future<List<Map<String, dynamic>>> getMyOrders() async {
     try {
       final headers = await _getHeaders();
-      final response = await http.get(
+      final client = _client ?? http.Client();
+      final response = await client.get(
         Uri.parse('$baseUrl/api/orders'),
         headers: headers,
       );
@@ -49,7 +53,8 @@ class OrderService {
   Future<Map<String, dynamic>> getOrderDetails(String orderId) async {
     try {
       final headers = await _getHeaders();
-      final response = await http.get(
+      final client = _client ?? http.Client();
+      final response = await client.get(
         Uri.parse('$baseUrl/api/orders/$orderId'),
         headers: headers,
       );
@@ -70,7 +75,8 @@ class OrderService {
   Future<List<Map<String, dynamic>>> getLocalOrderHistory() async {
     try {
       final headers = await _getHeaders();
-      final response = await http.get(
+      final client = _client ?? http.Client();
+      final response = await client.get(
         Uri.parse('$baseUrl/api/orders/local/history'),
         headers: headers,
       );
@@ -91,7 +97,8 @@ class OrderService {
   Future<Map<String, dynamic>> getLocalOrderDetails(String orderId) async {
     try {
       final headers = await _getHeaders();
-      final response = await http.get(
+      final client = _client ?? http.Client();
+      final response = await client.get(
         Uri.parse('$baseUrl/api/orders/local/$orderId'),
         headers: headers,
       );

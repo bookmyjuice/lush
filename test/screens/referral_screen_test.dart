@@ -36,9 +36,9 @@ void main() {
 
   testWidgets('shows referral code when state is ReferralLoaded',
       (tester) async {
-    final info = const ReferralInfo(referralCode: 'TEST123', referralCount: 2, totalRewardAmount: 100.0);
-    when(() => mockBloc.state).thenReturn(ReferralLoaded(info: info));
-    when(() => mockBloc.stream).thenAnswer((_) => Stream.value(ReferralLoaded(info: info)));
+    const info = ReferralInfo(referralCode: 'TEST123', referralCount: 2, totalRewardAmount: 100.0);
+    when(() => mockBloc.state).thenReturn(const ReferralLoaded(info: info));
+    when(() => mockBloc.stream).thenAnswer((_) => Stream.value(const ReferralLoaded(info: info)));
 
     await tester.pumpWidget(createTestWidget(mockBloc));
     expect(find.text('TEST123'), findsOneWidget);
@@ -46,18 +46,18 @@ void main() {
 
   testWidgets('shows 3 Card widgets when state is ReferralLoaded',
       (tester) async {
-    final info = const ReferralInfo(referralCode: 'TEST123', referralCount: 2, totalRewardAmount: 100.0);
-    when(() => mockBloc.state).thenReturn(ReferralLoaded(info: info));
-    when(() => mockBloc.stream).thenAnswer((_) => Stream.value(ReferralLoaded(info: info)));
+    const info = ReferralInfo(referralCode: 'TEST123', referralCount: 2, totalRewardAmount: 100.0);
+    when(() => mockBloc.state).thenReturn(const ReferralLoaded(info: info));
+    when(() => mockBloc.stream).thenAnswer((_) => Stream.value(const ReferralLoaded(info: info)));
 
     await tester.pumpWidget(createTestWidget(mockBloc));
     expect(find.byType(Card), findsNWidgets(3));
   });
 
   testWidgets('Copy button shows SnackBar with Copied', (tester) async {
-    final info = const ReferralInfo(referralCode: 'TEST123', referralCount: 2, totalRewardAmount: 100.0);
-    when(() => mockBloc.state).thenReturn(ReferralLoaded(info: info));
-    when(() => mockBloc.stream).thenAnswer((_) => Stream.value(ReferralLoaded(info: info)));
+    const info = ReferralInfo(referralCode: 'TEST123', referralCount: 2, totalRewardAmount: 100.0);
+    when(() => mockBloc.state).thenReturn(const ReferralLoaded(info: info));
+    when(() => mockBloc.stream).thenAnswer((_) => Stream.value(const ReferralLoaded(info: info)));
 
     await tester.pumpWidget(createTestWidget(mockBloc));
     await tester.tap(find.text('Copy Code'));
@@ -68,9 +68,9 @@ void main() {
 
   testWidgets('Share button is present when state is ReferralLoaded',
       (tester) async {
-    final info = const ReferralInfo(referralCode: 'TEST123', referralCount: 2, totalRewardAmount: 100.0);
-    when(() => mockBloc.state).thenReturn(ReferralLoaded(info: info));
-    when(() => mockBloc.stream).thenAnswer((_) => Stream.value(ReferralLoaded(info: info)));
+    const info = ReferralInfo(referralCode: 'TEST123', referralCount: 2, totalRewardAmount: 100.0);
+    when(() => mockBloc.state).thenReturn(const ReferralLoaded(info: info));
+    when(() => mockBloc.stream).thenAnswer((_) => Stream.value(const ReferralLoaded(info: info)));
 
     await tester.pumpWidget(createTestWidget(mockBloc));
     expect(find.text('Share'), findsOneWidget);

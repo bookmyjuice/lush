@@ -47,22 +47,23 @@ void main() {
 
   Future<void> loginAs(WidgetTester tester,
       {String email = 'tester@bookmyjuice.com',
-       String pass = 'Test@1234'}) async {
+       String pass = 'Test@1234',}) async {
     await launchApp(tester);
     // Check if already on dashboard
     if (find.byKey(const ValueKey('login_email_field'))
-        .evaluate().isEmpty) return;
+        .evaluate().isEmpty) {
+      return;
+    }
     // Check if login screen is visible
     await pumpUntilFound(tester,
-      find.byKey(const ValueKey('login_email_field')));
+      find.byKey(const ValueKey('login_email_field')),);
     await tester.enterText(
-      find.byKey(const ValueKey('login_email_field')), email);
+      find.byKey(const ValueKey('login_email_field')), email,);
     await tester.enterText(
-      find.byKey(const ValueKey('login_password_field')), pass);
+      find.byKey(const ValueKey('login_password_field')), pass,);
     await tester.tap(find.byKey(const ValueKey('login_signin_button')));
     await pumpUntilFound(tester,
-      find.byKey(const ValueKey('login_signin_button')),
-      timeout: const Duration(seconds: 10));
+      find.byKey(const ValueKey('login_signin_button')),);
   }
 
   Future<void> openDrawer(WidgetTester tester) async {

@@ -40,7 +40,7 @@ class _OrdersTabState extends State<OrdersTab> {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Icon(
+              const Icon(
                 Icons.receipt_long_outlined,
                 size: 64,
                 color: AppColors.glassTextDim,
@@ -145,8 +145,8 @@ class _OrderHistoryGlassState extends State<_OrderHistoryGlass> {
               const Spacer(),
               GestureDetector(
                 onTap: () => _orderBloc.add(const RefreshOrderHistory()),
-                child: GlassCard(
-                  padding: const EdgeInsets.all(8),
+                child: const GlassCard(
+                  padding: EdgeInsets.all(8),
                   borderRadius: AppRadius.md,
                   child: Icon(
                     Icons.refresh,
@@ -175,7 +175,7 @@ class _OrderHistoryGlassState extends State<_OrderHistoryGlass> {
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      Icon(
+                      const Icon(
                         Icons.receipt_long_outlined,
                         size: 64,
                         color: AppColors.glassTextDim,
@@ -359,7 +359,7 @@ class _GlassOrderTile extends StatelessWidget {
               ),
             ),
             SizedBox(width: 4.w),
-            Icon(
+            const Icon(
               Icons.chevron_right,
               size: 18,
               color: AppColors.glassTextDim,

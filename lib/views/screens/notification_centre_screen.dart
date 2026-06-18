@@ -139,7 +139,7 @@ class _NotificationCentreScreenState extends State<NotificationCentreScreen> {
   }
 
   Widget _buildNotificationItem(
-      NotificationItem notification, NotificationLoaded state) {
+      NotificationItem notification, NotificationLoaded state,) {
     return GestureDetector(
       onTap: () {
         context.read<NotificationBloc>().add(MarkAsRead(id: notification.id));
@@ -158,7 +158,6 @@ class _NotificationCentreScreenState extends State<NotificationCentreScreen> {
             color: notification.isRead
                 ? AppColors.grey.withValues(alpha: 0.2)
                 : AppColors.info.withValues(alpha: 0.2),
-            width: 1,
           ),
         ),
         child: Padding(
@@ -201,7 +200,7 @@ class _NotificationCentreScreenState extends State<NotificationCentreScreen> {
                           Container(
                             width: 8.w,
                             height: 8.w,
-                            decoration: BoxDecoration(
+                            decoration: const BoxDecoration(
                               color: AppColors.info,
                               shape: BoxShape.circle,
                             ),

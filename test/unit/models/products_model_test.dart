@@ -6,7 +6,6 @@ void main() {
     test('constructor sets fields correctly', () {
       const price = ProductPrice(
         itemPriceId: 'price_001',
-        currencyCode: 'INR',
         unitAmount: 199.0,
         period: '1',
         periodUnit: 'month',

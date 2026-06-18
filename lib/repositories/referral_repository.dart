@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:http/http.dart' as http;
 import 'package:http/io_client.dart';
 
 import '../config/api_config.dart';
@@ -11,8 +12,12 @@ class ReferralRepository {
   final String _baseUrl = ApiConfig.baseUrl;
   final SecureStorageService _secureStorage = SecureStorageService();
   final HttpClient _httpClient = HttpClient();
+  final http.Client? _client;
 
-  IOClient _createClient() {
+  ReferralRepository({http.Client? client}) : _client = client;
+
+  http.Client _createClient() {
+    if (_client != null) return _client!;
     _httpClient.badCertificateCallback =
         (X509Certificate cert, String host, int port) => true;
     return IOClient(_httpClient);

@@ -80,7 +80,7 @@ class GlassCard extends StatelessWidget {
         child: Container(
           height: height,
           width: width,
-          padding: padding ?? EdgeInsets.all(16),
+          padding: padding ?? const EdgeInsets.all(16),
           decoration: BoxDecoration(
             color: gradient != null ? Colors.transparent : effectiveBg,
             borderRadius: BorderRadius.circular(borderRadius),
@@ -147,7 +147,7 @@ class GlassChip extends StatelessWidget {
         child: BackdropFilter(
           filter: ImageFilter.blur(sigmaX: 5, sigmaY: 5),
           child: Container(
-            padding: EdgeInsets.symmetric(
+            padding: const EdgeInsets.symmetric(
               horizontal: 16,
               vertical: 8,
             ),

@@ -24,7 +24,7 @@ class _PauseSubscriptionScreenState extends State<PauseSubscriptionScreen> {
   ];
 
   DateTime get _resumeDate => DateTime.now().add(
-      _durations.firstWhere((d) => d.$1 == _selectedDuration).$3);
+      _durations.firstWhere((d) => d.$1 == _selectedDuration).$3,);
 
   @override
   Widget build(BuildContext context) {
@@ -33,11 +33,11 @@ class _PauseSubscriptionScreenState extends State<PauseSubscriptionScreen> {
       appBar: AppBar(
         backgroundColor: AppColors.white,
         elevation: 0,
-        title: Text('Pause Subscription',
-            style: TextStyle(color: AppColors.lightTextPrimary)),
+        title: const Text('Pause Subscription',
+            style: TextStyle(color: AppColors.lightTextPrimary),),
         leading: IconButton(
           icon: Icon(Icons.arrow_back_ios,
-              color: AppColors.lightTextPrimary, size: 20.sp),
+              color: AppColors.lightTextPrimary, size: 20.sp,),
           onPressed: () => Navigator.pop(context),
         ),
       ),
@@ -74,7 +74,7 @@ class _PauseSubscriptionScreenState extends State<PauseSubscriptionScreen> {
                       onChanged: isLoading
                           ? null
                           : (v) => setState(() => _selectedDuration = v!),
-                    )),
+                    ),),
                 SizedBox(height: 24.h),
                 Card(
                   child: Padding(
@@ -82,13 +82,13 @@ class _PauseSubscriptionScreenState extends State<PauseSubscriptionScreen> {
                     child: Row(
                       children: [
                         Icon(Icons.info_outline,
-                            color: AppColors.info, size: 20.sp),
+                            color: AppColors.info, size: 20.sp,),
                         SizedBox(width: 12.w),
                         Expanded(
                           child: Text(
                             'Your subscription will resume automatically on ${DateFormat('dd MMM yyyy').format(_resumeDate)}',
                             style: TextStyle(
-                                fontSize: 14.sp, color: AppColors.grey),
+                                fontSize: 14.sp, color: AppColors.grey,),
                           ),
                         ),
                       ],
@@ -106,8 +106,15 @@ class _PauseSubscriptionScreenState extends State<PauseSubscriptionScreen> {
                                 PauseSubscription(
                                   subscriptionId: '',
                                   duration: _selectedDuration,
-                                ));
+                                ),);
                           },
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: AppColors.warning,
+                      foregroundColor: AppColors.white,
+                      padding: EdgeInsets.symmetric(vertical: 14.h),
+                      shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12.r),),
+                    ),
                     child: isLoading
                         ? const SizedBox(
                             width: 20,
@@ -115,13 +122,6 @@ class _PauseSubscriptionScreenState extends State<PauseSubscriptionScreen> {
                             child: CircularProgressIndicator(strokeWidth: 2),
                           )
                         : const Text('Confirm Pause'),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: AppColors.warning,
-                      foregroundColor: AppColors.white,
-                      padding: EdgeInsets.symmetric(vertical: 14.h),
-                      shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12.r)),
-                    ),
                   ),
                 ),
               ],

@@ -317,7 +317,7 @@ class JuiceRecommendationCard extends StatelessWidget {
     try {
       if (colorString.startsWith('#')) {
         return Color(
-            int.parse(colorString.substring(1), radix: 16) + 0xFF000000);
+            int.parse(colorString.substring(1), radix: 16) + 0xFF000000,);
       }
       return AppColors.info;
     } catch (e) {

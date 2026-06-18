@@ -1,8 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:lush/UserRepository/user_repository.dart';
 import 'package:lush/bloc/AuthBloc/auth_bloc.dart';
-import 'package:lush/get_it.dart';
 import 'package:lush/bloc/AuthBloc/auth_events.dart';
 import 'package:lush/bloc/AuthBloc/auth_state.dart';
 import 'package:lush/utils/back_button_handler.dart';
@@ -13,6 +11,11 @@ import 'package:toastification/toastification.dart';
 /// User enters 6-digit OTP sent to their phone.
 /// BR-011: If this is a login flow (not signup), after OTP verification,
 /// the screen attempts to login the user. If user doesn't exist, it starts signup flow.
+///
+/// FIX FLAG-004: Login flow now dispatches PhoneOtpLogin BLoC event instead of
+/// calling userRepository.loginViaPhoneOtp() directly.
+/// FIX FLAG-007: Firebase login flow also dispatches PhoneOtpLogin to BLoC instead
+/// of directing user back to login page.
 class PhoneOtpVerificationScreen extends StatefulWidget {
   static const routeName = '/phone-otp-verification';
 
@@ -115,51 +118,14 @@ class PhoneOtpVerificationScreenState
         VerifyFirebaseOtp(verificationId: _verificationId ?? '', smsCode: otp),
       );
     } else if (_isLoginFlow) {
-      // BR-011: Login flow (backend OTP) - verify OTP and attempt login
-      await _attemptPhoneLogin(otp);
+      // FIX FLAG-004: Dispatch PhoneOtpLogin to BLoC instead of calling userRepository directly
+      BlocProvider.of<AuthenticationBloc>(context).add(
+        PhoneOtpLogin(phone: _phone ?? '', otp: otp),
+      );
     } else {
       // Signup flow (backend OTP) - use BLoC for verification
       BlocProvider.of<AuthenticationBloc>(context).add(
         VerifyOTP(otp: otp, phone: _phone ?? ''),
-      );
-    }
-
-  }
-
-  Future<void> _attemptPhoneLogin(String otp) async {
-    final userRepository = getIt.get<UserRepository>();
-    final result = await userRepository.loginViaPhoneOtp(_phone!, otp);
-
-    if (result['type'] == 'login_success') {
-      // User exists - login successful
-      toastification.show(
-        title: const Text('Login Successful'),
-        type: ToastificationType.success,
-      );
-      // Navigate to dashboard and clear navigation stack
-      if (mounted) {
-        Navigator.pushNamedAndRemoveUntil(context, '/dashboard', (route) => false);
-      }
-    } else if (result['type'] == 'signup_required') {
-      // User doesn't exist - start signup with pre-filled phone
-      toastification.show(
-        title: const Text('Phone Verified'),
-        description: const Text('No account found. Please complete signup.'),
-        type: ToastificationType.info,
-      );
-      if (mounted) {
-        Navigator.pushReplacementNamed(
-          context,
-          '/email-entry-after-phone',
-          arguments: _phone,
-        );
-      }
-    } else {
-      // Error
-      toastification.show(
-        title: const Text('Login Failed'),
-        description: Text((result['error'] as String?) ?? 'Unknown error'),
-        type: ToastificationType.error,
       );
     }
   }
@@ -191,22 +157,60 @@ class PhoneOtpVerificationScreenState
             current is OTPVerificationSuccess ||
             current is OTPVerificationFailed ||
             current is FirebasePhoneVerified ||
-            current is FirebasePhoneVerificationFailed,
+            current is FirebasePhoneVerificationFailed ||
+            current is AuthenticationSuccess ||
+            current is SignUpStarted ||
+            current is AuthError,
         listener: (context, state) async {
-          // --- Firebase Phone Auth verification ---
-          if (state is FirebasePhoneVerified) {
-
-            if (_isLoginFlow) {
-              // Firebase + Login flow: phone verified, but backend still needs authentication
+          // --- FIX FLAG-004: Phone OTP Login (backend OTP flow, BR-011) ---
+          if (_isLoginFlow && !_isFirebaseAuth) {
+            if (state is AuthenticationSuccess) {
               toastification.show(
-                title: const Text('Phone Verified'),
-                description: const Text('Please sign in with your email and password.'),
+                title: const Text('Login Successful'),
                 type: ToastificationType.success,
               );
-              // Navigate back to login screen so user can authenticate via backend
               if (mounted) {
-                Navigator.pop(context);
+                Navigator.pushNamedAndRemoveUntil(context, '/dashboard', (route) => false);
               }
+              return;
+            }
+            if (state is SignUpStarted) {
+              toastification.show(
+                title: const Text('Phone Verified'),
+                description: const Text('No account found. Please complete signup.'),
+                type: ToastificationType.info,
+              );
+              if (mounted) {
+                Navigator.pushReplacementNamed(
+                  context,
+                  '/email-entry-after-phone',
+                  arguments: _phone,
+                );
+              }
+              return;
+            }
+            if (state is AuthError) {
+              toastification.show(
+                title: const Text('Login Failed'),
+                description: Text(state.error),
+                type: ToastificationType.error,
+              );
+              return;
+            }
+          }
+
+          // --- Firebase Phone Auth verification ---
+          if (state is FirebasePhoneVerified) {
+            if (_isLoginFlow) {
+              // FIX FLAG-007: Dispatch PhoneOtpLogin to BLoC instead of navigating back
+              toastification.show(
+                title: const Text('Phone Verified'),
+                description: const Text('Completing login...'),
+                type: ToastificationType.success,
+              );
+              BlocProvider.of<AuthenticationBloc>(context).add(
+                PhoneOtpLogin(phone: _phone ?? '', otp: 'firebase_verified'),
+              );
             } else {
               // Firebase + Signup flow: continue signup
               toastification.show(
@@ -214,7 +218,6 @@ class PhoneOtpVerificationScreenState
                 type: ToastificationType.success,
               );
               if (_email != null && _email!.isNotEmpty) {
-                // Email-first flow: both verified, go to address
                 Navigator.pushReplacementNamed(
                   context,
                   '/address-entry',
@@ -226,7 +229,6 @@ class PhoneOtpVerificationScreenState
                   },
                 );
               } else {
-                // Phone-first flow: phone verified, now collect email
                 Navigator.pushReplacementNamed(
                   context,
                   '/email-entry-after-phone',
@@ -246,15 +248,51 @@ class PhoneOtpVerificationScreenState
             return;
           }
 
+          // FIX FLAG-007: Handle PhoneOtpLogin result for Firebase + Login flow
+          if (_isFirebaseAuth && _isLoginFlow) {
+            if (state is AuthenticationSuccess) {
+              toastification.show(
+                title: const Text('Login Successful'),
+                type: ToastificationType.success,
+              );
+              if (mounted) {
+                Navigator.pushNamedAndRemoveUntil(context, '/dashboard', (route) => false);
+              }
+              return;
+            }
+            if (state is SignUpStarted) {
+              toastification.show(
+                title: const Text('Phone Verified'),
+                description: const Text('No account found. Please complete signup.'),
+                type: ToastificationType.info,
+              );
+              if (mounted) {
+                Navigator.pushReplacementNamed(
+                  context,
+                  '/email-entry-after-phone',
+                  arguments: _phone,
+                );
+              }
+              return;
+            }
+            if (state is AuthError) {
+              toastification.show(
+                title: const Text('Login Failed'),
+                description: Text(state.error),
+                type: ToastificationType.error,
+              );
+              return;
+            }
+          }
+
           // --- Backend OTP signup flow ---
-          if (state is OTPVerificationSuccess) {
+          if (state is OTPVerificationSuccess && !_isLoginFlow) {
             toastification.show(
               title: const Text('Phone Verified'),
               type: ToastificationType.success,
             );
 
             if (_isGoogleSignup) {
-              // Google signup: both email and phone verified, go to address
               Navigator.pushReplacementNamed(
                 context,
                 '/address-entry',
@@ -266,7 +304,6 @@ class PhoneOtpVerificationScreenState
                 },
               );
             } else if (_email != null && _email!.isNotEmpty) {
-              // Email-first flow: both verified, go to address
               Navigator.pushReplacementNamed(
                 context,
                 '/address-entry',
@@ -278,7 +315,6 @@ class PhoneOtpVerificationScreenState
                 },
               );
             } else {
-              // Phone-first flow: phone verified, now collect email
               Navigator.pushReplacementNamed(
                 context,
                 '/email-entry-after-phone',
@@ -297,7 +333,6 @@ class PhoneOtpVerificationScreenState
           child: SingleChildScrollView(
             padding: const EdgeInsets.all(24.0),
             child: Column(
-              crossAxisAlignment: CrossAxisAlignment.center,
               children: [
                 const SizedBox(height: 40),
                 const Icon(
@@ -333,7 +368,6 @@ class PhoneOtpVerificationScreenState
                 ),
                 const SizedBox(height: 20),
                 PinInputTextField(
-                  pinLength: 6,
                   controller: _otpController,
                   autoFocus: true,
                   decoration: UnderlineDecoration(

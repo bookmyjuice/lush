@@ -18,7 +18,6 @@ class ShimmerSubscriptionCard extends StatelessWidget {
           borderRadius: BorderRadius.circular(16.r),
           border: Border.all(
             color: Colors.grey[300]!,
-            width: 1,
           ),
         ),
         child: Column(

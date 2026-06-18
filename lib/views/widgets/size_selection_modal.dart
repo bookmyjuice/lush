@@ -33,7 +33,7 @@ class _SizeSelectionModalState extends State<SizeSelectionModal> {
   Widget build(BuildContext context) {
     final prices = widget.item.itemPrices ?? [];
 
-    return Container(
+    return DecoratedBox(
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
@@ -100,17 +100,17 @@ class _SizeSelectionModalState extends State<SizeSelectionModal> {
 
             // Price/Size options
             if (prices.isEmpty)
-              Padding(
-                padding: const EdgeInsets.all(20),
+              const Padding(
+                padding: EdgeInsets.all(20),
                 child: Column(
                   children: [
-                    const Icon(
+                    Icon(
                       Icons.error_outline,
                       color: Colors.orange,
                       size: 48,
                     ),
-                    const SizedBox(height: 16),
-                    const Text(
+                    SizedBox(height: 16),
+                    Text(
                       'No size options available',
                       style: TextStyle(
                         fontSize: 16,
@@ -118,8 +118,8 @@ class _SizeSelectionModalState extends State<SizeSelectionModal> {
                         color: AppColors.lightTextPrimary,
                       ),
                     ),
-                    const SizedBox(height: 8),
-                    const Text(
+                    SizedBox(height: 8),
+                    Text(
                       'This item doesn\'t have any size or price options configured.',
                       textAlign: TextAlign.center,
                       style: TextStyle(
@@ -154,14 +154,14 @@ class _SizeSelectionModalState extends State<SizeSelectionModal> {
                       borderRadius: BorderRadius.circular(8),
                       child: Container(
                         padding: const EdgeInsets.symmetric(
-                            vertical: 12, horizontal: 8),
+                            vertical: 12, horizontal: 8,),
                         decoration: BoxDecoration(
                           color: isSelected
                               ? Colors.orange.withValues(alpha: 0.1)
                               : Colors.transparent,
                           borderRadius: BorderRadius.circular(8),
                           border: isSelected
-                              ? Border.all(color: Colors.orange, width: 1)
+                              ? Border.all(color: Colors.orange)
                               : null,
                         ),
                         child: Row(
@@ -210,7 +210,7 @@ class _SizeSelectionModalState extends State<SizeSelectionModal> {
                             // Price
                             Container(
                               padding: const EdgeInsets.symmetric(
-                                  horizontal: 12, vertical: 6),
+                                  horizontal: 12, vertical: 6,),
                               decoration: BoxDecoration(
                                 color: isSelected
                                     ? Colors.orange

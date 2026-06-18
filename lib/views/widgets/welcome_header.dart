@@ -18,13 +18,13 @@ class WelcomeHeader extends StatelessWidget {
   Widget build(BuildContext context) {
     return InkWell(
       onTap: () async {
-        String selfServePageUrl = await userRepository.getSelfServePageUrl();
+        final String selfServePageUrl = await userRepository.getSelfServePageUrl();
         Navigator.pushNamed(context, '/myaccount', arguments: selfServePageUrl);
       },
       child: Container(
         padding: EdgeInsets.all(20.w),
         decoration: BoxDecoration(
-          gradient: LinearGradient(
+          gradient: const LinearGradient(
             colors: [
               AppColors.primaryOrange,
               AppColors.lightBackground,

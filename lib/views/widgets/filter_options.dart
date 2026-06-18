@@ -144,7 +144,6 @@ class FilterOptions extends StatelessWidget {
             BoxShadow(
               color: color.withValues(alpha: 0.05),
               blurRadius: 2,
-              spreadRadius: 0,
               offset: const Offset(0, 1),
             ),
           ],
@@ -205,7 +204,7 @@ class FilterOptions extends StatelessWidget {
                   Row(
                     children: [
                       Icon(Icons.category,
-                          color: AppColors.primaryOrange, size: 16.sp),
+                          color: AppColors.primaryOrange, size: 16.sp,),
                       SizedBox(width: 8.w),
                       Text(
                         'Juice Category',
@@ -243,10 +242,10 @@ class FilterOptions extends StatelessWidget {
                         ),
                         avatar: isSelected
                             ? Icon(Icons.check_circle,
-                                color: AppColors.primaryOrange, size: 16.sp)
+                                color: AppColors.primaryOrange, size: 16.sp,)
                             : null,
                         padding: EdgeInsets.symmetric(
-                            horizontal: 12.w, vertical: 8.h),
+                            horizontal: 12.w, vertical: 8.h,),
                       );
                     }).toList(),
                   ),
@@ -292,10 +291,10 @@ class FilterOptions extends StatelessWidget {
                         ),
                         avatar: isSelected
                             ? Icon(Icons.check_circle,
-                                color: Colors.green, size: 16.sp)
+                                color: Colors.green, size: 16.sp,)
                             : null,
                         padding: EdgeInsets.symmetric(
-                            horizontal: 12.w, vertical: 8.h),
+                            horizontal: 12.w, vertical: 8.h,),
                       );
                     }).toList(),
                   ),
@@ -332,7 +331,7 @@ class FilterOptions extends StatelessWidget {
             ),
           ],
         );
-      }),
+      },),
     );
   }
 
@@ -391,7 +390,7 @@ class FilterOptions extends StatelessWidget {
                   ),
                 ),
                 trailing: isSelected
-                    ? Icon(Icons.check, color: AppColors.primaryOrange)
+                    ? const Icon(Icons.check, color: AppColors.primaryOrange)
                     : null,
                 contentPadding:
                     EdgeInsets.symmetric(horizontal: 8.w, vertical: 4.h),
@@ -481,7 +480,7 @@ class FilterOptions extends StatelessWidget {
                   ),
                 ),
                 trailing:
-                    isSelected ? Icon(Icons.check, color: Colors.green) : null,
+                    isSelected ? const Icon(Icons.check, color: Colors.green) : null,
                 contentPadding:
                     EdgeInsets.symmetric(horizontal: 8.w, vertical: 4.h),
                 shape: RoundedRectangleBorder(

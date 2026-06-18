@@ -26,6 +26,8 @@ class ProductCatalogScreenState extends State<ProductCatalogScreen> {
   String? _selectedCategory;
   String? _selectedSize;
   final TextEditingController _searchController = TextEditingController();
+  List<String> _cachedCategories = [];
+  List<String> _cachedSizes = [];
 
   @override
   void initState() {
@@ -109,8 +111,14 @@ class ProductCatalogScreenState extends State<ProductCatalogScreen> {
                     );
                   }
                   if (state is ProductCatalogLoaded) {
-                    _selectedCategory ??= state.categories.isNotEmpty ? state.categories.first : null;
+                    _cachedCategories = state.categories;
+                    _cachedSizes = state.sizes;
                     _selectedSize ??= state.sizes.isNotEmpty ? state.sizes.first : null;
+                    if (_selectedCategory == null && state.categories.isNotEmpty) {
+                      _selectedCategory = state.categories.first;
+                      context.read<ProductCatalogBloc>().add(FilterByCategory(category: _selectedCategory!));
+                      return const Center(child: CircularProgressIndicator());
+                    }
                     return _buildProductGrid(state.items);
                   }
                   if (state is ProductCatalogFiltered) return _buildProductGrid(state.items);
@@ -160,8 +168,7 @@ class ProductCatalogScreenState extends State<ProductCatalogScreen> {
   Widget _buildCategoryFilter() {
     return BlocBuilder<ProductCatalogBloc, ProductCatalogState>(
       builder: (context, state) {
-        List<String> categories = [];
-        if (state is ProductCatalogLoaded) categories = state.categories;
+        List<String> categories = _cachedCategories;
         if (categories.isEmpty) return const SizedBox.shrink();
 
         return SizedBox(
@@ -202,8 +209,7 @@ class ProductCatalogScreenState extends State<ProductCatalogScreen> {
   Widget _buildSizeFilter() {
     return BlocBuilder<ProductCatalogBloc, ProductCatalogState>(
       builder: (context, state) {
-        List<String> sizes = [];
-        if (state is ProductCatalogLoaded) sizes = state.sizes;
+        List<String> sizes = _cachedSizes;
         if (sizes.isEmpty) return const SizedBox.shrink();
 
         return SizedBox(
@@ -305,7 +311,7 @@ class ProductCatalogScreenState extends State<ProductCatalogScreen> {
                   children: [
                     if (defaultPrice != null)
                       Text('₹${defaultPrice.price?.toStringAsFixed(2) ?? '0.00'}',
-                          style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: AppColors.primaryOrange))
+                          style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: AppColors.primaryOrange),)
                     else
                       const Text('From ₹75', style: TextStyle(fontSize: 14, color: Colors.grey)),
                     IconButton(
@@ -345,14 +351,14 @@ class ProductCatalogScreenState extends State<ProductCatalogScreen> {
                     final isSelected = selectedPrice == price;
                     return ListTile(
                       title: Text(price.name ?? 'Unknown Size',
-                          style: TextStyle(fontWeight: isSelected ? FontWeight.bold : FontWeight.normal)),
+                          style: TextStyle(fontWeight: isSelected ? FontWeight.bold : FontWeight.normal),),
                       subtitle: Text('₹${price.price?.toStringAsFixed(2) ?? '0.00'}',
-                          style: const TextStyle(color: AppColors.primaryOrange, fontWeight: FontWeight.bold)),
+                          style: const TextStyle(color: AppColors.primaryOrange, fontWeight: FontWeight.bold),),
                       trailing: Radio<ItemPrice>(value: price, groupValue: selectedPrice,
-                          onChanged: (v) => setModalState(() => selectedPrice = v), activeColor: AppColors.primaryOrange),
+                          onChanged: (v) => setModalState(() => selectedPrice = v), activeColor: AppColors.primaryOrange,),
                       onTap: () => setModalState(() => selectedPrice = price),
                     );
-                  }).toList(),
+                  }),
                   const SizedBox(height: 24),
                   SizedBox(
                     width: double.infinity, height: 50,
@@ -360,12 +366,12 @@ class ProductCatalogScreenState extends State<ProductCatalogScreen> {
                       onPressed: selectedPrice != null
                           ? () {
                               HapticFeedbackUtil.HapticFeedbackUtil.lightFeedback();
-                              context.read<CartBloc>().add(AddToCart(CartItem(item: item.item, quantity: 1, selectedPrice: selectedPrice)));
+                              context.read<CartBloc>().add(AddToCart(CartItem(item: item.item, selectedPrice: selectedPrice)));
                               Navigator.pop(context);
                               ScaffoldMessenger.of(context).showSnackBar(SnackBar(
                                 content: Text('${item.name} (${selectedPrice!.name}) added to cart'),
                                 backgroundColor: AppColors.success, behavior: SnackBarBehavior.floating,
-                              ));
+                              ),);
                             }
                           : null,
                       style: ElevatedButton.styleFrom(

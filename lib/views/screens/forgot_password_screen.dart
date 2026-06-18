@@ -7,6 +7,8 @@ import 'package:toastification/toastification.dart';
 
 /// BR-009: Forgot Password - Choose reset method (mobile OTP or email OTP)
 class ForgotPasswordScreen extends StatefulWidget {
+  const ForgotPasswordScreen({super.key});
+
   @override
   _ForgotPasswordScreenState createState() => _ForgotPasswordScreenState();
 }
@@ -82,7 +84,6 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
       title: Text(title),
       description: Text(message),
       type: type,
-      closeButton: const ToastCloseButton(),
     );
   }
 
@@ -100,7 +101,6 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
           child: Form(
             key: _formKey,
             child: Column(
-              crossAxisAlignment: CrossAxisAlignment.center,
               children: [
                 const SizedBox(height: 20),
                 const Icon(Icons.lock_reset, size: 80, color: AppColors.primaryOrange),

@@ -1,6 +1,5 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:equatable/equatable.dart';
-import '../../views/models/item_data.dart';
 import '../../repositories/products_repository.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:convert';
@@ -150,17 +149,6 @@ class Product extends Equatable {
     );
   }
 
-  factory Product.fromLegacyItem(ItemData item) {
-    return Product(
-      id: item.itemID.toString(),
-      name: item.titleTxt,
-      imageUrl: item.imagePath,
-      price: 8.99 + (item.itemID * 1.5),
-      currency: 'INR',
-      family: 'juice',
-    );
-  }
-
   Map<String, dynamic> toJson() => {
         'id': id,
         'name': name,
@@ -277,25 +265,17 @@ class ProductsBloc extends Bloc<ProductsEvent, ProductsState> {
     emit(const ProductsLoading());
     try {
       final jsonList = await _repository.getProducts();
-      final products = jsonList.map((j) => Product.fromServerJson(j)).toList();
+      final products = jsonList.map(Product.fromServerJson).toList();
       await _saveToCache(products);
       if (isClosed) return;
       emit(ProductsLoaded(products: products));
     } catch (e) {
       final cached = await _loadFromCache();
-      if (cached.isNotEmpty) {
-        if (isClosed) return;
-        emit(ProductsLoaded(products: cached));
-        return;
-      }
-      final fallback = ItemData.tabIconsList
-          .map((item) => Product.fromLegacyItem(item))
-          .toList();
       if (isClosed) return;
-      if (fallback.isEmpty) {
-        emit(const ProductsError(message: 'No products available'));
+      if (cached.isNotEmpty) {
+        emit(ProductsLoaded(products: cached));
       } else {
-        emit(ProductsLoaded(products: fallback));
+        emit(ProductsError(message: 'Failed to load products: $e'));
       }
     }
   }
@@ -307,7 +287,7 @@ class ProductsBloc extends Bloc<ProductsEvent, ProductsState> {
     emit(const ProductsLoading());
     try {
       final jsonList = await _repository.getFeaturedProducts();
-      final products = jsonList.map((j) => Product.fromServerJson(j)).toList();
+      final products = jsonList.map(Product.fromServerJson).toList();
       final recommended = products.take(3).toList();
       if (isClosed) return;
       emit(RecommendedProductsLoaded(products: recommended));
@@ -315,7 +295,7 @@ class ProductsBloc extends Bloc<ProductsEvent, ProductsState> {
       try {
         final allJson = await _repository.getProducts();
         final allProducts =
-            allJson.map((j) => Product.fromServerJson(j)).toList();
+            allJson.map(Product.fromServerJson).toList();
         final featured =
             allProducts.where((p) => p.isFeatured).take(3).toList();
         if (isClosed) return;
@@ -335,7 +315,7 @@ class ProductsBloc extends Bloc<ProductsEvent, ProductsState> {
     try {
       final family = _mapCategoryToFamily(event.category);
       final jsonList = await _repository.getProductsByFamily(family);
-      final products = jsonList.map((j) => Product.fromServerJson(j)).toList();
+      final products = jsonList.map(Product.fromServerJson).toList();
       if (isClosed) return;
       if (products.isEmpty) {
         emit(const ProductsEmpty());
@@ -346,7 +326,7 @@ class ProductsBloc extends Bloc<ProductsEvent, ProductsState> {
       try {
         final allJson = await _repository.getProducts();
         final allProducts =
-            allJson.map((j) => Product.fromServerJson(j)).toList();
+            allJson.map(Product.fromServerJson).toList();
         final family = _mapCategoryToFamily(event.category);
         final filtered =
             allProducts.where((p) => p.family == family).toList();
@@ -359,7 +339,7 @@ class ProductsBloc extends Bloc<ProductsEvent, ProductsState> {
       } catch (e2) {
         if (isClosed) return;
         emit(
-            ProductsError(message: 'Failed to load products by category: $e'));
+            ProductsError(message: 'Failed to load products by category: $e'),);
       }
     }
   }
@@ -371,7 +351,7 @@ class ProductsBloc extends Bloc<ProductsEvent, ProductsState> {
     emit(const ProductsLoading());
     try {
       final jsonList = await _repository.searchProducts(event.query);
-      final products = jsonList.map((j) => Product.fromServerJson(j)).toList();
+      final products = jsonList.map(Product.fromServerJson).toList();
       if (isClosed) return;
       emit(ProductsSearchResults(products: products, query: event.query));
     } catch (e) {
@@ -405,7 +385,7 @@ class ProductsBloc extends Bloc<ProductsEvent, ProductsState> {
       final prefs = await SharedPreferences.getInstance();
       await prefs.remove('cached_products');
       final jsonList = await _repository.getProducts();
-      final products = jsonList.map((j) => Product.fromServerJson(j)).toList();
+      final products = jsonList.map(Product.fromServerJson).toList();
       await _saveToCache(products);
       if (isClosed) return;
       emit(ProductsLoaded(products: products));
@@ -435,7 +415,7 @@ class ProductsBloc extends Bloc<ProductsEvent, ProductsState> {
       final js = jsonEncode(products.map((p) => p.toJson()).toList());
       await prefs.setString('cached_products', js);
       await prefs.setInt(
-          'products_cache_timestamp', DateTime.now().millisecondsSinceEpoch);
+          'products_cache_timestamp', DateTime.now().millisecondsSinceEpoch,);
     } catch (_) {}
   }
 

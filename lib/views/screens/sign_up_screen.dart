@@ -368,10 +368,10 @@ class SignUpScreenState extends State<SignUpScreen> {
       {'text': 'At least 8 characters', 'met': _passwordController.text.length >= 8},
       {'text': '1 uppercase letter', 'met': _passwordController.text.contains(RegExp(r'[A-Z]'))},
       {'text': '1 lowercase letter', 'met': _passwordController.text.contains(RegExp(r'[a-z]'))},
-      {'text': '1 number', 'met': _passwordController.text.contains(RegExp(r'\d'))},
+      {'text': '2 numbers', 'met': (RegExp(r'\d').allMatches(_passwordController.text).length) >= 2},
       {
         'text': '1 special character',
-        'met': _passwordController.text.contains(RegExp(r'[@$!%*?&]'))
+        'met': _passwordController.text.contains(RegExp(r'[@$!%*?&]')),
       },
     ];
 
@@ -397,7 +397,7 @@ class SignUpScreenState extends State<SignUpScreen> {
                   ),
                 ],
               ),
-            )),
+            ),),
       ],
     );
   }
@@ -444,7 +444,7 @@ class SignUpScreenState extends State<SignUpScreen> {
           password: _passwordController.text,
           confirmPassword: _confirmPasswordController.text,
           referralCode: referralCode,
-        ));
+        ),);
 
     // Note: Email, phone, name, address are collected in previous steps
     // of the unified signup flow and stored in AuthBloc state

@@ -8,19 +8,19 @@ class Weekdays extends StatefulWidget {
 
 class WeekdaysState extends State<Weekdays> with TickerProviderStateMixin {
   List<String> days = [
-    "Monday",
-    "Tuesday",
-    "Wednesday",
-    "Thursday",
-    "Friday",
-    "Saturday"
+    'Monday',
+    'Tuesday',
+    'Wednesday',
+    'Thursday',
+    'Friday',
+    'Saturday',
   ];
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text("Schedule"),
+        title: const Text('Schedule'),
         // leading: const Icon(Icons.menu),
         backgroundColor: Colors.orange,
       ),
@@ -29,8 +29,8 @@ class WeekdaysState extends State<Weekdays> with TickerProviderStateMixin {
           itemCount: days.length,
           itemBuilder: (BuildContext context, int index) {
             return RawMaterialButton(
-                onPressed: () {}, child: Center(child: Text(days[index])));
-          }),
+                onPressed: () {}, child: Center(child: Text(days[index])),);
+          },),
     );
   }
 }

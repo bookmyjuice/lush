@@ -30,7 +30,7 @@ class _ModifyScheduleScreenState extends State<ModifyScheduleScreen> {
   @override
   void initState() {
     super.initState();
-    _schedule = {for (var d in _days) d: ''};
+    _schedule = {for (final d in _days) d: ''};
   }
 
   @override
@@ -40,11 +40,11 @@ class _ModifyScheduleScreenState extends State<ModifyScheduleScreen> {
       appBar: AppBar(
         backgroundColor: AppColors.white,
         elevation: 0,
-        title: Text('Modify Schedule',
-            style: TextStyle(color: AppColors.lightTextPrimary)),
+        title: const Text('Modify Schedule',
+            style: TextStyle(color: AppColors.lightTextPrimary),),
         leading: IconButton(
           icon: Icon(Icons.arrow_back_ios,
-              color: AppColors.lightTextPrimary, size: 20.sp),
+              color: AppColors.lightTextPrimary, size: 20.sp,),
           onPressed: () => Navigator.pop(context),
         ),
       ),
@@ -91,7 +91,7 @@ class _ModifyScheduleScreenState extends State<ModifyScheduleScreen> {
                             labelText: _dayLabels[day],
                             hintText: 'Enter juice name / item price ID',
                             border: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(12.r)),
+                                borderRadius: BorderRadius.circular(12.r),),
                           ),
                           enabled: !_sameEveryday,
                           onChanged: (v) => _schedule[day] = v,
@@ -110,22 +110,22 @@ class _ModifyScheduleScreenState extends State<ModifyScheduleScreen> {
                                 ModifySubscriptionSchedule(
                                   subscriptionId: subId,
                                   newSchedule: _schedule,
-                                ));
+                                ),);
                           },
-                    child: isLoading
-                        ? const SizedBox(
-                            width: 20,
-                            height: 20,
-                            child:
-                                CircularProgressIndicator(strokeWidth: 2))
-                        : const Text('Save Changes'),
                     style: ElevatedButton.styleFrom(
                       backgroundColor: AppColors.primaryOrange,
                       foregroundColor: AppColors.white,
                       padding: EdgeInsets.symmetric(vertical: 14.h),
                       shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12.r)),
+                          borderRadius: BorderRadius.circular(12.r),),
                     ),
+                    child: isLoading
+                        ? const SizedBox(
+                            width: 20,
+                            height: 20,
+                            child:
+                                CircularProgressIndicator(strokeWidth: 2),)
+                        : const Text('Save Changes'),
                   ),
                 ),
               ],

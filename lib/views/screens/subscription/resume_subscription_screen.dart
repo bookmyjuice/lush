@@ -27,7 +27,7 @@ class _ResumeSubscriptionScreenState
             style: TextStyle(color: AppColors.lightTextPrimary),),
         leading: IconButton(
           icon: Icon(Icons.arrow_back_ios,
-              color: AppColors.lightTextPrimary, size: 20.sp),
+              color: AppColors.lightTextPrimary, size: 20.sp,),
           onPressed: () => Navigator.pop(context),
         ),
       ),
@@ -76,7 +76,7 @@ class _ResumeSubscriptionScreenState
                     style: TextStyle(
                         fontSize: 18.sp,
                         fontWeight: FontWeight.w600,
-                        color: AppColors.lightTextPrimary),
+                        color: AppColors.lightTextPrimary,),
                   ),
                 ),
                 const Spacer(),
@@ -95,7 +95,7 @@ class _ResumeSubscriptionScreenState
                             width: 20,
                             height: 20,
                             child:
-                                CircularProgressIndicator(strokeWidth: 2))
+                                CircularProgressIndicator(strokeWidth: 2),)
                         : const Icon(Icons.play_circle_outline),
                     label: const Text('Resume Now'),
                     style: ElevatedButton.styleFrom(

@@ -43,7 +43,6 @@ class AppTheme {
   static ThemeData get light {
     final colorScheme = ColorScheme.fromSeed(
       seedColor: AppColors.primaryGreen,
-      brightness: Brightness.light,
       primary: AppColors.primaryGreen,
       onPrimary: AppColors.white,
       primaryContainer: AppColors.primaryGreenDark,
@@ -57,9 +56,15 @@ class AppTheme {
       outline: AppColors.grey,
     );
 
-    final textTheme = GoogleFonts.poppinsTextTheme(
-      ThemeData.light().textTheme,
-    );
+    // Gracefully degrade if GoogleFonts is unavailable (e.g. test environment)
+    late TextTheme textTheme;
+    try {
+      textTheme = GoogleFonts.poppinsTextTheme(
+        ThemeData.light().textTheme,
+      );
+    } catch (_) {
+      textTheme = ThemeData.light().textTheme;
+    }
 
     return ThemeData(
       useMaterial3: true,
@@ -104,7 +109,7 @@ class AppTheme {
       outlinedButtonTheme: OutlinedButtonThemeData(
         style: OutlinedButton.styleFrom(
           foregroundColor: colorScheme.primary,
-          side: BorderSide(color: colorScheme.primary, width: 1),
+          side: BorderSide(color: colorScheme.primary),
           padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
           minimumSize: const Size(0, 48),
           shape: RoundedRectangleBorder(
@@ -132,11 +137,11 @@ class AppTheme {
         ),
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(AppRadius.md),
-          borderSide: const BorderSide(color: AppColors.grey, width: 1),
+          borderSide: const BorderSide(color: AppColors.grey),
         ),
         enabledBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(AppRadius.md),
-          borderSide: const BorderSide(color: AppColors.grey, width: 1),
+          borderSide: const BorderSide(color: AppColors.grey),
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(AppRadius.md),
@@ -144,14 +149,14 @@ class AppTheme {
         ),
         errorBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(AppRadius.md),
-          borderSide: const BorderSide(color: AppColors.error, width: 1),
+          borderSide: const BorderSide(color: AppColors.error),
         ),
         focusedErrorBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(AppRadius.md),
           borderSide: const BorderSide(color: AppColors.error, width: 2),
         ),
-        labelStyle: TextStyle(color: AppColors.grey),
-        hintStyle: TextStyle(color: AppColors.grey),
+        labelStyle: const TextStyle(color: AppColors.grey),
+        hintStyle: const TextStyle(color: AppColors.grey),
       ),
 
       // ── Card ──
@@ -166,7 +171,7 @@ class AppTheme {
       ),
 
       // ── Divider ──
-      dividerTheme: DividerThemeData(
+      dividerTheme: const DividerThemeData(
         color: AppColors.lightDivider,
         thickness: 1,
         space: 1,
@@ -301,7 +306,7 @@ class AppTheme {
       outlinedButtonTheme: OutlinedButtonThemeData(
         style: OutlinedButton.styleFrom(
           foregroundColor: colorScheme.primary,
-          side: BorderSide(color: colorScheme.primary, width: 1),
+          side: BorderSide(color: colorScheme.primary),
           padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
           minimumSize: const Size(0, 48),
           shape: RoundedRectangleBorder(
@@ -329,11 +334,11 @@ class AppTheme {
         ),
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(AppRadius.md),
-          borderSide: const BorderSide(color: AppColors.darkGrey, width: 1),
+          borderSide: const BorderSide(color: AppColors.darkGrey),
         ),
         enabledBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(AppRadius.md),
-          borderSide: const BorderSide(color: AppColors.darkGrey, width: 1),
+          borderSide: const BorderSide(color: AppColors.darkGrey),
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(AppRadius.md),
@@ -341,14 +346,14 @@ class AppTheme {
         ),
         errorBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(AppRadius.md),
-          borderSide: const BorderSide(color: AppColors.error, width: 1),
+          borderSide: const BorderSide(color: AppColors.error),
         ),
         focusedErrorBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(AppRadius.md),
           borderSide: const BorderSide(color: AppColors.error, width: 2),
         ),
-        labelStyle: TextStyle(color: AppColors.darkTextSecondary),
-        hintStyle: TextStyle(color: AppColors.darkTextSecondary),
+        labelStyle: const TextStyle(color: AppColors.darkTextSecondary),
+        hintStyle: const TextStyle(color: AppColors.darkTextSecondary),
       ),
 
       // ── Card ──
@@ -363,7 +368,7 @@ class AppTheme {
       ),
 
       // ── Divider ──
-      dividerTheme: DividerThemeData(
+      dividerTheme: const DividerThemeData(
         color: AppColors.darkDivider,
         thickness: 1,
         space: 1,
@@ -417,9 +422,9 @@ class AppTheme {
       ),
 
       // ── Bottom Sheet ──
-      bottomSheetTheme: BottomSheetThemeData(
+      bottomSheetTheme: const BottomSheetThemeData(
         backgroundColor: AppColors.darkSurface,
-        shape: const RoundedRectangleBorder(
+        shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.vertical(
             top: Radius.circular(AppRadius.lg),
           ),

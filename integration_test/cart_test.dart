@@ -19,8 +19,8 @@ import 'package:lush/get_it.dart';
 import 'package:lush/main.dart';
 
 // Gated execution
-const bool runE2E = bool.fromEnvironment('E2E', defaultValue: false);
-const String baseUrl = String.fromEnvironment('API_BASE_URL', defaultValue: '');
+const bool runE2E = bool.fromEnvironment('E2E');
+const String baseUrl = String.fromEnvironment('API_BASE_URL');
 
 // Test timeouts
 const Duration appLaunchTimeout = Duration(seconds: 30);
@@ -162,7 +162,7 @@ void main() {
         // ignore: avoid_print
         print('[FR-CART-001] Empty cart verified');
       }
-    }, semanticsEnabled: false);
+    }, semanticsEnabled: false,);
 
     // ============================================================
     // FR-CART-002: Increment/Decrement quantity
@@ -185,7 +185,7 @@ void main() {
         // ignore: avoid_print
         print('[FR-CART-002] Test structure defined (requires manual execution)');
       }
-    }, semanticsEnabled: false);
+    }, semanticsEnabled: false,);
 
     // ============================================================
     // FR-CART-003: Remove items from cart
@@ -207,7 +207,7 @@ void main() {
         // ignore: avoid_print
         print('[FR-CART-003] Test structure defined (requires manual execution)');
       }
-    }, semanticsEnabled: false);
+    }, semanticsEnabled: false,);
 
     // ============================================================
     // FR-CART-004: Show subtotal, tax, and total
@@ -250,7 +250,7 @@ void main() {
           print('[FR-CART-004] Cart screen displayed');
         }
       }
-    }, semanticsEnabled: false);
+    }, semanticsEnabled: false,);
 
     // ============================================================
     // API Tests for Cart
@@ -295,6 +295,6 @@ void main() {
         // ignore: avoid_print
         print('[Cart API] Cart checkout endpoint test completed');
       }
-    }, semanticsEnabled: false);
+    }, semanticsEnabled: false,);
   });
 }

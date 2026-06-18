@@ -65,7 +65,7 @@ class DetailedJuiceCard extends StatelessWidget {
                       children: [
                         Text(
                           juice.name.isNotEmpty ? juice.name : 'Fresh Juice',
-                          style: TextStyle(
+                          style: const TextStyle(
                             color: Colors.white,
                             fontSize: 18,
                             fontWeight: FontWeight.bold,
@@ -75,7 +75,7 @@ class DetailedJuiceCard extends StatelessWidget {
                         SizedBox(height: 4.h),
                         Text(
                           juice.description.isNotEmpty ? juice.description : 'Delicious and nutritious',
-                          style: TextStyle(
+                          style: const TextStyle(
                             color: Colors.white,
                             fontSize: 12,
                             fontFamily: AppTextStyles.fontFamily,
@@ -128,7 +128,7 @@ class DetailedJuiceCard extends StatelessWidget {
                       ),
                       child: Text(
                         tag,
-                        style: TextStyle(
+                        style: const TextStyle(
                           color: Colors.white,
                           fontSize: 10,
                           fontFamily: AppTextStyles.fontFamily,
@@ -142,7 +142,7 @@ class DetailedJuiceCard extends StatelessWidget {
 
               // Meals
               if (juice.meals.isNotEmpty) ...[
-                Text(
+                const Text(
                   'Ingredients',
                   style: TextStyle(
                     color: Colors.white,
@@ -173,7 +173,7 @@ class DetailedJuiceCard extends StatelessWidget {
                           SizedBox(width: 4.w),
                           Text(
                             meal,
-                            style: TextStyle(
+                            style: const TextStyle(
                               color: Colors.white,
                               fontSize: 10,
                               fontFamily: AppTextStyles.fontFamily,
@@ -214,7 +214,7 @@ class DetailedJuiceCard extends StatelessWidget {
             SizedBox(height: 6.h),
             Text(
               value,
-              style: TextStyle(
+              style: const TextStyle(
                 color: Colors.white,
                 fontSize: 12,
                 fontWeight: FontWeight.bold,

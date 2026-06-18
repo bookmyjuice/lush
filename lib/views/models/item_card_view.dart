@@ -54,7 +54,7 @@ class ItemCardView extends StatelessWidget {
           onPriceSelected: (selectedPrice) {
             try {
               print(
-                  'Selected price: ${selectedPrice.name} - ₹${selectedPrice.price}');
+                  'Selected price: ${selectedPrice.name} - ₹${selectedPrice.price}',);
 
               // Add to cart with the selected price
               context.read<CartBloc>().add(
@@ -62,7 +62,6 @@ class ItemCardView extends StatelessWidget {
                       CartItem(
                         item: cartItem,
                         selectedPrice: selectedPrice,
-                        quantity: 1,
                       ),
                     ),
                   );
@@ -71,7 +70,7 @@ class ItemCardView extends StatelessWidget {
               ScaffoldMessenger.of(context).showSnackBar(
                 SnackBar(
                   content: Text(
-                      '${item.name ?? item.titleTxt} (${selectedPrice.name}) added to cart!'),
+                      '${item.name ?? item.titleTxt} (${selectedPrice.name}) added to cart!',),
                   duration: const Duration(seconds: 2),
                   backgroundColor: hex.HexColor(item.endColor ?? '#FF9800'),
                   action: SnackBarAction(
@@ -193,7 +192,7 @@ class ItemCardView extends StatelessWidget {
           opacity: animation!,
           child: Transform(
             transform: Matrix4.translationValues(
-                100 * (1.0 - animation!.value), 0.0, 0.0),
+                100 * (1.0 - animation!.value), 0.0, 0.0,),
             child: LayoutBuilder(
               builder: (context, constraints) {
                 // Responsive width calculation
@@ -211,8 +210,8 @@ class ItemCardView extends StatelessWidget {
                       // Card background
                       Padding(
                         padding: const EdgeInsets.only(
-                            top: 33, left: 1, right: 1, bottom: 1),
-                        child: Container(
+                            top: 33, left: 1, right: 1, bottom: 1,),
+                        child: DecoratedBox(
                           decoration: BoxDecoration(
                             boxShadow: <BoxShadow>[
                               BoxShadow(
@@ -239,10 +238,9 @@ class ItemCardView extends StatelessWidget {
                           ),
                           child: Padding(
                             padding: const EdgeInsets.only(
-                                top: 44, left: 8, right: 8, bottom: 8),
+                                top: 44, left: 8, right: 8, bottom: 8,),
                             child: Column(
                               mainAxisSize: MainAxisSize.min,
-                              mainAxisAlignment: MainAxisAlignment.start,
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: <Widget>[
                                 // Item name with ellipsis for overflow
@@ -263,13 +261,13 @@ class ItemCardView extends StatelessWidget {
                                 // Item type badge
                                 Container(
                                   padding: const EdgeInsets.symmetric(
-                                      horizontal: 6, vertical: 2),
+                                      horizontal: 6, vertical: 2,),
                                   decoration: BoxDecoration(
                                     color: Colors.white.withValues(alpha: 0.2),
                                     borderRadius: BorderRadius.circular(10),
                                   ),
                                   child: Text(
-                                    "Size: ${item.servingSize}",
+                                    'Size: ${item.servingSize}',
                                     style: const TextStyle(
                                       fontSize: 9,
                                       fontWeight: FontWeight.w500,
@@ -311,11 +309,11 @@ class ItemCardView extends StatelessWidget {
                                     ),
                                     style: ElevatedButton.styleFrom(
                                       backgroundColor: hex.HexColor(
-                                              item.endColor ?? '#FF9800')
+                                              item.endColor ?? '#FF9800',)
                                           .withValues(alpha: 0.8),
                                       elevation: 0,
                                       padding: const EdgeInsets.symmetric(
-                                          horizontal: 4, vertical: 2),
+                                          horizontal: 4, vertical: 2,),
                                       minimumSize: const Size(0, 28),
                                       shape: RoundedRectangleBorder(
                                         borderRadius: BorderRadius.circular(12),
@@ -377,7 +375,7 @@ class ItemCardView extends StatelessWidget {
                                       Icons.local_drink_outlined,
                                       size: 36,
                                       color: hex.HexColor(
-                                          item.endColor ?? '#FF9800'),
+                                          item.endColor ?? '#FF9800',),
                                     ),
                                   );
                                 }
@@ -392,7 +390,7 @@ class ItemCardView extends StatelessWidget {
                                           Icons.local_drink_outlined,
                                           size: 36,
                                           color: hex.HexColor(
-                                              item.endColor ?? '#FF9800'),
+                                              item.endColor ?? '#FF9800',),
                                         ),
                                       );
                                     },
@@ -407,7 +405,7 @@ class ItemCardView extends StatelessWidget {
                                           Icons.local_drink_outlined,
                                           size: 36,
                                           color: hex.HexColor(
-                                              item.endColor ?? '#FF9800'),
+                                              item.endColor ?? '#FF9800',),
                                         ),
                                       );
                                     },
@@ -419,7 +417,7 @@ class ItemCardView extends StatelessWidget {
                                     Icons.local_drink_outlined,
                                     size: 36,
                                     color: hex.HexColor(
-                                        item.endColor ?? '#FF9800'),
+                                        item.endColor ?? '#FF9800',),
                                   ),
                                 );
                               }

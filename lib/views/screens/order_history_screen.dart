@@ -68,12 +68,12 @@ class _OrderHistoryScreenState extends State<OrderHistoryScreen> {
 
   String _formatCurrency(dynamic amount) {
     try {
-      if (amount == null) return '\$0.00';
+      if (amount == null) return r'$0.00';
       final num value = amount is num ? amount : double.parse(amount.toString());
       final double amountValue = value is int ? value / 100.0 : value.toDouble();
       return '\$${amountValue.toStringAsFixed(2)}';
     } catch (e) {
-      return '\$0.00';
+      return r'$0.00';
     }
   }
 
@@ -106,7 +106,7 @@ class _OrderHistoryScreenState extends State<OrderHistoryScreen> {
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                       Icon(Icons.error_outline,
-                          size: 64, color: Colors.red[300]),
+                          size: 64, color: Colors.red[300],),
                       const SizedBox(height: 16),
                       Text('Error: $_error'),
                       const SizedBox(height: 16),
@@ -123,7 +123,7 @@ class _OrderHistoryScreenState extends State<OrderHistoryScreen> {
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
                           Icon(Icons.receipt_long,
-                              size: 64, color: Colors.grey[400]),
+                              size: 64, color: Colors.grey[400],),
                           const SizedBox(height: 16),
                           const Text(
                             'No orders found',
@@ -148,7 +148,7 @@ class _OrderHistoryScreenState extends State<OrderHistoryScreen> {
 
   Widget _buildOrderCard(Map<String, dynamic> order) {
     final String orderId = (order['id'] ?? 'Unknown').toString();
-    final String status = (order['status']?.toString().toUpperCase() ?? 'UNKNOWN');
+    final String status = order['status']?.toString().toUpperCase() ?? 'UNKNOWN';
     final String total = _formatCurrency(order['total']);
     final String amountPaid = _formatCurrency(order['amountPaid']);
     final String createdAt = _formatDate(order['createdAt']);
@@ -404,18 +404,18 @@ class _OrderDetailsDialog extends StatelessWidget {
               children: [
                 _buildDetailRow('Status', order['status'].toString()),
                 _buildDetailRow(
-                    'Total', '\$${(((order['total'] as num?)?.toDouble() ?? 0.0) / 100).toStringAsFixed(2)}'),
+                    'Total', '\$${(((order['total'] as num?)?.toDouble() ?? 0.0) / 100).toStringAsFixed(2)}',),
                 _buildDetailRow('Amount Paid',
-                    '\$${(((order['amountPaid'] as num?)?.toDouble() ?? 0.0) / 100).toStringAsFixed(2)}'),
+                    '\$${(((order['amountPaid'] as num?)?.toDouble() ?? 0.0) / 100).toStringAsFixed(2)}',),
                 if (order['customerId'] != null)
                   _buildDetailRow(
-                      'Customer ID', order['customerId'].toString()),
+                      'Customer ID', order['customerId'].toString(),),
                 if (order['createdAt'] != null)
                   _buildDetailRow(
                     'Created',
                     DateFormat('MMM dd, yyyy HH:mm').format(
                       DateTime.fromMillisecondsSinceEpoch(
-                          (order['createdAt'] as num).toInt() * 1000),
+                          (order['createdAt'] as num).toInt() * 1000,),
                     ),
                   ),
               ],

@@ -25,19 +25,19 @@ User createTestUser() {
   return User(id: 'test-user-id', email: 'test@example.com', phone: '9876543210',
     role: 'user', firstName: 'Test', lastName: 'User', password: 'password',
     address: '123 Test St', city: 'Mumbai', country: 'IN',
-    extendedAddr: '', extendedAddr2: '', state: 'Maharashtra', zip: '400001');
+    extendedAddr: '', extendedAddr2: '', state: 'Maharashtra', zip: '400001',);
 }
 
 SubscriptionPlanCatalog buildTestCatalog({String itemId = 'bmj-delight-200ml',
   String name = 'Delight 200ml', String family = 'delight', String size = '200ml',
   String planType = 'generic', String? defaultJuice, int weeklyPricePaise = 69900,
-  int monthlyPricePaise = 249900}) {
+  int monthlyPricePaise = 249900,}) {
   return SubscriptionPlanCatalog(itemId: itemId, name: name, family: family, size: size,
     planType: planType, defaultJuice: defaultJuice, metadata: {'size': size, 'plan_type': planType, if (defaultJuice != null) 'default_juice': defaultJuice},
     prices: [
-      SubscriptionPriceOption(itemPriceId: '${itemId}-weekly', period: 'weekly', priceInPaise: weeklyPricePaise, bottleCount: 6),
-      SubscriptionPriceOption(itemPriceId: '${itemId}-monthly', period: 'monthly', priceInPaise: monthlyPricePaise, bottleCount: 24),
-    ]);
+      SubscriptionPriceOption(itemPriceId: '$itemId-weekly', period: 'weekly', priceInPaise: weeklyPricePaise, bottleCount: 6),
+      SubscriptionPriceOption(itemPriceId: '$itemId-monthly', period: 'monthly', priceInPaise: monthlyPricePaise, bottleCount: 24),
+    ],);
 }
 
 void setLargeViewport(WidgetTester tester) {
@@ -49,7 +49,7 @@ Widget buildTestApp(Widget child, SubscriptionBloc bloc) {
   return ScreenUtilInit(designSize: const Size(375, 812), minTextAdapt: true,
     builder: (_, __) => MaterialApp(
       home: BlocProvider<SubscriptionBloc>.value(value: bloc, child: child),
-    ));
+    ),);
 }
 
 void main() {
@@ -57,7 +57,7 @@ void main() {
   late MockUserRepository mockUserRepo;
   late SubscriptionBloc bloc;
 
-  setUpAll(() => TestWidgetsFlutterBinding.ensureInitialized());
+  setUpAll(TestWidgetsFlutterBinding.ensureInitialized);
 
   setUp(() {
     mockService = MockSubscriptionService();
@@ -84,10 +84,10 @@ void main() {
     testWidgets('shows family cards with CatalogLoaded', (tester) async {
       setLargeViewport(tester);
       bloc.emit(SubscriptionCatalogLoaded(plans: [
-        buildTestCatalog(itemId: 'bmj-delight-200ml', family: 'delight'),
+        buildTestCatalog(),
         buildTestCatalog(itemId: 'bmj-signature-200ml', family: 'signature'),
         buildTestCatalog(itemId: 'bmj-premium-200ml', family: 'premium'),
-      ]));
+      ],),);
       await tester.pumpWidget(buildTestApp(const SubscriptionFamilyScreen(), bloc));
       await tester.pumpAndSettle();
       expect(find.text('DELIGHT'), findsOneWidget);
@@ -108,10 +108,10 @@ void main() {
     testWidgets('shows size cards for generic plans', (tester) async {
       setLargeViewport(tester);
       bloc.emit(SubscriptionCatalogLoaded(plans: [
-        buildTestCatalog(itemId: 'bmj-delight-200ml', family: 'delight', size: '200ml'),
-        buildTestCatalog(itemId: 'bmj-delight-300ml', family: 'delight', size: '300ml'),
-        buildTestCatalog(itemId: 'bmj-delight-500ml', family: 'delight', size: '500ml'),
-      ]));
+        buildTestCatalog(),
+        buildTestCatalog(itemId: 'bmj-delight-300ml', size: '300ml'),
+        buildTestCatalog(itemId: 'bmj-delight-500ml', size: '500ml'),
+      ],),);
       await tester.pumpWidget(buildTestApp(const SubscriptionPlanScreen(family: 'delight'), bloc));
       await tester.pumpAndSettle();
       expect(find.text('Choose a Plan'), findsOneWidget);
@@ -123,10 +123,9 @@ void main() {
     testWidgets('shows juice cards in Section B', (tester) async {
       setLargeViewport(tester);
       bloc.emit(SubscriptionCatalogLoaded(plans: [
-        buildTestCatalog(itemId: 'bmj-delight-200ml', family: 'delight', size: '200ml'),
-        buildTestCatalog(itemId: 'bmj-delight-mix-punch', name: 'mix-punch', family: 'delight',
-          size: '200ml', planType: 'juice_specific', defaultJuice: 'mix-punch'),
-      ]));
+        buildTestCatalog(),
+        buildTestCatalog(itemId: 'bmj-delight-mix-punch', name: 'mix-punch', planType: 'juice_specific', defaultJuice: 'mix-punch',),
+      ],),);
       await tester.pumpWidget(buildTestApp(const SubscriptionPlanScreen(family: 'delight'), bloc));
       await tester.pumpAndSettle();
       expect(find.text('Start with a Favourite'), findsOneWidget);
@@ -136,9 +135,8 @@ void main() {
     testWidgets('duration toggle changes displayed price', (tester) async {
       setLargeViewport(tester);
       bloc.emit(SubscriptionCatalogLoaded(plans: [
-        buildTestCatalog(itemId: 'bmj-delight-200ml', family: 'delight', size: '200ml',
-          weeklyPricePaise: 69900, monthlyPricePaise: 249900),
-      ]));
+        buildTestCatalog(),
+      ],),);
       await tester.pumpWidget(buildTestApp(const SubscriptionPlanScreen(family: 'delight'), bloc));
       await tester.pumpAndSettle();
       expect(find.text('₹699/week'), findsOneWidget);
@@ -149,12 +147,12 @@ void main() {
   });
 
   group('SubscriptionScheduleScreen', () {
-    final emptySel = SubscriptionSelection(itemId: 'bmj-d-200ml', itemPriceId: 'bmj-d-200ml-w',
-      family: 'delight', size: '200ml', period: 'weekly', priceInPaise: 69900, daySchedule: {});
+    const emptySel = SubscriptionSelection(itemId: 'bmj-d-200ml', itemPriceId: 'bmj-d-200ml-w',
+      family: 'delight', size: '200ml', period: 'weekly', priceInPaise: 69900, daySchedule: {},);
 
     testWidgets('shows 6 day rows, no Sunday', (tester) async {
       setLargeViewport(tester);
-      await tester.pumpWidget(buildTestApp(SubscriptionScheduleScreen(selection: emptySel), bloc));
+      await tester.pumpWidget(buildTestApp(const SubscriptionScheduleScreen(selection: emptySel), bloc));
       await tester.pumpAndSettle();
       expect(find.text('Monday'), findsOneWidget);
       expect(find.text('Tuesday'), findsOneWidget);
@@ -167,7 +165,7 @@ void main() {
 
     testWidgets('Same Everyday checked by default', (tester) async {
       setLargeViewport(tester);
-      await tester.pumpWidget(buildTestApp(SubscriptionScheduleScreen(selection: emptySel), bloc));
+      await tester.pumpWidget(buildTestApp(const SubscriptionScheduleScreen(selection: emptySel), bloc));
       await tester.pumpAndSettle();
       expect(find.text('Same Everyday'), findsOneWidget);
       final cb = tester.widget<CheckboxListTile>(find.byType(CheckboxListTile).first);
@@ -176,10 +174,10 @@ void main() {
 
     testWidgets('CTA disabled when incomplete', (tester) async {
       setLargeViewport(tester);
-      await tester.pumpWidget(buildTestApp(SubscriptionScheduleScreen(selection: emptySel), bloc));
+      await tester.pumpWidget(buildTestApp(const SubscriptionScheduleScreen(selection: emptySel), bloc));
       await tester.pumpAndSettle();
       final btn = tester.widget<ElevatedButton>(
-          find.widgetWithText(ElevatedButton, 'Review Order').last);
+          find.widgetWithText(ElevatedButton, 'Review Order').last,);
       expect(btn.onPressed, isNull);
     });
 
@@ -187,36 +185,36 @@ void main() {
       setLargeViewport(tester);
       final filled = emptySel.copyWith(daySchedule: {
         'monday': 'mix-punch', 'tuesday': 'carrot-juice', 'wednesday': 'mix-punch',
-        'thursday': 'carrot-juice', 'friday': 'mix-punch', 'saturday': 'carrot-juice'});
+        'thursday': 'carrot-juice', 'friday': 'mix-punch', 'saturday': 'carrot-juice',},);
       await tester.pumpWidget(buildTestApp(SubscriptionScheduleScreen(selection: filled), bloc));
       await tester.pumpAndSettle();
       final btn = tester.widget<ElevatedButton>(
-          find.widgetWithText(ElevatedButton, 'Review Order').last);
+          find.widgetWithText(ElevatedButton, 'Review Order').last,);
       expect(btn.onPressed, isNotNull);
     });
 
     testWidgets('juice_specific: dropdowns pre-filled', (tester) async {
       setLargeViewport(tester);
-      final juiceSel = SubscriptionSelection(itemId: 'bmj-d-mix', itemPriceId: 'bmj-d-mix-w',
+      const juiceSel = SubscriptionSelection(itemId: 'bmj-d-mix', itemPriceId: 'bmj-d-mix-w',
         family: 'delight', size: '200ml', period: 'weekly', priceInPaise: 79900,
         defaultJuice: 'mix-punch', daySchedule: {
           'monday': 'mix-punch', 'tuesday': 'mix-punch', 'wednesday': 'mix-punch',
-          'thursday': 'mix-punch', 'friday': 'mix-punch', 'saturday': 'mix-punch'});
-      await tester.pumpWidget(buildTestApp(SubscriptionScheduleScreen(selection: juiceSel), bloc));
+          'thursday': 'mix-punch', 'friday': 'mix-punch', 'saturday': 'mix-punch',},);
+      await tester.pumpWidget(buildTestApp(const SubscriptionScheduleScreen(selection: juiceSel), bloc));
       await tester.pumpAndSettle();
       expect(find.text('Mix Punch'), findsWidgets);
     });
   });
 
   group('SubscriptionSummaryScreen', () {
-    final summary = SubscriptionSelection(itemId: 'bmj-d-200ml', itemPriceId: 'bmj-d-200ml-w',
+    const summary = SubscriptionSelection(itemId: 'bmj-d-200ml', itemPriceId: 'bmj-d-200ml-w',
       family: 'delight', size: '200ml', period: 'weekly', priceInPaise: 69900, daySchedule: {
         'monday': 'mix-punch', 'tuesday': 'carrot-juice', 'wednesday': 'mix-punch',
-        'thursday': 'carrot-juice', 'friday': 'mix-punch', 'saturday': 'carrot-juice'});
+        'thursday': 'carrot-juice', 'friday': 'mix-punch', 'saturday': 'carrot-juice',},);
 
     testWidgets('displays plan info', (tester) async {
       setLargeViewport(tester);
-      await tester.pumpWidget(buildTestApp(SubscriptionSummaryScreen(selection: summary), bloc));
+      await tester.pumpWidget(buildTestApp(const SubscriptionSummaryScreen(selection: summary), bloc));
       await tester.pumpAndSettle();
       expect(find.text('DELIGHT 200ml'), findsOneWidget);
       expect(find.text('WEEKLY'), findsOneWidget);
@@ -225,7 +223,7 @@ void main() {
 
     testWidgets('Sunday = no delivery', (tester) async {
       setLargeViewport(tester);
-      await tester.pumpWidget(buildTestApp(SubscriptionSummaryScreen(selection: summary), bloc));
+      await tester.pumpWidget(buildTestApp(const SubscriptionSummaryScreen(selection: summary), bloc));
       await tester.pumpAndSettle();
       expect(find.text('Sunday'), findsOneWidget);
       expect(find.text('No delivery'), findsOneWidget);
@@ -233,7 +231,7 @@ void main() {
 
     testWidgets('Start Subscription CTA visible', (tester) async {
       setLargeViewport(tester);
-      await tester.pumpWidget(buildTestApp(SubscriptionSummaryScreen(selection: summary), bloc));
+      await tester.pumpWidget(buildTestApp(const SubscriptionSummaryScreen(selection: summary), bloc));
       await tester.pumpAndSettle();
       expect(find.text('Start Subscription'), findsOneWidget);
     });

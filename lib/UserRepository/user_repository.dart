@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:flutter/foundation.dart';
+import 'package:http/http.dart' as http;
 import 'package:http/io_client.dart';
 import 'package:lush/config/api_config.dart';
 import 'package:lush/services/secure_storage_service.dart';
@@ -13,8 +14,7 @@ import '../views/models/user.dart';
 class UserRepository {
   String? server = ApiConfig.baseUrl;
   bool userLoggedIn = false;
-  User user =
-      User.blank('', '', '', '', '', '', '', '', '', '', '', '', '', '','');
+  User user = User.blank();
 
   final Future<SharedPreferences> _prefs = SharedPreferences.getInstance();
   final SecureStorageService _secureStorage = SecureStorageService();
@@ -326,6 +326,8 @@ class UserRepository {
     return autoLogin();
   }
 
+  /// FIX: BUG-AUTH-002 — Propagate SocketException so the BLoC can emit AuthError
+  /// instead of swallowing network errors as generic `false`.
   Future<bool> login(String username_, String pwd, bool remember) async {
     ioc.badCertificateCallback =
         (X509Certificate cert, String host, int port) => true;
@@ -350,7 +352,11 @@ class UserRepository {
       } else {
         return false;
       }
+    } on SocketException {
+      // Re-throw so the BLoC can catch this and emit AuthError
+      rethrow;
     } catch (e) {
+      debugPrint('❌ BUG-AUTH-002: login() caught non-SocketException: $e');
       return false;
     }
   }
@@ -451,18 +457,19 @@ class UserRepository {
         user.setPassword = password;
         user.setId = email;
 
-        // Persist credentials for auto-login
-
-        // Try to auto-login to get JWT token using phone as username
-        final loginSuccess = await login(phone, password, false);
-
-        if (loginSuccess) {
-          debugPrint('🎉 Google user registered and auto-logged in: $email');
-          return message;
-        } else {
-          debugPrint('⚠️ Google user registered but auto-login failed');
-          return message;
+        // FIX: BUG-AUTH-004 — Try auto-login, but DON'T fail signup if network is down
+        try {
+          final loginSuccess = await login(phone, password, false);
+          if (loginSuccess) {
+            debugPrint('🎉 Google user registered and auto-logged in: $email');
+          } else {
+            debugPrint('⚠️ Google user registered but auto-login returned false');
+          }
+        } on SocketException catch (_) {
+          debugPrint('⚠️ BUG-AUTH-004 (Google): Auto-login failed (network) but signup succeeded');
         }
+
+        return message;
       } else if (response.statusCode == 400) {
         final errorBody = json.decode(body);
         final errorMsg = errorBody['message'] ?? 'Invalid request';
@@ -475,6 +482,9 @@ class UserRepository {
     }
   }
 
+  /// FIX: BUG-AUTH-004 — Auto-login after signup may fail due to network.
+  /// The signup itself succeeded on the server; return success even if auto-login fails.
+  /// The user will see a success toast and can manually log in.
   Future<String> signUp() async {
     // Validate required fields
     if (user.getPhone.isEmpty) {
@@ -547,19 +557,21 @@ class UserRepository {
         // Set user ID from server response or generate from email
         user.setId = user.getEmail;
 
-        // Persist credentials for auto-login
-
-        // Try to auto-login to get JWT token using phone as username
-        final loginSuccess =
-            await login(user.getPhone, user.getPassword, false);
-
-        if (loginSuccess) {
-          debugPrint('🎉 User registered and auto-logged in: ${user.getEmail}');
-          return message;
-        } else {
-          debugPrint('⚠️ User registered but auto-login failed');
-          return message; // Signup was successful even if auto-login failed
+        // FIX: BUG-AUTH-004 — Try auto-login, but DON'T fail signup if network is down
+        try {
+          final loginSuccess = await login(user.getPhone, user.getPassword, false);
+          if (loginSuccess) {
+            debugPrint('🎉 User registered and auto-logged in: ${user.getEmail}');
+          } else {
+            debugPrint('⚠️ User registered but auto-login returned false');
+          }
+        } on SocketException catch (_) {
+          // Signup succeeded on server; network blip for auto-login is non-fatal
+          debugPrint('⚠️ BUG-AUTH-004: Auto-login failed (network) but signup succeeded');
         }
+
+        // ✅ Signup was successful regardless of auto-login outcome
+        return message;
       } else if (response.statusCode == 400) {
         final errorBody = json.decode(body);
         final errorMsg = errorBody['message'] ?? 'Invalid request';
@@ -832,8 +844,11 @@ class UserRepository {
 
   Future<Object?> googleSignIn() async {
     try {
+      // CORRECT:
+      // final googleSignInAccount = await GoogleSignInHelper.instance.signIn();
+      // final googleAuth = await googleSignInAccount.authentication; // await THIS
       // Step 1: Show Google account picker and get account
-      final googleAccount = await GoogleSignInHelper.instance.signIn();
+      final googleAccount = await GoogleSignInHelper.instance.signIn().then((credential) => credential);
 
       if (googleAccount == null) {
         return 'Google Sign-In cancelled: No account selected';
@@ -857,6 +872,7 @@ class UserRepository {
       user.setEmail = currentUser.email;
 
       // Step 2: Try to login via backend (user may already exist)
+      // FIX: BUG-001 — Distinguish SocketException from "user not found"
       try {
         final linkResult = await _loginWithGoogle(currentUser.id, currentUser.email, currentUser.photoUrl);
         if (linkResult != null) {
@@ -876,12 +892,32 @@ class UserRepository {
             };
           }
         }
+      } on SocketException catch (e) {
+        // FIX: BUG-001 — Network error, NOT "user not found"
+        debugPrint('❌ BUG-001: Google Sign-In network error (SocketException): $e');
+        return {
+          'type': 'network_error',
+          'error': 'Cannot connect to server. Please check your network connection.\nServer: ${e.address?.address}:${e.port}',
+        };
+      } on http.ClientException catch (e) {
+        debugPrint('❌ Google Sign-In network error (ClientException): $e');
+        return {
+          'type': 'network_error',
+          'error': 'Connection error: ${e.message}',
+        };
       } catch (e) {
-        debugPrint('ℹ️ Google user not found, starting signup flow');
+        debugPrint('ℹ️ Google user not found via backend, starting signup flow: $e');
       }
 
       // Step 3: Return user data for signup flow
       return {'type': 'signup_required', 'user': user, 'googleId': currentUser.id, 'photoUrl': currentUser.photoUrl};
+    } on SocketException catch (e) {
+      // FIX: BUG-001 — Also catch outer-level network errors
+      debugPrint('❌ BUG-001: Google Sign-In outer SocketException: $e');
+      return {
+        'type': 'network_error',
+        'error': 'Cannot connect to server. Please check your network connection.\nServer: ${e.address?.address}:${e.port}',
+      };
     } catch (error) {
       debugPrint('❌ Google Sign-In Error: $error');
       return 'Google Sign-In failed: $error';

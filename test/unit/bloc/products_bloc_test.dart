@@ -1,5 +1,4 @@
 import 'package:bloc_test/bloc_test.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:lush/bloc/ProductsBloc/products_bloc.dart';
 import 'package:lush/repositories/products_repository.dart';
@@ -40,7 +39,7 @@ class FakeProductsRepository implements ProductsRepository {
     if (_shouldThrow) throw Exception('Search error');
     return _products
         .where((p) =>
-            (p['name'] as String).toLowerCase().contains(query.toLowerCase()))
+            (p['name'] as String).toLowerCase().contains(query.toLowerCase()),)
         .toList();
   }
 
@@ -91,10 +90,10 @@ void main() {
     SharedPreferences.setMockInitialValues({});
 
     sampleProducts = [
-      _sampleProductJson(id: 'juice_001', name: 'Watermelon', family: 'juice', isFeatured: true),
-      _sampleProductJson(id: 'juice_002', name: 'Green Detox', family: 'detox', isFeatured: false),
+      _sampleProductJson(isFeatured: true),
+      _sampleProductJson(id: 'juice_002', name: 'Green Detox', family: 'detox'),
       _sampleProductJson(id: 'smoothie_001', name: 'Mango Smoothie', family: 'smoothie', isFeatured: true),
-      _sampleProductJson(id: 'juice_003', name: 'ABC Juice', family: 'juice', isFeatured: false),
+      _sampleProductJson(id: 'juice_003', name: 'ABC Juice'),
     ];
     fakeRepo = FakeProductsRepository(sampleProducts);
   });
@@ -107,18 +106,22 @@ void main() {
       expect: () => [
         isA<ProductsLoading>(),
         isA<ProductsLoaded>().having(
-          (s) => (s as ProductsLoaded).products.length, 'product count', 4),
+          (s) => s.products.length, 'product count', 4,),
       ],
     );
   });
 
   group('LoadProducts API failure', () {
     blocTest<ProductsBloc, ProductsState>(
-      'falls back to legacy items on API failure',
+      'emits [ProductsLoading, ProductsError] when API fails and cache is empty',
       build: () =>
           ProductsBloc(repository: FakeProductsRepository([], shouldThrow: true)),
       act: (bloc) => bloc.add(const LoadProducts()),
-      expect: () => [isA<ProductsLoading>(), isA<ProductsState>()],
+      expect: () => [isA<ProductsLoading>(), isA<ProductsError>()],
+      verify: (bloc) {
+        final state = bloc.state as ProductsError;
+        expect(state.message, contains('Failed to load products'));
+      },
     );
   });
 
@@ -130,7 +133,7 @@ void main() {
       expect: () => [
         isA<ProductsLoading>(),
         isA<ProductsLoaded>().having(
-          (s) => (s as ProductsLoaded).products.length, 'filtered count', 2),
+          (s) => s.products.length, 'filtered count', 2,),
       ],
     );
 
@@ -150,7 +153,7 @@ void main() {
       expect: () => [
         isA<ProductsLoading>(),
         isA<ProductsSearchResults>().having(
-          (s) => (s as ProductsSearchResults).products.length, 'result count', 1),
+          (s) => s.products.length, 'result count', 1,),
       ],
     );
   });
@@ -163,7 +166,7 @@ void main() {
       expect: () => [
         isA<ProductsLoading>(),
         isA<ProductDetailsLoaded>()
-            .having((s) => (s as ProductDetailsLoaded).product.id, 'id', 'juice_001'),
+            .having((s) => s.product.id, 'id', 'juice_001'),
       ],
     );
 
@@ -179,12 +182,12 @@ void main() {
     blocTest<ProductsBloc, ProductsState>(
       'emits [Loading, Loaded(fresh)] on refresh',
       build: () => ProductsBloc(repository: fakeRepo),
-      seed: () => ProductsLoaded(products: []),
+      seed: () => const ProductsLoaded(products: []),
       act: (bloc) => bloc.add(const RefreshProducts()),
       expect: () => [
         isA<ProductsLoading>(),
         isA<ProductsLoaded>().having(
-          (s) => (s as ProductsLoaded).products.length, 'fresh count', 4),
+          (s) => s.products.length, 'fresh count', 4,),
       ],
     );
   });
@@ -213,7 +216,7 @@ void main() {
     });
 
     test('handles missing fields with defaults', () {
-      final product = Product.fromServerJson({'id': 'test_1', 'name': 'Test'});
+      final product = Product.fromServerJson(const {'id': 'test_1', 'name': 'Test'});
       expect(product.id, 'test_1');
       expect(product.name, 'Test');
       expect(product.family, 'juice');
@@ -226,7 +229,7 @@ void main() {
 
   group('ProductPrice fromJson', () {
     test('parses all fields correctly', () {
-      final price = ProductPrice.fromJson({
+      final price = ProductPrice.fromJson(const {
         'itemPriceId': 'price_001',
         'currencyCode': 'INR',
         'unitAmount': 199.0,

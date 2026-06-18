@@ -37,15 +37,12 @@ class FirebaseNotificationService {
     try {
       // 1. Request notification permission (Android 13+)
       final NotificationSettings settings = await _messaging.requestPermission(
-        alert: true,
-        badge: true,
-        sound: true,
-        provisional: false,
+        
       );
 
       if (kDebugMode) {
         debugPrint(
-            '📬 FCM permission: ${settings.authorizationStatus}');
+            '📬 FCM permission: ${settings.authorizationStatus}',);
       }
 
       // 2. Get the FCM token
@@ -59,7 +56,7 @@ class FirebaseNotificationService {
         _fcmToken = newToken;
         if (kDebugMode) {
           debugPrint(
-              '📬 FCM token refreshed: ${newToken.substring(0, 20)}...');
+              '📬 FCM token refreshed: ${newToken.substring(0, 20)}...',);
         }
         // Upload new token to bmjServer when authenticated
         uploadTokenToServer(null);  // null = use cached auth token
@@ -152,7 +149,7 @@ class FirebaseNotificationService {
       }
 
       // Get base URL from user repository configuration
-      final baseUrl = const String.fromEnvironment(
+      const baseUrl = String.fromEnvironment(
         'API_BASE_URL',
         defaultValue: 'http://10.0.2.2:8080',
       );

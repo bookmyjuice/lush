@@ -33,13 +33,13 @@ class SubscriptionPlanCard extends StatelessWidget {
           opacity: animation!,
           child: Transform(
             transform: Matrix4.translationValues(
-                0.0, 50 * (1.0 - animation!.value), 0.0),
+                0.0, 50 * (1.0 - animation!.value), 0.0,),
             child: Card(
               elevation: 4,
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(16),
               ),
-              child: Container(
+              child: DecoratedBox(
                 decoration: BoxDecoration(
                   gradient: LinearGradient(
                       colors: [
@@ -95,7 +95,7 @@ class SubscriptionPlanCard extends StatelessWidget {
                     // Features list
                     Container(
                       padding: const EdgeInsets.symmetric(
-                          horizontal: 16, vertical: 8),
+                          horizontal: 16, vertical: 8,),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: ((plan['features'] as List<dynamic>?)
@@ -106,7 +106,7 @@ class SubscriptionPlanCard extends StatelessWidget {
                                   child: Row(
                                     children: [
                                       const Icon(Icons.check_circle,
-                                          color: Colors.white, size: 16),
+                                          color: Colors.white, size: 16,),
                                       const SizedBox(width: 8),
                                       Expanded(
                                         child: Text(
@@ -120,7 +120,7 @@ class SubscriptionPlanCard extends StatelessWidget {
                                       ),
                                     ],
                                   ),
-                                ))
+                                ),)
                             .toList(),
                       ),
                     ),

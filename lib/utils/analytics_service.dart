@@ -26,7 +26,7 @@ class AnalyticsService {
   static Future<void> logSignup({String? referralUsed}) async {
     await _analytics.logEvent(name: 'signup', parameters: {
       'referral_used': referralUsed != null ? 'yes' : 'no',
-    });
+    },);
   }
 
   static Future<void> logItemViewed({
@@ -60,7 +60,7 @@ class AnalyticsService {
     await _analytics.logEvent(name: 'subscription_started', parameters: {
       'plan_id': planId,
       'value': value,
-    });
+    },);
   }
 
   static Future<void> logSubscriptionPaused(String planId) async {
@@ -74,7 +74,7 @@ class AnalyticsService {
     await _analytics.logEvent(name: 'subscription_cancelled', parameters: {
       'plan_id': planId,
       'reason': reason,
-    });
+    },);
   }
 
   static Future<void> logOrderPlaced({
@@ -84,7 +84,7 @@ class AnalyticsService {
     await _analytics.logEvent(name: 'order_placed', parameters: {
       'value': value,
       'item_count': itemCount,
-    });
+    },);
   }
 
   static Future<void> logReorderTapped(String orderId) async {

@@ -20,7 +20,7 @@ Widget buildTestApp(User user, {Map<String, WidgetBuilder>? routes}) {
   when(mockAuthBloc.stream).thenAnswer((_) => streamController.stream);
   when(mockAuthBloc.close()).thenAnswer((_) async { await streamController.close(); });
   when(mockAuthBloc.isClosed).thenAnswer((_) => false);
-  addTearDown(() { streamController.close(); });
+  addTearDown(streamController.close);
   return ToastificationWrapper(
     child: MultiBlocProvider(
       providers: [
@@ -46,7 +46,7 @@ void main() {
     User createTestUser({String email = '', String firstName = '', String lastName = '', String phone = ''}) {
       return User(id: 'test-id', email: email, phone: phone, role: 'user',
         firstName: firstName, lastName: lastName, password: '',
-        address: '', city: '', country: '', extendedAddr: '', extendedAddr2: '', state: '', zip: '');
+        address: '', city: '', country: '', extendedAddr: '', extendedAddr2: '', state: '', zip: '',);
     }
 
     testWidgets('TC-AUTH-002: Email field validation', (tester) async {
@@ -188,7 +188,7 @@ void main() {
     testWidgets('AppTextField widgets are used', (tester) async {
       await tester.pumpWidget(buildTestApp(createTestUser()));
       await tester.pumpAndSettle();
-      expect(find.byType(TextFormField), findsNWidgets(6));
+      expect(find.byType(TextFormField), findsNWidgets(7));
     });
   });
 }

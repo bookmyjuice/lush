@@ -1,6 +1,7 @@
 import 'package:get_it/get_it.dart';
 import 'package:lush/CartRepository/cart_repository.dart';
 import 'package:lush/UserRepository/user_repository.dart';
+import 'package:lush/repositories/referral_repository.dart';
 import 'package:lush/services/bottle_service.dart';
 import 'package:lush/services/item_service.dart';
 import 'package:lush/services/subscription_service.dart';
@@ -19,6 +20,11 @@ void registerRepositories() {
   if (!getIt.isRegistered<UserRepository>()) {
     getIt.registerLazySingleton<UserRepository>(
       UserRepository.new,
+    );
+  }
+  if (!getIt.isRegistered<ReferralRepository>()) {
+    getIt.registerLazySingleton<ReferralRepository>(
+      ReferralRepository.new,
     );
   }
   if (!getIt.isRegistered<ItemService>()) {

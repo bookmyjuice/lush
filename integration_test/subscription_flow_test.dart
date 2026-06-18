@@ -57,7 +57,7 @@ Widget buildApp(SubscriptionBloc bloc) {
       routes: {
         '/subscription-family': (_) => BlocProvider<SubscriptionBloc>.value(
             value: bloc,
-            child: const SubscriptionFamilyScreen()),
+            child: const SubscriptionFamilyScreen(),),
         '/dashboard': (_) => const Scaffold(body: Center(child: Text('Dashboard'))),
       },
     ),
@@ -69,7 +69,7 @@ void main() {
   late MockUserRepository mockUserRepo;
   late SubscriptionBloc bloc;
 
-  setUpAll(() => TestWidgetsFlutterBinding.ensureInitialized());
+  setUpAll(TestWidgetsFlutterBinding.ensureInitialized);
 
   setUp(() {
     mockService = MockSubscriptionService();
@@ -94,12 +94,12 @@ void main() {
 
       // Mock getSubscriptionPlans to return 3 families
       when(() => mockService.getSubscriptionPlans()).thenAnswer((_) async => [
-        buildPlanMap(itemId: 'bmj-delight-200ml', family: 'delight', size: '200ml'),
-        buildPlanMap(itemId: 'bmj-delight-300ml', family: 'delight', size: '300ml'),
-        buildPlanMap(itemId: 'bmj-delight-500ml', family: 'delight', size: '500ml'),
-        buildPlanMap(itemId: 'bmj-signature-200ml', family: 'signature', size: '200ml'),
-        buildPlanMap(itemId: 'bmj-premium-200ml', family: 'premium', size: '200ml'),
-      ]);
+        buildPlanMap(itemId: 'bmj-delight-200ml'),
+        buildPlanMap(itemId: 'bmj-delight-300ml', size: '300ml'),
+        buildPlanMap(itemId: 'bmj-delight-500ml', size: '500ml'),
+        buildPlanMap(itemId: 'bmj-signature-200ml', family: 'signature'),
+        buildPlanMap(itemId: 'bmj-premium-200ml', family: 'premium'),
+      ],);
 
       // Mock create subscription to return success
       when(() => mockService.createSubscription(any<String>()))
@@ -131,7 +131,7 @@ void main() {
         callCount++;
         if (callCount == 1) throw Exception('Network error');
         return [
-          buildPlanMap(itemId: 'bmj-delight-200ml', family: 'delight', size: '200ml'),
+          buildPlanMap(itemId: 'bmj-delight-200ml'),
         ];
       });
 

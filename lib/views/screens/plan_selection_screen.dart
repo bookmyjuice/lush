@@ -133,7 +133,7 @@ class _PlanSelectionScreenState extends State<PlanSelectionScreen> {
     if (_selectedCategory == null || _selectedSize == null) return [];
     return _allPlans.where((p) =>
         _extractCategory(p) == _selectedCategory &&
-        _extractSize(p) == _selectedSize).toList();
+        _extractSize(p) == _selectedSize,).toList();
   }
 
   /// Get the display name for a category

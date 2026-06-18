@@ -15,7 +15,6 @@ import 'package:lush/bloc/UserBloc/user_events.dart';
 import 'package:lush/bloc/UserBloc/user_state.dart';
 import 'package:lush/services/bottle_service.dart';
 import 'package:lush/views/models/bottle_ledger.dart';
-import 'package:lush/views/models/user.dart';
 import 'package:mocktail/mocktail.dart';
 
 class MockBottleService extends Mock implements BottleService {}
@@ -102,7 +101,7 @@ void main() {
                     totalReturned: 0,
                     totalBroken: 0,
                   ),
-                ]);
+                ],);
         when(() => mockBottleService.getTransactions())
             .thenAnswer((_) async => [
                   createTestTransaction(),
@@ -110,7 +109,7 @@ void main() {
                     action: 'RETURNED',
                     quantity: 2,
                   ),
-                ]);
+                ],);
         return UserBloc();
       },
       act: (bloc) => bloc.add(const LoadBottleLedger()),
@@ -161,10 +160,10 @@ void main() {
               any(),
               any(),
               notes: any(named: 'notes'),
-            )).thenAnswer((_) async => createTestTransaction(
+            ),).thenAnswer((_) async => createTestTransaction(
               action: 'RETURNED',
               quantity: 3,
-            ));
+            ),);
         // After success, bloc adds LoadBottleLedger to refresh
         when(() => mockBottleService.getLedger())
             .thenAnswer((_) async => [createTestLedgerEntry()]);
@@ -176,7 +175,7 @@ void main() {
         orderId: 'cb_order_001',
         bottleType: 'glass_500ml',
         quantity: 3,
-      )),
+      ),),
       expect: () => [
         isA<BottleReportSuccess>(),
         isA<BottleLedgerLoaded>(),
@@ -187,7 +186,7 @@ void main() {
               'glass_500ml',
               3,
               notes: any(named: 'notes'),
-            )).called(1);
+            ),).called(1);
       },
     );
 
@@ -199,14 +198,14 @@ void main() {
               any(),
               any(),
               notes: any(named: 'notes'),
-            )).thenThrow(Exception('Failed to record return'));
+            ),).thenThrow(Exception('Failed to record return'));
         return UserBloc();
       },
       act: (bloc) => bloc.add(const ReportReturn(
         orderId: 'cb_order_001',
         bottleType: 'glass_500ml',
         quantity: 3,
-      )),
+      ),),
       expect: () => [
         isA<UserError>(),
       ],
@@ -227,10 +226,10 @@ void main() {
               any(),
               any(),
               notes: any(named: 'notes'),
-            )).thenAnswer((_) async => createTestTransaction(
+            ),).thenAnswer((_) async => createTestTransaction(
               action: 'BROKEN',
               quantity: 2,
-            ));
+            ),);
         // After success, bloc adds LoadBottleLedger to refresh
         when(() => mockBottleService.getLedger())
             .thenAnswer((_) async => [createTestLedgerEntry()]);
@@ -242,7 +241,7 @@ void main() {
         orderId: 'cb_order_002',
         bottleType: 'glass_500ml',
         quantity: 2,
-      )),
+      ),),
       expect: () => [
         isA<BottleReportSuccess>(),
         isA<BottleLedgerLoaded>(),
@@ -253,7 +252,7 @@ void main() {
               'glass_500ml',
               2,
               notes: any(named: 'notes'),
-            )).called(1);
+            ),).called(1);
       },
     );
 
@@ -265,14 +264,14 @@ void main() {
               any(),
               any(),
               notes: any(named: 'notes'),
-            )).thenThrow(Exception('Failed to record broken'));
+            ),).thenThrow(Exception('Failed to record broken'));
         return UserBloc();
       },
       act: (bloc) => bloc.add(const ReportBroken(
         orderId: 'cb_order_002',
         bottleType: 'glass_500ml',
         quantity: 2,
-      )),
+      ),),
       expect: () => [
         isA<UserError>(),
       ],

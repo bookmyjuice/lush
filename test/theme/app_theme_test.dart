@@ -4,6 +4,8 @@
 /// expected token overrides from the design system.
 library;
 
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:lush/theme/app_theme.dart';
@@ -17,7 +19,16 @@ void main() {
     late ThemeData theme;
 
     setUp(() {
-      theme = AppTheme.light;
+      // GoogleFonts.poppinsTextTheme() triggers an async HTTP font download.
+      // In TestWidgetsFlutterBinding all HTTP returns 400, causing an unhandled
+      // async exception that kills the test zone. We wrap in runZonedGuarded to
+      // suppress this — the theme is built synchronously and valid (just with
+      // fallback fonts), so all property-assertions pass.
+      runZonedGuarded(() {
+        theme = AppTheme.light;
+      }, (Object error, StackTrace stack) {
+        // Suppress GoogleFonts async font-loading errors
+      });
     });
 
     test('is Material 3', () => expect(theme.useMaterial3, isTrue));

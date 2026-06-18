@@ -63,12 +63,12 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
           ReorderItems(
             orderId: order.id,
             items: order.lineItems
-                .map((item) => ({
+                .map((item) => {
                       'itemId': item.itemId,
                       'itemName': item.itemName,
                       'quantity': item.quantity,
                       'unitPrice': item.unitPrice,
-                    }))
+                    },)
                 .toList(),
           ),
         );
@@ -85,7 +85,7 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
         key: const Key('order_detail_appbar'),
         title: Text(_orderId != null && _orderId!.length >= 8
             ? 'Order #${_orderId!.substring(0, 8)}'
-            : 'Order Details'),
+            : 'Order Details',),
       ),
       body: BlocBuilder<OrderBloc, OrderState>(
         bloc: _orderBloc,
@@ -100,7 +100,7 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   Text(state.message,
-                      style: const TextStyle(color: Colors.red)),
+                      style: const TextStyle(color: Colors.red),),
                   const SizedBox(height: 16),
                   ElevatedButton(
                     onPressed: () =>
@@ -129,14 +129,14 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 Text('Order ID: ${order.id}',
-                                    style: const TextStyle(fontWeight: FontWeight.w600)),
+                                    style: const TextStyle(fontWeight: FontWeight.w600),),
                                 const SizedBox(height: 4),
                                 Text('${order.date.day}/${order.date.month}/${order.date.year}'),
                                 const SizedBox(height: 8),
                                 Container(
                                   padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                                   decoration: BoxDecoration(
-                                    color: _statusColor(order.status).withOpacity(0.15),
+                                    color: _statusColor(order.status).withValues(alpha: 0.15),
                                     borderRadius: BorderRadius.circular(16),
                                   ),
                                   child: Text(
@@ -166,10 +166,10 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
                                           Text('x${item.quantity}'),
                                           const SizedBox(width: 16),
                                           Text('₹${item.lineTotal.toStringAsFixed(0)}',
-                                              style: const TextStyle(fontWeight: FontWeight.w600)),
+                                              style: const TextStyle(fontWeight: FontWeight.w600),),
                                         ],
                                       ),
-                                    )),
+                                    ),),
                               ],
                             ),
                           ),
@@ -244,11 +244,11 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
         Text(label,
             style: TextStyle(
                 fontWeight: bold ? FontWeight.bold : FontWeight.normal,
-                fontSize: bold ? 16 : 14)),
+                fontSize: bold ? 16 : 14,),),
         Text(value,
             style: TextStyle(
                 fontWeight: bold ? FontWeight.bold : FontWeight.normal,
-                fontSize: bold ? 16 : 14)),
+                fontSize: bold ? 16 : 14,),),
       ],
     );
   }

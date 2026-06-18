@@ -22,7 +22,6 @@ class ForgotPasswordPageState extends State<ForgotPasswordPage> {
         // appBar: AppBar(),
         body: Column(
             mainAxisAlignment: MainAxisAlignment.center,
-            crossAxisAlignment: CrossAxisAlignment.center,
             children: [
           Padding(
               padding: const EdgeInsets.all(30.0),
@@ -35,21 +34,19 @@ class ForgotPasswordPageState extends State<ForgotPasswordPage> {
                   prefixIcon: const Icon(Icons.phone),
                   suffixIcon: IconButton(
                     icon: const Icon(Icons.clear),
-                    onPressed: () {
-                      usernameController.clear();
-                    },
+                    onPressed: usernameController.clear,
                   ),
                   border: const OutlineInputBorder(
                     borderRadius: BorderRadius.all(Radius.circular(10.0)),
                   ),
                 ),
-              )),
+              ),),
           ElevatedButton(
               onPressed: () {
                 Navigator.of(context).pop();
                 // BlocProvider.of<AuthenticationBloc>(context).add(SignUp());
               },
-              child: const Text("Submit"))
-        ]));
+              child: const Text('Submit'),),
+        ],),);
   }
 }

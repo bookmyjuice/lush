@@ -226,10 +226,6 @@ class ActiveSubscription extends Equatable {
       id: json['planId']?.toString() ?? '',
       name: (json['planName'] as String?) ?? 'Unknown Plan',
       description: (json['planDescription'] as String?) ?? '',
-      pricingPageUrl: '',
-      startColor: '#FF9800',
-      endColor: '#FF5722',
-      imagePath: 'assets/subscription.png',
       features: [],
       planID: planId,
     );
@@ -392,10 +388,6 @@ class SubscriptionBloc extends Bloc<SubscriptionEvent, SubscriptionState> {
       id: planID.toString(),
       name: name,
       description: 'Default subscription plan',
-      pricingPageUrl: '',
-      startColor: '#FF9800',
-      endColor: '#FF5722',
-      imagePath: 'assets/subscription.png',
       features: ['Daily delivery', 'Premium juices', 'Free delivery'],
       planID: planID,
     );
@@ -403,7 +395,7 @@ class SubscriptionBloc extends Bloc<SubscriptionEvent, SubscriptionState> {
 
   List<SubscriptionPlan> _getDefaultSubscriptionPlans() {
     return [
-      _getDefaultSubscriptionPlan(planID: 1, name: 'Premium'),
+      _getDefaultSubscriptionPlan(),
       _getDefaultSubscriptionPlan(planID: 2, name: 'Signature'),
       _getDefaultSubscriptionPlan(planID: 3, name: 'Delight'),
     ];
@@ -417,7 +409,7 @@ class SubscriptionBloc extends Bloc<SubscriptionEvent, SubscriptionState> {
     try {
       final plansList = await _subscriptionService.getSubscriptionPlans();
       final catalog = plansList
-          .map((json) => SubscriptionPlanCatalog.fromMap(json, []))
+          .map((json) => SubscriptionPlanCatalog.fromMap(json, const []))
           .where((plan) => plan.itemId.startsWith('bmj-'))
           .toList();
       if (isClosed) return;
@@ -466,48 +458,45 @@ class SubscriptionBloc extends Bloc<SubscriptionEvent, SubscriptionState> {
       if (subscriptions.isNotEmpty) {
         // Parse first subscription from API response
         final sub = subscriptions.first;
+        final planId = (sub['planId'] as int?) ?? 1;
         final activeSub = ActiveSubscription(
-          id: sub['id'] as String? ?? 'sub_mock',
-          plan: _getDefaultSubscriptionPlan(),
+          id: sub['id'] as String? ?? '',
+          plan: SubscriptionPlan(
+            id: sub['planId']?.toString() ?? '',
+            name: (sub['planName'] as String?) ?? 'Subscription',
+            description: (sub['planDescription'] as String?) ?? '',
+            features: [],
+            planID: planId,
+          ),
           status: sub['status'] as String? ?? 'active',
           startDate: sub['startDate'] != null
               ? DateTime.parse(sub['startDate'] as String)
               : DateTime.now(),
           endDate: sub['endDate'] != null
               ? DateTime.parse(sub['endDate'] as String)
-              : DateTime.now().add(const Duration(days: 30)),
+              : null,
           nextDeliveryDate: sub['nextDeliveryDate'] != null
               ? DateTime.parse(sub['nextDeliveryDate'] as String)
-              : DateTime.now().add(const Duration(days: 1)),
-          totalDeliveries: (sub['totalDeliveries'] as int?) ?? 30,
+              : null,
+          totalDeliveries: (sub['totalDeliveries'] as int?) ?? 0,
           completedDeliveries: (sub['completedDeliveries'] as int?) ?? 0,
           pausedUntil: sub['pausedUntil'] != null
               ? DateTime.parse(sub['pausedUntil'] as String)
               : null,
-          createdAt: DateTime.now(),
-          updatedAt: DateTime.now(),
+          createdAt: sub['createdAt'] != null
+              ? DateTime.parse(sub['createdAt'] as String)
+              : DateTime.now(),
+          updatedAt: sub['updatedAt'] != null
+              ? DateTime.parse(sub['updatedAt'] as String)
+              : DateTime.now(),
         );
         await _saveToCache(activeSub);
         if (isClosed) return;
         emit(SubscriptionLoaded(subscription: activeSub));
       } else {
-        // Fallback: mock subscription for demo
-        await Future<void>.delayed(const Duration(milliseconds: 500));
-        final mockSub = ActiveSubscription(
-          id: 'sub_${userRepository.user.id}',
-          plan: _getDefaultSubscriptionPlan(),
-          status: 'active',
-          startDate: DateTime.now().subtract(const Duration(days: 5)),
-          endDate: DateTime.now().add(const Duration(days: 25)),
-          nextDeliveryDate: DateTime.now().add(const Duration(days: 1)),
-          totalDeliveries: 30,
-          completedDeliveries: 5,
-          createdAt: DateTime.now().subtract(const Duration(days: 5)),
-          updatedAt: DateTime.now(),
-        );
-        await _saveToCache(mockSub);
+        // No active subscriptions
         if (isClosed) return;
-        emit(SubscriptionLoaded(subscription: mockSub));
+        emit(const SubscriptionEmpty());
       }
     } catch (e) {
       if (isClosed) return;
@@ -521,10 +510,26 @@ class SubscriptionBloc extends Bloc<SubscriptionEvent, SubscriptionState> {
   ) async {
     emit(const SubscriptionLoading());
     try {
-      await Future<void>.delayed(const Duration(milliseconds: 500));
-      final plans = _getDefaultSubscriptionPlans();
+      final apiPlans = await _subscriptionService.getSubscriptionPlans();
+      final plans = apiPlans.map((json) {
+        return SubscriptionPlan(
+          id: json['id']?.toString() ?? '',
+          name: json['name'] as String? ?? 'Unknown Plan',
+          description: json['description'] as String? ?? '',
+          pricingPageUrl: json['pricingPageUrl'] as String? ?? '',
+          startColor: json['startColor'] as String? ?? '#FF9800',
+          endColor: json['endColor'] as String? ?? '#FF5722',
+          imagePath: json['imagePath'] as String? ?? 'assets/subscription.png',
+          features: (json['features'] as List?)?.cast<String>() ?? [],
+          planID: (json['planId'] ?? json['planID'] ?? 1) as int,
+        );
+      }).toList();
       if (isClosed) return;
-      emit(SubscriptionPlansLoaded(plans: plans));
+      if (plans.isEmpty) {
+        emit(const SubscriptionError(message: 'No subscription plans available'));
+      } else {
+        emit(SubscriptionPlansLoaded(plans: plans));
+      }
     } catch (e) {
       if (isClosed) return;
       emit(SubscriptionError(message: e.toString()));
@@ -537,35 +542,47 @@ class SubscriptionBloc extends Bloc<SubscriptionEvent, SubscriptionState> {
   ) async {
     emit(const SubscriptionLoading());
     try {
-      await Future<void>.delayed(const Duration(milliseconds: 500));
-      final subscriptions = <ActiveSubscription>[
-        ActiveSubscription(
-          id: 'sub_current',
-          plan: _getDefaultSubscriptionPlan(planID: 1, name: 'Premium'),
-          status: 'active',
-          startDate: DateTime.now().subtract(const Duration(days: 5)),
-          endDate: DateTime.now().add(const Duration(days: 25)),
-          nextDeliveryDate: DateTime.now().add(const Duration(days: 1)),
-          totalDeliveries: 30,
-          completedDeliveries: 5,
-          createdAt: DateTime.now().subtract(const Duration(days: 5)),
-          updatedAt: DateTime.now(),
-        ),
-        ActiveSubscription(
-          id: 'sub_previous',
-          plan: _getDefaultSubscriptionPlan(planID: 2, name: 'Signature'),
-          status: 'completed',
-          startDate: DateTime.now().subtract(const Duration(days: 60)),
-          endDate: DateTime.now().subtract(const Duration(days: 30)),
-          nextDeliveryDate: null,
-          totalDeliveries: 15,
-          completedDeliveries: 15,
-          createdAt: DateTime.now().subtract(const Duration(days: 60)),
-          updatedAt: DateTime.now().subtract(const Duration(days: 30)),
-        ),
-      ];
+      final apiSubs = await _subscriptionService.getMySubscriptions();
+      final subscriptions = apiSubs.map((sub) {
+        final planId = (sub['planId'] as int?) ?? 1;
+        return ActiveSubscription(
+          id: sub['id'] as String? ?? '',
+          plan: SubscriptionPlan(
+            id: sub['planId']?.toString() ?? '',
+            name: (sub['planName'] as String?) ?? 'Unknown Plan',
+            description: (sub['planDescription'] as String?) ?? '',
+            features: [],
+            planID: planId,
+          ),
+          status: sub['status'] as String? ?? 'active',
+          startDate: sub['startDate'] != null
+              ? DateTime.parse(sub['startDate'] as String)
+              : DateTime.now(),
+          endDate: sub['endDate'] != null
+              ? DateTime.parse(sub['endDate'] as String)
+              : DateTime.now().add(const Duration(days: 30)),
+          nextDeliveryDate: sub['nextDeliveryDate'] != null
+              ? DateTime.parse(sub['nextDeliveryDate'] as String)
+              : null,
+          totalDeliveries: (sub['totalDeliveries'] as int?) ?? 0,
+          completedDeliveries: (sub['completedDeliveries'] as int?) ?? 0,
+          pausedUntil: sub['pausedUntil'] != null
+              ? DateTime.parse(sub['pausedUntil'] as String)
+              : null,
+          createdAt: sub['createdAt'] != null
+              ? DateTime.parse(sub['createdAt'] as String)
+              : DateTime.now(),
+          updatedAt: sub['updatedAt'] != null
+              ? DateTime.parse(sub['updatedAt'] as String)
+              : DateTime.now(),
+        );
+      }).toList();
       if (isClosed) return;
-      emit(SubscriptionListLoaded(subscriptions: subscriptions));
+      if (subscriptions.isEmpty) {
+        emit(const SubscriptionEmpty());
+      } else {
+        emit(SubscriptionListLoaded(subscriptions: subscriptions));
+      }
     } catch (e) {
       if (isClosed) return;
       emit(SubscriptionError(message: e.toString()));
@@ -578,30 +595,33 @@ class SubscriptionBloc extends Bloc<SubscriptionEvent, SubscriptionState> {
   ) async {
     emit(const SubscriptionLoading());
     try {
-      await Future<void>.delayed(const Duration(seconds: 1));
-      final selectedPlan = _getDefaultSubscriptionPlan(planID: event.planId);
-      final newSub = ActiveSubscription(
-        id: 'sub_${DateTime.now().millisecondsSinceEpoch}',
-        plan: selectedPlan,
-        status: 'active',
+      final response = await _subscriptionService.createSubscription(
+        event.planId.toString(),
+      );
+      final createdSub = ActiveSubscription(
+        id: response['subscriptionId'] as String? ??
+            response['id'] as String? ??
+            'sub_${DateTime.now().millisecondsSinceEpoch}',
+        plan: _getDefaultSubscriptionPlan(planID: event.planId),
+        status: response['status'] as String? ?? 'active',
         startDate: event.startDate,
         endDate: event.startDate.add(const Duration(days: 30)),
         nextDeliveryDate: event.startDate.add(const Duration(days: 1)),
-        totalDeliveries: 30,
+        totalDeliveries: (response['totalDeliveries'] as int?) ?? 30,
         completedDeliveries: 0,
         createdAt: DateTime.now(),
         updatedAt: DateTime.now(),
       );
-      await _saveToCache(newSub);
+      await _saveToCache(createdSub);
       if (isClosed) return;
       await AnalyticsService.logSubscriptionStarted(
-        planId: selectedPlan.id,
+        planId: event.planId.toString(),
         value: 0.0,
       );
       if (isClosed) return;
-      emit(SubscriptionCreated(subscription: newSub));
+      emit(SubscriptionCreated(subscription: createdSub));
       if (isClosed) return;
-      emit(SubscriptionLoaded(subscription: newSub));
+      emit(SubscriptionLoaded(subscription: createdSub));
     } catch (e) {
       if (isClosed) return;
       emit(SubscriptionError(message: e.toString()));

@@ -22,7 +22,7 @@ class Address {
       required this.stateCode,
       required this.zip,
       required this.validationStatus,
-      required this.subscriptionId});
+      required this.subscriptionId,});
 
   String get firstNameGetter => firstName;
 
@@ -70,21 +70,35 @@ class Address {
 
   factory Address.fromJson(Map<String, dynamic> json) {
     return Address(
-      firstName: json['firstName'] as String? ?? '',
-      lastName: json['lastName'] as String? ?? '',
-      phone: json['phone'] as String? ?? '',
-      addr: json['addr'] as String? ?? '',
-      extendedAddr: json['extendedAddr'] as String? ?? '',
-      extendedAddr2: json['extendedAddr2'] as String? ?? '',
-      city: json['city'] as String? ?? '',
-      stateCode: json['stateCode'] as String? ?? '',
-      zip: json['zip'] as String? ?? '',
-      validationStatus: json['validationStatus'] as bool? ?? false,
-      subscriptionId: json['subscriptionId'] as String? ?? '',
+      firstName: (json['first_name'] ?? json['firstName'] ?? '') as String,
+      lastName: (json['last_name'] ?? json['lastName'] ?? '') as String,
+      phone: (json['phone'] ?? '') as String,
+      addr: (json['address_line1'] ?? json['addr'] ?? '') as String,
+      extendedAddr: (json['address_line2'] ?? json['extendedAddr'] ?? '') as String,
+      extendedAddr2: (json['address_line3'] ?? json['extendedAddr2'] ?? '') as String,
+      city: (json['city'] ?? '') as String,
+      stateCode: (json['state_code'] ?? json['state'] ?? json['stateCode'] ?? '') as String,
+      zip: (json['zip'] ?? json['pincode'] ?? '') as String,
+      validationStatus: (json['validation_status'] ?? json['validationStatus']) as bool? ?? false,
+      subscriptionId: (json['subscription_id'] ?? json['subscriptionId'] ?? '') as String,
     );
   }
 
   Map<String, dynamic> toJson() => {
+        'first_name': firstName,
+        'last_name': lastName,
+        'phone': phone,
+        'address_line1': addr,
+        'address_line2': extendedAddr,
+        'address_line3': extendedAddr2,
+        'city': city,
+        'state_code': stateCode,
+        'zip': zip,
+        'validation_status': validationStatus,
+        'subscription_id': subscriptionId,
+      };
+
+  Map<String, dynamic> toDisplayJson() => {
         'firstName': firstName,
         'lastName': lastName,
         'phone': phone,

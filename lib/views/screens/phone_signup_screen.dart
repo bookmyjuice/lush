@@ -33,28 +33,18 @@ class PhoneSignupScreenState extends State<PhoneSignupScreen> {
   }
 
   /// Send OTP via backend (existing flow)
+  /// FIX: FLAG-003 — Wait for BLoC to confirm OTP sent before navigating
   void _onContinue() {
     if (_formKey.currentState!.validate()) {
       setState(() => _isLoadingBackend = true);
 
       final phone = _phoneController.text.trim();
 
-      // Send OTP to phone via backend
+      // Send OTP to phone via backend — BlocListener will navigate on success
       BlocProvider.of<AuthenticationBloc>(context).add(
         SendOTP(phoneNumber: phone),
       );
-
-      // Navigate to OTP verification screen
-      Navigator.pushNamed(
-        context,
-        '/phone-otp-verification',
-        arguments: {
-          'email': null,
-          'phone': phone,
-        },
-      );
-
-      setState(() => _isLoadingBackend = false);
+      // Navigation now happens in BlocListener (OTPSent state handler below)
     }
   }
 
@@ -135,7 +125,20 @@ class PhoneSignupScreenState extends State<PhoneSignupScreen> {
               description: const Text('Check your phone for the verification code'),
               type: ToastificationType.success,
             );
+            // FIX: FLAG-003 — Navigate only after BLoC confirms OTP was sent
+            setState(() => _isLoadingBackend = false);
+            if (mounted) {
+              Navigator.pushNamed(
+                context,
+                '/phone-otp-verification',
+                arguments: {
+                  'email': null,
+                  'phone': state.phoneNumber,
+                },
+              );
+            }
           } else if (state is OTPSendFailed) {
+            setState(() => _isLoadingBackend = false);
             toastification.show(
               title: const Text('Failed to Send OTP'),
               description: Text(state.error),
@@ -183,6 +186,10 @@ class PhoneSignupScreenState extends State<PhoneSignupScreen> {
                       }
                       if (value.length != 10) {
                         return 'Please enter a valid 10-digit phone number';
+                      }
+                      // FIX: BRD §4.6 — phone must start with 6-9 (Indian mobile prefix)
+                      if (!RegExp(r'^[6-9]\d{9}$').hasMatch(value)) {
+                        return 'Please enter a valid Indian mobile number starting with 6, 7, 8, or 9';
                       }
                       return null;
                     },

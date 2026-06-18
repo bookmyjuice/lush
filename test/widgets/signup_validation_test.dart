@@ -104,7 +104,7 @@ void main() {
       test('valid passwords', () {
         expect(isValidPassword('SecurePass123!'), isTrue);
         expect(isValidPassword('Test@1234'), isTrue);
-        expect(isValidPassword('MyP@ssw0rd'), isTrue);
+        expect(isValidPassword('MyP@ssw0rd2'), isTrue);
       });
 
       test('invalid passwords - too short', () {

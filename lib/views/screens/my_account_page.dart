@@ -33,7 +33,7 @@ class MyAccountPageState extends State<MyAccountPage> {
             });
           },
           onNavigationRequest: (NavigationRequest request) async {
-            return await getFinalUrl(request.url).then((finalUrl) {
+            return getFinalUrl(request.url).then((finalUrl) {
               if (!finalUrl.startsWith('https://')) {
                 return NavigationDecision.prevent;
               } else if (request.url != finalUrl) {
@@ -93,7 +93,7 @@ class MyAccountPageState extends State<MyAccountPage> {
           children: [
             Expanded(
                 // height: MediaQuery.of(context).size.height - 136,
-                child: WebViewWidget(controller: _controller))
+                child: WebViewWidget(controller: _controller),),
           ],
         ),
       ),

@@ -66,7 +66,6 @@ class LoginPageState extends State<LoginPage>
       WidgetsBinding.instance.addPostFrameCallback((_) {
         toastification.show(
           icon: const Icon(Icons.error),
-          closeButton: const ToastCloseButton(),
           alignment: Alignment.center,
           title: Text(widget.toastHeading),
           description: Text(widget.toastMessage),
@@ -132,7 +131,6 @@ class LoginPageState extends State<LoginPage>
             _dialogShown = true;
             setState(() => _isSignInLoading = false);
             toastification.show(
-              closeButton: const ToastCloseButton(),
               title: const Text('Session Expired'),
               description: const Text('Please sign in to continue.'),
               type: ToastificationType.error,
@@ -172,7 +170,7 @@ class LoginPageState extends State<LoginPage>
                 Container(
                   margin: const EdgeInsets.symmetric(horizontal: AppSpacing.lg),
                   decoration: BoxDecoration(
-                    color: AppColors.white.withOpacity(0.2),
+                    color: AppColors.white.withValues(alpha: 0.2),
                     borderRadius: BorderRadius.circular(AppRadius.lg * 1.875),
                   ),
                   child: TabBar(
@@ -232,11 +230,12 @@ class LoginPageState extends State<LoginPage>
         key: _signInFormKey,
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
+          mainAxisAlignment: MainAxisAlignment.center,
           children: [
             // ── Heading ──
             Semantics(
               label: 'Welcome Back!',
-              child: Text(
+              child: const Text(
                 'Welcome Back!',
                 style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: AppColors.white),
                 textAlign: TextAlign.center,
@@ -313,7 +312,7 @@ class LoginPageState extends State<LoginPage>
                 child: TextButton(
                   key: const Key('login_forgot_password'),
                   onPressed: () {
-                    Navigator.of(context).pushNamed("/forgot-password");
+                    Navigator.of(context).pushNamed('/forgot-password');
                   },
                   child: Text(
                     'Forgot Password?',
@@ -384,7 +383,7 @@ class LoginPageState extends State<LoginPage>
                       color: AppColors.white,
                       iconColor: AppColors.secondaryTeal,
                       onTap: () {
-                        Navigator.of(context).pushNamed("/phone-login");
+                        Navigator.of(context).pushNamed('/phone-login');
                       },
                     ),
                   ),
@@ -444,7 +443,7 @@ class LoginPageState extends State<LoginPage>
           const SizedBox(height: AppSpacing.xs),
           Text(
             'Choose your preferred signup method',
-            style: TextStyle(fontSize: 14, color: AppColors.white.withOpacity(0.8),
+            style: TextStyle(fontSize: 14, color: AppColors.white.withValues(alpha: 0.8),
             ),
             textAlign: TextAlign.center,
           ),
@@ -644,7 +643,7 @@ class LoginPageState extends State<LoginPage>
       }
     } catch (e) {
       toastification.show(
-        title: const Text('Google Sign-In Failed'),
+        title: const Text('Google Sign-Up Failed'),
         description: Text(e.toString()),
         type: ToastificationType.error,
       );
@@ -678,6 +677,9 @@ class LoginPageState extends State<LoginPage>
   // ═══════════════════════════════════════════════════════
 
   /// White-background text field for Sign In form
+  /// FIX: BUG-AUTH-001 — Remove inner Semantics to avoid duplicate accessibility labels.
+  /// The call sites (lines 254, 276) already wrap with Semantics(label: hintText).
+  /// Nested Semantics with the same label creates malformed UIAutomator nodes.
   Widget _buildWhiteTextField({
     required TextEditingController controller,
     required String hintText,
@@ -694,28 +696,25 @@ class LoginPageState extends State<LoginPage>
         borderRadius: BorderRadius.circular(AppRadius.lg + 2),
         border: Border.all(color: AppColors.white.withValues(alpha: 0.3)),
       ),
-      child: Semantics(
-        label: hintText,
-        child: TextFormField(
-          key: key,
-          controller: controller,
-          keyboardType: keyboardType,
-          obscureText: obscureText,
-          validator: validator,
-          style: AppTextStyles.textTheme.bodyLarge?.copyWith(
-            color: AppColors.lightTextPrimary,
+      child: TextFormField(
+        key: key,
+        controller: controller,
+        keyboardType: keyboardType,
+        obscureText: obscureText,
+        validator: validator,
+        style: AppTextStyles.textTheme.bodyLarge?.copyWith(
+          color: AppColors.lightTextPrimary,
+        ),
+        decoration: InputDecoration(
+          hintText: hintText,
+          hintStyle: AppTextStyles.textTheme.bodyLarge?.copyWith(
+            color: AppColors.darkGrey,
           ),
-          decoration: InputDecoration(
-            hintText: hintText,
-            hintStyle: AppTextStyles.textTheme.bodyLarge?.copyWith(
-              color: AppColors.darkGrey,
-            ),
-            prefixIcon: Icon(prefixIcon, color: AppColors.darkGrey, size: 22),
-            suffixIcon: suffixIcon,
-            border: InputBorder.none,
-            contentPadding:
-                const EdgeInsets.symmetric(horizontal: AppSpacing.md, vertical: AppSpacing.md),
-          ),
+          prefixIcon: Icon(prefixIcon, color: AppColors.darkGrey, size: 22),
+          suffixIcon: suffixIcon,
+          border: InputBorder.none,
+          contentPadding:
+              const EdgeInsets.symmetric(horizontal: AppSpacing.md, vertical: AppSpacing.md),
         ),
       ),
     );

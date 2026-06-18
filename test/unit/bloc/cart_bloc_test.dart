@@ -60,10 +60,8 @@ CartItem createTestCartItem({
 List<CartItem> createSampleCartItems() {
   return [
     createTestCartItem(
-      itemId: 'item-1',
       itemName: 'Watermelon',
       priceId: 'wm_300',
-      price: 99.0,
       quantity: 2,
     ),
     createTestCartItem(
@@ -71,7 +69,6 @@ List<CartItem> createSampleCartItems() {
       itemName: 'ABC Juice',
       priceId: 'abc_300',
       price: 129.0,
-      quantity: 1,
     ),
   ];
 }
@@ -144,7 +141,6 @@ void main() {
       itemId: 'item-3',
       itemName: 'Pineapple',
       priceId: 'pa_300',
-      price: 99.0,
     );
 
     blocTest<CartBloc, CartState>(
@@ -185,12 +181,10 @@ void main() {
         bloc.add(LoadCart());
         // Add the same item that already exists (item-1 with wm_300)
         bloc.add(AddToCart(createTestCartItem(
-          itemId: 'item-1',
           itemName: 'Watermelon',
           priceId: 'wm_300',
-          price: 99.0,
           quantity: 3, // add 3 more
-        )));
+        ),),);
       },
       expect: () => [
         isA<CartLoading>(),
@@ -328,10 +322,8 @@ void main() {
   group('UpdateCartItem', () {
     final existingItems = createSampleCartItems();
     final updatedItem = createTestCartItem(
-      itemId: 'item-1',
       itemName: 'Watermelon',
       priceId: 'wm_300',
-      price: 99.0,
       quantity: 5, // Updated quantity
     );
 
@@ -372,8 +364,7 @@ void main() {
           itemName: 'New Juice',
           priceId: 'new_price',
           price: 149.0,
-          quantity: 1,
-        )));
+        ),),);
       },
       expect: () => [
         isA<CartLoading>(),

@@ -23,17 +23,17 @@ class Order {
     List<String> items = [];
     try {
       if (json['orderLineItems'] != null && json['orderLineItems'] is String) {
-        var parsed = jsonDecode(json['orderLineItems'] as String);
+        final parsed = jsonDecode(json['orderLineItems'] as String);
         if (parsed is List) {
           items = parsed.map<String>((e) {
             if (e is Map<String, dynamic>) {
               // Try to extract name and price
-              String name = (e['name'] ?? e['description'] ?? '') as String;
+              final String name = (e['name'] ?? e['description'] ?? '') as String;
               String price = '';
               if (e['price'] != null) {
                 price = '₹${e['price']}';
               } else if (e['itemPrice'] != null && e['itemPrice'] is Map) {
-                var itemPrice = e['itemPrice'];
+                final itemPrice = e['itemPrice'];
                 if (itemPrice['price'] != null) {
                   price = '₹${itemPrice['price']}';
                 }

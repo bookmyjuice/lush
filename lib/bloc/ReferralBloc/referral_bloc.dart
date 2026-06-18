@@ -52,7 +52,7 @@ class ReferralBloc extends Bloc<ReferralEvent, ReferralState> {
     try {
       await AnalyticsService.logReferralShared();
     } catch (e) {
-      developer.log('Analytics error: ' + e.toString());
+      developer.log('Analytics error: $e');
     }
   }
 }

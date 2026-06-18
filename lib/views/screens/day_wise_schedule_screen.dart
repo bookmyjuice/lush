@@ -248,9 +248,9 @@ class _DayWiseScheduleScreenState extends State<DayWiseScheduleScreen> {
             const Icon(Icons.calendar_today, size: 20, color: AppColors.primaryOrangeDark),
             const SizedBox(width: 12),
             const Expanded(
-              child: const Text(
+              child: Text(
                 'Day',
-                style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600, color: AppColors.lightTextPrimary, fontFamily: 'Roboto'),
+                style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600, color: AppColors.lightTextPrimary, fontFamily: 'Roboto'),
               ),
             ),
             Expanded(

@@ -208,7 +208,7 @@ class CompleteSignup extends AuthenticationEvent {
   });
 
   @override
-  List<Object> get props => [password, confirmPassword, referralCode ?? ""];
+  List<Object> get props => [password, confirmPassword, referralCode ?? ''];
 }
 
 // Legacy events (keep for backward compatibility)
@@ -277,4 +277,20 @@ class FirebasePhoneAuthError extends AuthenticationEvent {
 
   @override
   List<Object> get props => [error];
+}
+
+// ============================================================
+// FIX: FLAG-004 — Phone OTP Login Event (backend OTP flow)
+// ============================================================
+
+/// Phone OTP login: verify OTP and login via backend.
+/// BR-011: If user exists, login. If not, route to signup.
+class PhoneOtpLogin extends AuthenticationEvent {
+  final String phone;
+  final String otp;
+
+  const PhoneOtpLogin({required this.phone, required this.otp});
+
+  @override
+  List<Object> get props => [phone, otp];
 }

@@ -86,8 +86,12 @@ class LoggedOut extends AuthenticationState {
 }
 
 class OTPSent extends AuthenticationState {
+  final String phoneNumber;
+
+  const OTPSent({required this.phoneNumber});
+
   @override
-  List<Object?> get props => [];
+  List<Object?> get props => [phoneNumber];
 }
 
 class OTPVerificationSuccess extends AuthenticationState {

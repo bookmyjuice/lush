@@ -120,7 +120,7 @@ class NotificationBloc extends Bloc<NotificationEvent, NotificationState> {
     emit(NotificationLoaded(
       items: updated,
       unreadCount: updated.where((n) => !n.isRead).length,
-    ));
+    ),);
   }
 
   Future<void> _onMarkAllAsRead(

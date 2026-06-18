@@ -133,7 +133,6 @@ void main() {
         MaterialApp(
           home: Scaffold(
             body: SubscriptionInfoCard(
-              subscription: null,
               onTap: () {},
               onManageTap: () {},
             ),
@@ -288,7 +287,6 @@ void main() {
         MaterialApp(
           home: Scaffold(
             body: SubscriptionInfoCard(
-              subscription: null,
               onTap: () {
                 subscribeCalled = true;
               },

@@ -13,7 +13,7 @@ class ItemListView extends StatefulWidget {
       this.category,
       this.size,
       this.type,
-      this.useFallbackItems = false});
+      this.useFallbackItems = false,});
 
   final AnimationController? mainScreenAnimationController;
   final Animation<double>? mainScreenAnimation;
@@ -36,7 +36,7 @@ class ItemListViewState extends State<ItemListView>
   @override
   void initState() {
     animationController = AnimationController(
-        duration: const Duration(milliseconds: 2000), vsync: this);
+        duration: const Duration(milliseconds: 2000), vsync: this,);
     super.initState();
   }
 
@@ -64,7 +64,7 @@ class ItemListViewState extends State<ItemListView>
           opacity: widget.mainScreenAnimation!,
           child: Transform(
             transform: Matrix4.translationValues(
-                0.0, 30 * (1.0 - widget.mainScreenAnimation!.value), 0.0),
+                0.0, 30 * (1.0 - widget.mainScreenAnimation!.value), 0.0,),
             child: _buildItemList(),
           ),
         );
@@ -101,9 +101,9 @@ class ItemListViewState extends State<ItemListView>
 
           final filteredItems = items.where((item) {
             // Basic filters: active and not deleted
-            bool isActive = item.status == 'ACTIVE' && !(item.deleted ?? false);
+            final bool isActive = item.status == 'ACTIVE' && !(item.deleted ?? false);
             // Type filter
-            bool matchesType = item.type == type;
+            final bool matchesType = item.type == type;
             // Category filter: itemFamilyId contains selected category (case-insensitive)
             bool matchesCategory = true;
             if (category.isNotEmpty) {
@@ -157,9 +157,7 @@ class ItemListViewState extends State<ItemListView>
 
       // Convert DynamicItem objects to Item objects
       print('Successfully loaded ${dynamicItems.length} items from API');
-      return dynamicItems.map((dynamicItem) {
-        return itemService.convertToItem(dynamicItem);
-      }).toList();
+      return dynamicItems.map(itemService.convertToItem).toList();
     } catch (e) {
       print('Error in _loadItems: $e');
       return _getFallbackItems();
@@ -172,7 +170,7 @@ class ItemListViewState extends State<ItemListView>
 
     // Convert DynamicItem objects to Item objects
     return dynamicItems
-        .map((dynamicItem) => itemService.convertToItem(dynamicItem))
+        .map(itemService.convertToItem)
         .toList();
   }
 
@@ -224,7 +222,7 @@ class ItemListViewState extends State<ItemListView>
                     CurvedAnimation(
                       parent: animationController!,
                       curve: Interval((1 / count) * index, 1.0,
-                          curve: Curves.fastOutSlowIn),
+                          curve: Curves.fastOutSlowIn,),
                     ),
                   );
                   animationController?.forward();
@@ -237,7 +235,7 @@ class ItemListViewState extends State<ItemListView>
                 },
               ),
       );
-    });
+    },);
   }
 
   // Empty state widget when no items match the filters

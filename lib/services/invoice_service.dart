@@ -11,7 +11,7 @@ class InvoiceService {
   final SecureStorageService _secureStorage = SecureStorageService();
 
   Future<String?> _getToken() async {
-    return await _secureStorage.getAuthToken();
+    return _secureStorage.getAuthToken();
   }
 
   Future<Map<String, String>> _getHeaders() async {
@@ -60,7 +60,7 @@ class InvoiceService {
         return data['data'] as Map<String, dynamic>;
       } else {
         throw Exception(
-            'Failed to load invoice details: ${response.statusCode}');
+            'Failed to load invoice details: ${response.statusCode}',);
       }
     } catch (e) {
       appLogger.e('Error fetching invoice details', error: e);
@@ -127,7 +127,7 @@ class InvoiceService {
         return List<Map<String, dynamic>>.from(invoiceList);
       } else {
         throw Exception(
-            'Failed to load local invoices: ${response.statusCode}');
+            'Failed to load local invoices: ${response.statusCode}',);
       }
     } catch (e) {
       appLogger.e('Error fetching local invoices', error: e);

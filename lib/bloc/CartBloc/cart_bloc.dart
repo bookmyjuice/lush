@@ -2,6 +2,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:lush/bloc/CartBloc/cart_event.dart';
 
 import '../../CartRepository/cart_repository.dart';
+import '../../services/cart_service.dart';
 import '../../views/models/cart_item.dart';
 import '../../views/models/item.dart';
 import '../../utils/analytics_service.dart';
@@ -17,7 +18,7 @@ class CartBloc extends Bloc<CartEvent, CartState> {
         final items = await cartRepository.getCartItems();
         emit(CartLoaded(items));
       } catch (e) {
-        emit(CartError('Failed to load cart'));
+        emit(const CartError('Failed to load cart'));
       }
     });
 
@@ -27,11 +28,11 @@ class CartBloc extends Bloc<CartEvent, CartState> {
           final currentItems = List<CartItem>.from((state as CartLoaded).items);
           final existingItemIndex = currentItems.indexWhere((item) =>
               item.item.id == event.item.item.id &&
-              item.selectedPrice?.id == event.item.selectedPrice?.id);
+              item.selectedPrice?.id == event.item.selectedPrice?.id,);
           if (existingItemIndex != -1) {
             final existingItem = currentItems[existingItemIndex];
             currentItems[existingItemIndex] = existingItem.copyWith(
-                quantity: existingItem.quantity + event.item.quantity);
+                quantity: existingItem.quantity + event.item.quantity,);
           } else {
             currentItems.add(event.item);
           }
@@ -41,17 +42,23 @@ class CartBloc extends Bloc<CartEvent, CartState> {
           final items = await cartRepository.getCartItems();
           final existingItemIndex = items.indexWhere((item) =>
               item.item.id == event.item.item.id &&
-              item.selectedPrice?.id == event.item.selectedPrice?.id);
+              item.selectedPrice?.id == event.item.selectedPrice?.id,);
           if (existingItemIndex != -1) {
             final existingItem = items[existingItemIndex];
             items[existingItemIndex] = existingItem.copyWith(
-                quantity: existingItem.quantity + event.item.quantity);
+                quantity: existingItem.quantity + event.item.quantity,);
           } else {
             items.add(event.item);
           }
           await cartRepository.saveCartItems(items);
           emit(CartLoaded(items));
         }
+      } on CartTypeConflictException catch (e) {
+        // FIX: BUG-CART-001 — emit clear error when mixing one-time and subscription items
+        emit(CartError(
+          'Cannot mix one-time and subscription items in the same cart. '
+          '${e.message}'
+        ));
       } catch (e) {
         emit(CartError('Failed to add item to cart: $e'));
       }
@@ -90,7 +97,7 @@ class CartBloc extends Bloc<CartEvent, CartState> {
           final currentItems = List<CartItem>.from((state as CartLoaded).items);
           final index = currentItems.indexWhere((item) =>
               item.item.id == event.item.item.id &&
-              item.selectedPrice?.id == event.item.selectedPrice?.id);
+              item.selectedPrice?.id == event.item.selectedPrice?.id,);
           if (index != -1) {
             currentItems[index] = event.item;
             await cartRepository.saveCartItems(currentItems);
@@ -104,7 +111,7 @@ class CartBloc extends Bloc<CartEvent, CartState> {
           final items = await cartRepository.getCartItems();
           final index = items.indexWhere((item) =>
               item.item.id == event.item.item.id &&
-              item.selectedPrice?.id == event.item.selectedPrice?.id);
+              item.selectedPrice?.id == event.item.selectedPrice?.id,);
           if (index != -1) {
             items[index] = event.item;
           } else {

@@ -12,31 +12,31 @@ class NotificationsScreen extends StatefulWidget {
 class _NotificationsScreenState extends State<NotificationsScreen> {
   final List<NotificationItem> notifications = [
     NotificationItem(
-      title: "Welcome to BookMyJuice!",
-      message: "Thanks for joining us. Enjoy fresh juices delivered daily.",
-      time: DateTime.now().subtract(Duration(hours: 2)),
+      title: 'Welcome to BookMyJuice!',
+      message: 'Thanks for joining us. Enjoy fresh juices delivered daily.',
+      time: DateTime.now().subtract(const Duration(hours: 2)),
       isRead: false,
       type: NotificationType.welcome,
     ),
     NotificationItem(
-      title: "Order Confirmed",
+      title: 'Order Confirmed',
       message:
-          "Your order #BMJ001 has been confirmed and will be delivered tomorrow.",
-      time: DateTime.now().subtract(Duration(hours: 5)),
+          'Your order #BMJ001 has been confirmed and will be delivered tomorrow.',
+      time: DateTime.now().subtract(const Duration(hours: 5)),
       isRead: true,
       type: NotificationType.order,
     ),
     NotificationItem(
-      title: "New Juice Available",
-      message: "Try our new Superfood Green Smoothie - packed with nutrients!",
-      time: DateTime.now().subtract(Duration(days: 1)),
+      title: 'New Juice Available',
+      message: 'Try our new Superfood Green Smoothie - packed with nutrients!',
+      time: DateTime.now().subtract(const Duration(days: 1)),
       isRead: true,
       type: NotificationType.promotion,
     ),
     NotificationItem(
-      title: "Subscription Reminder",
-      message: "Your premium plan will be renewed in 3 days.",
-      time: DateTime.now().subtract(Duration(days: 2)),
+      title: 'Subscription Reminder',
+      message: 'Your premium plan will be renewed in 3 days.',
+      time: DateTime.now().subtract(const Duration(days: 2)),
       isRead: false,
       type: NotificationType.subscription,
     ),
@@ -130,7 +130,6 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
           color: notification.isRead
               ? AppColors.grey.withAlpha(50)
               : AppColors.info.withAlpha(50),
-          width: 1,
         ),
       ),
       child: Material(
@@ -178,7 +177,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                             Container(
                               width: 8.w,
                               height: 8.w,
-                              decoration: BoxDecoration(
+                              decoration: const BoxDecoration(
                                 color: AppColors.info,
                                 shape: BoxShape.circle,
                               ),
@@ -270,7 +269,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
 
   void _markAllAsRead() {
     setState(() {
-      for (var notification in notifications) {
+      for (final notification in notifications) {
         notification.isRead = true;
       }
     });

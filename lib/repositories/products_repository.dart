@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:http/http.dart' as http;
 import 'package:http/io_client.dart';
 
 import '../config/api_config.dart';
@@ -18,8 +19,12 @@ class ProductsRepository {
   final String _baseUrl = ApiConfig.baseUrl;
   final SecureStorageService _secureStorage = SecureStorageService();
   final HttpClient _httpClient = HttpClient();
+  final http.Client? _client;
 
-  IOClient _createClient() {
+  ProductsRepository({http.Client? client}) : _client = client;
+
+  http.Client _createClient() {
+    if (_client != null) return _client!;
     _httpClient.badCertificateCallback =
         (X509Certificate cert, String host, int port) => true;
     return IOClient(_httpClient);
@@ -53,7 +58,7 @@ class ProductsRepository {
       return [];
     } else {
       throw Exception(
-          'Failed to load products: ${response.statusCode} ${response.body}');
+          'Failed to load products: ${response.statusCode} ${response.body}',);
     }
   }
 
@@ -78,7 +83,7 @@ class ProductsRepository {
       throw Exception('Product not found: $id');
     } else {
       throw Exception(
-          'Failed to load product $id: ${response.statusCode} ${response.body}');
+          'Failed to load product $id: ${response.statusCode} ${response.body}',);
     }
   }
 
@@ -101,7 +106,7 @@ class ProductsRepository {
       return [];
     } else {
       throw Exception(
-          'Failed to load products by family $family: ${response.statusCode}');
+          'Failed to load products by family $family: ${response.statusCode}',);
     }
   }
 
@@ -124,7 +129,7 @@ class ProductsRepository {
       return [];
     } else {
       throw Exception(
-          'Failed to search products: ${response.statusCode}');
+          'Failed to search products: ${response.statusCode}',);
     }
   }
 
@@ -147,7 +152,7 @@ class ProductsRepository {
       return [];
     } else {
       throw Exception(
-          'Failed to load featured products: ${response.statusCode}');
+          'Failed to load featured products: ${response.statusCode}',);
     }
   }
 }

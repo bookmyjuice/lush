@@ -8,9 +8,12 @@ import 'package:lush/utils/app_logger.dart';
 class SubscriptionService {
   static String get baseUrl => ApiConfig.baseUrl;
   final SecureStorageService _secureStorage = SecureStorageService();
+  final http.Client? _client;
+
+  SubscriptionService({http.Client? client}) : _client = client;
 
   Future<String?> _getToken() async {
-    return await _secureStorage.getAuthToken();
+    return _secureStorage.getAuthToken();
   }
 
   Future<Map<String, String>> _getHeaders() async {
@@ -25,7 +28,8 @@ class SubscriptionService {
   Future<List<Map<String, dynamic>>> getSubscriptionPlans() async {
     try {
       final headers = await _getHeaders();
-      final response = await http.get(
+      final client = _client ?? http.Client();
+      final response = await client.get(
         Uri.parse('$baseUrl/api/subscriptions/pricing/plans'),
         headers: headers,
       );
@@ -34,7 +38,7 @@ class SubscriptionService {
         return List<Map<String, dynamic>>.from((data['data'] as List?) ?? []);
       } else {
         throw Exception(
-            'Failed to load subscription plans: ${response.statusCode}');
+            'Failed to load subscription plans: ${response.statusCode}',);
       }
     } catch (e) {
       appLogger.e('Error fetching subscription plans', error: e);
@@ -46,7 +50,8 @@ class SubscriptionService {
   Future<List<Map<String, dynamic>>> getMySubscriptions() async {
     try {
       final headers = await _getHeaders();
-      final response = await http.get(
+      final client = _client ?? http.Client();
+      final response = await client.get(
         Uri.parse('$baseUrl/api/subscriptions/my'),
         headers: headers,
       );
@@ -68,7 +73,8 @@ class SubscriptionService {
   Future<Map<String, dynamic>> getSubscriptionDetails(String subscriptionId) async {
     try {
       final headers = await _getHeaders();
-      final response = await http.get(
+      final client = _client ?? http.Client();
+      final response = await client.get(
         Uri.parse('$baseUrl/api/subscriptions/$subscriptionId'),
         headers: headers,
       );
@@ -77,7 +83,7 @@ class SubscriptionService {
         return data['data'] as Map<String, dynamic>;
       } else {
         throw Exception(
-            'Failed to load subscription details: ${response.statusCode}');
+            'Failed to load subscription details: ${response.statusCode}',);
       }
     } catch (e) {
       appLogger.e('Error fetching subscription details', error: e);
@@ -89,7 +95,8 @@ class SubscriptionService {
   Future<Map<String, dynamic>> createSubscription(String planId) async {
     try {
       final headers = await _getHeaders();
-      final response = await http.post(
+      final client = _client ?? http.Client();
+      final response = await client.post(
         Uri.parse('$baseUrl/api/subscriptions/create'),
         headers: headers,
         body: json.encode({'planId': planId}),
@@ -99,7 +106,7 @@ class SubscriptionService {
         return data as Map<String, dynamic>;
       } else {
         throw Exception(
-            'Failed to create subscription: ${response.statusCode}');
+            'Failed to create subscription: ${response.statusCode}',);
       }
     } catch (e) {
       appLogger.e('Error creating subscription', error: e);
@@ -110,10 +117,11 @@ class SubscriptionService {
   /// Pause a subscription. Returns {success, message}.
   Future<Map<String, dynamic>> pauseSubscription(
       String subscriptionId,
-      {String duration = '1_week'}) async {
+      {String duration = '1_week',}) async {
     try {
       final headers = await _getHeaders();
-      final response = await http.put(
+      final client = _client ?? http.Client();
+      final response = await client.put(
         Uri.parse('$baseUrl/api/subscriptions/$subscriptionId/pause'),
         headers: headers,
         body: json.encode({'duration': duration}),
@@ -134,7 +142,8 @@ class SubscriptionService {
   Future<Map<String, dynamic>> resumeSubscription(String subscriptionId) async {
     try {
       final headers = await _getHeaders();
-      final response = await http.put(
+      final client = _client ?? http.Client();
+      final response = await client.put(
         Uri.parse('$baseUrl/api/subscriptions/$subscriptionId/resume'),
         headers: headers,
       );
@@ -153,11 +162,12 @@ class SubscriptionService {
   /// Cancel a subscription with reason. Returns {success, message}.
   Future<Map<String, dynamic>> cancelSubscription(
       String subscriptionId,
-      {String reason = ''}) async {
+      {String reason = '',}) async {
     try {
       final headers = await _getHeaders();
       // Use PUT with reason body matching bmjServer /cancel endpoint
-      final response = await http.put(
+      final client = _client ?? http.Client();
+      final response = await client.put(
         Uri.parse('$baseUrl/api/subscriptions/$subscriptionId/cancel'),
         headers: headers,
         body: json.encode({'reason': reason}),
@@ -177,10 +187,11 @@ class SubscriptionService {
   /// Modify subscription schedule. Returns {success, message}.
   Future<Map<String, dynamic>> modifySchedule(
       String subscriptionId,
-      Map<String, dynamic> schedule) async {
+      Map<String, dynamic> schedule,) async {
     try {
       final headers = await _getHeaders();
-      final response = await http.put(
+      final client = _client ?? http.Client();
+      final response = await client.put(
         Uri.parse('$baseUrl/api/subscriptions/$subscriptionId/modify'),
         headers: headers,
         body: json.encode({'schedule': schedule}),

@@ -66,51 +66,76 @@ class DynamicJuice {
   Map<String, dynamic> customization;
 
   /// Create DynamicJuice from backend API response
+  /// Chargebee returns snake_case keys (e.g. item_family_id, external_name).
+  /// camelCase fallback supports legacy internal API calls.
+  /// Reference: docs/data_models_map.md
   factory DynamicJuice.fromApiResponse(Map<String, dynamic> json) {
-    // Extract metadata if it exists
-    Map<String, dynamic> metaData = json['metaData'] is Map<String, dynamic>
-        ? json['metaData'] as Map<String, dynamic>
-        : <String, dynamic>{};
+    // Extract metadata if it exists (Chargebee: 'metadata', legacy: 'metaData')
+    final Map<String, dynamic> metaData = json['metadata'] is Map<String, dynamic>
+        ? json['metadata'] as Map<String, dynamic>
+        : json['metaData'] is Map<String, dynamic>
+            ? json['metaData'] as Map<String, dynamic>
+            : <String, dynamic>{};
 
     return DynamicJuice(
       juiceID: json['id']?.toString() ?? json['juiceID']?.toString() ?? '',
       name: json['name']?.toString() ?? 'Unknown Juice',
-      externalName:
-          json['externalName']?.toString() ?? json['name']?.toString() ?? '',
+      externalName: (json['external_name'] ?? json['externalName'] ?? json['name'] ?? '') as String,
       description: json['description']?.toString() ?? '',
       imagePath: metaData['imagePath']?.toString() ??
-          'assets/ABC.png', // default image
-      startColor: metaData['startColor']?.toString() ?? '#FF6B6B',
-      endColor: metaData['endColor']?.toString() ?? '#4ECDC4',
-      meals: _parseStringList(metaData['meals']),
-      kacl: (metaData['calories'] ?? json['calories'] ?? json['kacl'] ?? 0) as int,
+          metaData['image_path']?.toString() ??
+          'assets/ABC.png',
+      startColor: metaData['startColor']?.toString() ??
+          metaData['start_color']?.toString() ??
+          '#FF6B6B',
+      endColor: metaData['endColor']?.toString() ??
+          metaData['end_color']?.toString() ??
+          '#4ECDC4',
+      meals: _parseStringList(json['ingredients'] ?? metaData['meals'] ?? metaData['ingredients']),
+      kacl: (json['calories'] ?? metaData['calories'] ?? json['kacl'] ?? 0) as int,
       type: json['type']?.toString() ?? 'CHARGE',
       status: json['status']?.toString() ?? 'ACTIVE',
       unit: json['unit']?.toString() ?? '',
-      itemFamilyId: json['itemFamilyId']?.toString() ?? '',
-      enabledInPortal: (json['enabledInPortal'] as bool?) ?? false,
-      enabledForCheckout: (json['enabledForCheckout'] as bool?) ?? true,
-      isGiftable: (json['isGiftable'] as bool?) ?? false,
-      isShippable: (json['isShippable'] as bool?) ?? false,
-      deleted: (json['deleted'] as bool?) ?? false,
+      itemFamilyId: (json['item_family_id'] ?? json['itemFamilyId'] ?? '') as String,
+      enabledInPortal: _parseBool(json['enabled_in_portal'] ?? json['enabledInPortal']),
+      enabledForCheckout: _parseBool(json['enabled_for_checkout'] ?? json['enabledForCheckout']),
+      isGiftable: _parseBool(json['giftable'] ?? json['isGiftable']),
+      isShippable: _parseBool(json['shippable'] ?? json['isShippable']),
+      deleted: _parseBool(json['deleted']),
       category: metaData['category']?.toString() ?? 'juice',
-      subcategory: metaData['subcategory']?.toString() ?? '',
+      subcategory: metaData['subcategory']?.toString() ?? metaData['sub_category']?.toString() ?? '',
       benefits: _parseStringList(metaData['benefits']),
       allergies: _parseStringList(metaData['allergies']),
       tags: _parseStringList(metaData['tags']),
-      servingSize: metaData['servingSize']?.toString() ?? '300ml',
-      shelfLife: metaData['shelfLife']?.toString() ?? '24 hours',
-      preparationTime: metaData['preparationTime']?.toString() ?? '5 minutes',
+      servingSize: metaData['servingSize']?.toString() ??
+          metaData['serving_size']?.toString() ??
+          '300ml',
+      shelfLife: metaData['shelfLife']?.toString() ??
+          metaData['shelf_life']?.toString() ??
+          '24 hours',
+      preparationTime: metaData['preparationTime']?.toString() ??
+          metaData['preparation_time']?.toString() ??
+          '5 minutes',
       temperature: metaData['temperature']?.toString() ?? 'Cold',
       popularity: (metaData['popularity'] as int?) ?? 0,
-      seasonal: (metaData['seasonal'] as bool?) ?? false,
+      seasonal: _parseBool(metaData['seasonal']),
       nutritionalInfo: metaData['nutritionalInfo'] is Map<String, dynamic>
           ? metaData['nutritionalInfo'] as Map<String, dynamic>
-          : {},
+          : metaData['nutritional_info'] is Map<String, dynamic>
+              ? metaData['nutritional_info'] as Map<String, dynamic>
+              : {},
       customization: metaData['customization'] is Map<String, dynamic>
           ? metaData['customization'] as Map<String, dynamic>
           : {},
     );
+  }
+
+  /// Parse bool from various formats (Chargebee returns string 'true'/'false')
+  static bool _parseBool(dynamic value) {
+    if (value == null) return false;
+    if (value is bool) return value;
+    if (value is String) return value.toLowerCase() == 'true';
+    return false;
   }
 
   /// Parse various formats of string lists from API
@@ -207,7 +232,7 @@ class DynamicJuice {
 
   /// Get available customization options
   Map<String, List<String>> get customizationOptions {
-    Map<String, List<String>> options = {};
+    final Map<String, List<String>> options = {};
 
     customization.forEach((key, value) {
       if (value is List) {
@@ -222,7 +247,7 @@ class DynamicJuice {
   String get displayNutritionalInfo {
     if (nutritionalInfo.isEmpty) return 'Nutritional info not available';
 
-    List<String> info = [];
+    final List<String> info = [];
     nutritionalInfo.forEach((key, value) {
       info.add('$key: $value');
     });

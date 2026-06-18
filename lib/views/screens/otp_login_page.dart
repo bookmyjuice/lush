@@ -26,13 +26,11 @@ class _OTPLoginPageState extends State<OTPLoginPage> {
         // appBar: AppBar(),
         body: Column(
             mainAxisAlignment: MainAxisAlignment.center,
-            crossAxisAlignment: CrossAxisAlignment.center,
             children: [
           Padding(
               padding: const EdgeInsets.all(30.0),
               child: PinInputTextField(
                   autoFocus: true,
-                  pinLength: 6,
                   controller: _OTP_controller,
                   decoration: UnderlineDecoration(
                     colorBuilder:
@@ -42,14 +40,14 @@ class _OTPLoginPageState extends State<OTPLoginPage> {
                       isTextObscure: true,
                       obscureText: '*',
                     ),
-                  ))),
+                  ),),),
           // Text(_OTP_controller.text + "=> OK"),
           ElevatedButton(
               onPressed: () {
-                Navigator.of(context).popUntil((ModalRoute.withName('/')));
+                Navigator.of(context).popUntil(ModalRoute.withName('/'));
                 BlocProvider.of<AuthenticationBloc>(context).add(SignUp());
               },
-              child: const Text("Submit"))
-        ]));
+              child: const Text('Submit'),),
+        ],),);
   }
 }

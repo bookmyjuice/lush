@@ -11,7 +11,7 @@ class BottleService {
   final SecureStorageService _secureStorage = SecureStorageService();
 
   Future<String?> _getToken() async {
-    return await _secureStorage.getAuthToken();
+    return _secureStorage.getAuthToken();
   }
 
   Future<Map<String, String>> _getHeaders() async {
@@ -63,7 +63,7 @@ class BottleService {
         throw Exception('Unauthorized: Please login again');
       } else {
         throw Exception(
-            'Failed to load bottle transactions: ${response.statusCode}');
+            'Failed to load bottle transactions: ${response.statusCode}',);
       }
     } catch (e) {
       appLogger.e('Error fetching bottle transactions', error: e);
@@ -100,7 +100,7 @@ class BottleService {
         throw Exception('Unauthorized: Please login again');
       } else {
         throw Exception(
-            'Failed to record bottle return: ${response.statusCode}');
+            'Failed to record bottle return: ${response.statusCode}',);
       }
     } catch (e) {
       appLogger.e('Error recording bottle return', error: e);
@@ -137,7 +137,7 @@ class BottleService {
         throw Exception('Unauthorized: Please login again');
       } else {
         throw Exception(
-            'Failed to record bottle broken: ${response.statusCode}');
+            'Failed to record bottle broken: ${response.statusCode}',);
       }
     } catch (e) {
       appLogger.e('Error recording bottle broken', error: e);

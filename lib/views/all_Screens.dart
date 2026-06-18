@@ -1,16 +1,12 @@
 export 'package:lush/views/screens/menu.dart';
 export 'package:lush/views/screens/otp_login_page.dart';
-// export 'package:lush/views/screens/otp_sign_up_screen.dart';
 export 'package:lush/views/screens/sign_up_screen.dart';
-export 'package:lush/views/screens/splash_page.dart';
 export 'package:lush/views/screens/login_page.dart';
 // export 'package:lush/views/screens/payment_screen.dart';
 // export 'package:lush/views/screens/HomePage.dart';
 export 'package:lush/views/screens/dashboard.dart';
 export 'package:lush/views/screens/enter_mobile_number.dart';
 export 'package:lush/views/screens/detail.dart';
-export 'package:lush/views/screens/address_screen.dart';
-export 'package:lush/views/screens/settings_page.dart';
 export 'package:lush/views/screens/order_history_page.dart';
 export 'package:lush/views/screens/cart_screen.dart';
 export 'package:lush/views/screens/referral/referral_screen.dart';

@@ -52,7 +52,7 @@ class _AddressScreenState extends State<AddressScreen> {
     if (!_isPincodeValid) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text(ServiceabilityChecker.notServiceableMessage),
-            backgroundColor: AppColors.error),
+            backgroundColor: AppColors.error,),
       );
       return;
     }
@@ -87,8 +87,8 @@ class _AddressScreenState extends State<AddressScreen> {
       backgroundColor: AppColors.lightBackground,
       appBar: AppBar(
         backgroundColor: AppColors.white, elevation: 0,
-        title: Text('Delivery Address',
-            style: TextStyle(fontWeight: FontWeight.bold, color: AppColors.lightTextPrimary)),
+        title: const Text('Delivery Address',
+            style: TextStyle(fontWeight: FontWeight.bold, color: AppColors.lightTextPrimary),),
         iconTheme: const IconThemeData(color: AppColors.lightTextPrimary),
       ),
       body: _isSaving
@@ -99,18 +99,18 @@ class _AddressScreenState extends State<AddressScreen> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                 _buildField('Flat / House No. *', _flatController, Icons.home_outlined,
-                    validator: (v) => (v == null || v!.trim().isEmpty) ? 'Required' : null),
+                    validator: (v) => (v == null || v.trim().isEmpty) ? 'Required' : null,),
                 SizedBox(height: 16.h),
                 _buildField('Building Name *', _buildingController, Icons.apartment_outlined,
-                    validator: (v) => (v == null || v!.trim().isEmpty) ? 'Required' : null),
+                    validator: (v) => (v == null || v.trim().isEmpty) ? 'Required' : null,),
                 SizedBox(height: 16.h),
                 _buildField('Street / Locality *', _streetController, Icons.location_on_outlined,
-                    validator: (v) => (v == null || v!.trim().isEmpty) ? 'Required' : null),
+                    validator: (v) => (v == null || v.trim().isEmpty) ? 'Required' : null,),
                 SizedBox(height: 16.h),
                 _buildField('Area / Sector', _areaController, Icons.map_outlined),
                 SizedBox(height: 16.h),
                 _buildField('City *', _cityController, Icons.location_city,
-                    validator: (v) => (v == null || v!.trim().isEmpty) ? 'Required' : null),
+                    validator: (v) => (v == null || v.trim().isEmpty) ? 'Required' : null,),
                 SizedBox(height: 16.h),
                 _buildField('Pincode *', _pincodeController, Icons.pin_drop_outlined,
                     keyboardType: TextInputType.number, maxLength: 6,
@@ -123,10 +123,10 @@ class _AddressScreenState extends State<AddressScreen> {
                       }
                       return null;
                     },
-                    onChanged: (_) => _checkPincode()),
+                    onChanged: (_) => _checkPincode(),),
                 SizedBox(height: 16.h),
                 _buildField('Delivery Instructions (optional)', _instructionsController,
-                    Icons.note_alt_outlined, maxLines: 3),
+                    Icons.note_alt_outlined, maxLines: 3,),
                 SizedBox(height: 24.h),
                 SizedBox(width: double.infinity, height: 50.h,
                   child: ElevatedButton(
@@ -137,11 +137,11 @@ class _AddressScreenState extends State<AddressScreen> {
                       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12.r)),
                     ),
                     child: Text('Save Address',
-                        style: TextStyle(fontSize: 16.sp, fontWeight: FontWeight.bold, color: AppColors.white)),
+                        style: TextStyle(fontSize: 16.sp, fontWeight: FontWeight.bold, color: AppColors.white),),
                   ),
                 ),
                 SizedBox(height: 24.h),
-              ])),
+              ],),),
             ),
     );
   }
@@ -160,12 +160,12 @@ class _AddressScreenState extends State<AddressScreen> {
         decoration: InputDecoration(
           prefixIcon: Icon(icon, size: 20.sp, color: AppColors.lightTextSecondary),
           filled: true, fillColor: AppColors.white,
-          border: OutlineInputBorder(borderRadius: BorderRadius.circular(8.r), borderSide: BorderSide(color: AppColors.lightDivider)),
-          enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(8.r), borderSide: BorderSide(color: AppColors.lightDivider)),
+          border: OutlineInputBorder(borderRadius: BorderRadius.circular(8.r), borderSide: const BorderSide(color: AppColors.lightDivider)),
+          enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(8.r), borderSide: const BorderSide(color: AppColors.lightDivider)),
           contentPadding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 14.h),
           counterText: '',
         ),
       ),
-    ]);
+    ],);
   }
 }

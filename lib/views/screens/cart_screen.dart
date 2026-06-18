@@ -33,6 +33,36 @@ class CartScreenState extends State<CartScreen> {
   // Delivery selection state
   Map<String, dynamic>? _selectedAddress;
 
+  @override
+  void initState() {
+    super.initState();
+    _loadDefaultAddress();
+  }
+
+  Future<void> _loadDefaultAddress() async {
+    try {
+      final userRepo = getIt.get<UserRepository>();
+      final result = await userRepo.getUserAddresses();
+      if (result['status'] == 'success') {
+        final data = result['data'];
+        if (data is List && data.isNotEmpty) {
+          // Find the default address, fall back to first address
+          final defaultAddr = data.cast<Map<String, dynamic>>().firstWhere(
+            (addr) => addr['default'] == true || addr['isDefault'] == true,
+            orElse: () => data.first as Map<String, dynamic>,
+          );
+          if (mounted) {
+            setState(() {
+              _selectedAddress = defaultAddr;
+            });
+          }
+        }
+      }
+    } catch (e) {
+      // Silently fail - user can still manually select address
+    }
+  }
+
   Future<void> _navigateToAddressSelection() async {
     final result = await Navigator.pushNamed(
       context,
@@ -549,9 +579,9 @@ class CartScreenState extends State<CartScreen> {
                       final userRepository = getIt.get<UserRepository>();
                       final cartItems = items
                           .map((cartItem) => {
-                                "itemPriceId": cartItem.selectedPrice?.id ?? '',
-                                "quantity": cartItem.quantity,
-                              })
+                                'itemPriceId': cartItem.selectedPrice?.id ?? '',
+                                'quantity': cartItem.quantity,
+                              },)
                           .toList();
                       try {
                         final checkoutUrl =
@@ -562,7 +592,7 @@ class CartScreenState extends State<CartScreen> {
                               .pushNamed('/checkout', arguments: checkoutUrl);
                         } else {
                           ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(
+                            const SnackBar(
                               content: Text('Failed to get checkout URL'),
                               backgroundColor: AppColors.error,
                             ),
@@ -579,7 +609,6 @@ class CartScreenState extends State<CartScreen> {
                                 'Please checkout subscription and one-time items separately.',
                               ),
                               backgroundColor: AppColors.error,
-                              duration: Duration(seconds: 4),
                             ),
                           );
                         } else {

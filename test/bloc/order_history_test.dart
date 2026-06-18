@@ -37,7 +37,7 @@ void main() {
                   {'item_id': 'item_2', 'item_name': 'Apple Juice', 'quantity': 1, 'unit_price': 150.0, 'amount': 150.0},
                 ],
               },
-            ]);
+            ],);
         return orderBloc;
       },
       act: (bloc) => bloc.add(const LoadOrderHistory()),
@@ -94,7 +94,7 @@ void main() {
                 'line1': '42 MG Road', 'line2': 'Indiranagar', 'city': 'Bangalore',
                 'state': 'KA', 'zip': '560038',
               },
-            });
+            },);
         return orderBloc;
       },
       act: (bloc) => bloc.add(const LoadOrderDetail(orderId: 'order_1')),
@@ -120,17 +120,33 @@ void main() {
   });
 
   group('isClosed guard', () {
+    late OrderBloc freshBloc;
+
+    setUp(() {
+      freshBloc = OrderBloc(orderService: MockOrderService());
+    });
+
+    tearDown(() {
+      freshBloc.close();
+    });
+
     test('isClosed returns true after close', () {
-      expect(orderBloc.isClosed, false);
-      orderBloc.close();
-      expect(orderBloc.isClosed, true);
+      expect(freshBloc.isClosed, false);
+      freshBloc.close();
+      expect(freshBloc.isClosed, true);
     });
 
     test('events after close do not emit', () async {
-      orderBloc.close();
-      orderBloc.add(const LoadOrderHistory());
-      await Future.delayed(const Duration(milliseconds: 100));
-      expect(orderBloc.state, isA<OrderHistoryInitial>());
+      expect(freshBloc.isClosed, false);
+      freshBloc.close();
+      expect(freshBloc.isClosed, true);
+      // After close, add() throws StateError — verify it throws
+      try {
+        freshBloc.add(const LoadOrderHistory());
+        fail('Expected StateError was not thrown');
+      } on StateError {
+        // Expected — cannot add events after close
+      }
     });
   });
 }
