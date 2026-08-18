@@ -1,9 +1,8 @@
 /// Glassmorphism Menu Tab — Combined One-Time Order + Subscription
 ///
 /// Segment toggle at top: "One-Time" | "Subscribe"
-/// One-Time shows product catalog with add-to-cart
-/// Subscribe shows subscription plan cards
-/// Preserves all existing Bloc wiring — only UI/UX changes.
+/// One-Time: three-way category toggle (Delight/Signature/Premium) + product cards with minimum price
+/// Subscribe: three-way category toggle + Weekly/Monthly cards with size options → Chargebee checkout
 library;
 
 import 'package:flutter/material.dart';
@@ -13,6 +12,7 @@ import 'package:lush/bloc/CartBloc/cart_bloc.dart';
 import 'package:lush/bloc/CartBloc/cart_event.dart';
 import 'package:lush/bloc/ProductCatalogBloc/product_catalog_bloc.dart' hide AddToCart;
 import 'package:lush/bloc/SubscriptionBloc/subscription_bloc.dart';
+import 'package:lush/services/subscription_service.dart';
 import 'package:lush/theme/app_colors.dart';
 import 'package:lush/theme/app_radius.dart';
 import 'package:lush/theme/theme_cubit.dart';
@@ -31,16 +31,32 @@ class MenuTab extends StatefulWidget {
 
 class MenuTabState extends State<MenuTab> {
   int _segmentIndex = 0;
-  String? _selectedCategory;
+  String? _selectedCategory; // delight, signature, premium (for one-time)
+  String? _selectedSubCategory; // delight, signature, premium (for subscription)
   String _searchQuery = '';
   final TextEditingController _searchController = TextEditingController();
-  List<String> _categories = [];
+  List<String> _cachedOneTimeCategories = [];
+
+  static const List<String> _allCategories = ['delight', 'signature', 'premium'];
 
   @override
   void initState() {
     super.initState();
+    _selectedCategory = 'delight';
+    _selectedSubCategory = 'delight';
     context.read<ProductCatalogBloc>().add(const LoadProductCatalog());
     context.read<SubscriptionBloc>().add(const LoadSubscriptionPlans());
+    // Auto-filter only after catalog data is loaded
+    context.read<ProductCatalogBloc>().stream.listen((state) {
+      if (state is ProductCatalogLoaded && state.categories.isNotEmpty) {
+        if (_selectedCategory != null && mounted) {
+          _cachedOneTimeCategories = List<String>.from(state.categories);
+          context.read<ProductCatalogBloc>().add(
+            FilterByCategory(category: _selectedCategory!),
+          );
+        }
+      }
+    });
   }
 
   @override
@@ -64,7 +80,6 @@ class MenuTabState extends State<MenuTab> {
               padding: EdgeInsets.fromLTRB(16.w, 8.h, 16.w, 8.h),
               child: _buildSearchBar(isDark),
             ),
-
             // ── Segment Toggle ──
             Padding(
               padding: EdgeInsets.symmetric(horizontal: 16.w),
@@ -77,9 +92,7 @@ class MenuTabState extends State<MenuTab> {
                 isDark: isDark,
               ),
             ),
-
             SizedBox(height: 12.h),
-
             // ── Content ──
             Expanded(
               child: _segmentIndex == 0
@@ -101,16 +114,8 @@ class MenuTabState extends State<MenuTab> {
         controller: _searchController,
         decoration: InputDecoration(
           hintText: 'Search juices...',
-          hintStyle: TextStyle(
-            fontFamily: 'Inter',
-            fontSize: 14.sp,
-            color: AppColors.glassTextDim,
-          ),
-          prefixIcon: const Icon(
-            Icons.search,
-            color: AppColors.glassTextDim,
-            size: 20,
-          ),
+          hintStyle: TextStyle(fontFamily: 'Inter', fontSize: 14.sp, color: AppColors.glassTextDim),
+          prefixIcon: const Icon(Icons.search, color: AppColors.glassTextDim, size: 20),
           suffixIcon: _searchQuery.isNotEmpty
               ? IconButton(
                   icon: const Icon(Icons.clear, size: 18, color: AppColors.glassTextDim),
@@ -138,27 +143,69 @@ class MenuTabState extends State<MenuTab> {
     );
   }
 
-  // ═══ ONE-TIME CONTENT ══════════════════════════════════════════════════
+  // ═══════════════════ THREE-WAY CATEGORY TOGGLE ══════════════════════════
+  Widget _buildCategoryToggle({
+    required String? selected,
+    required ValueChanged<String> onChanged,
+    required bool isDark,
+  }) {
+    return Padding(
+      padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 8.h),
+      child: Row(
+        children: _allCategories.map((cat) {
+          final isSel = selected == cat;
+          final color = _categoryColor(cat);
+          return Expanded(
+            child: Padding(
+              padding: EdgeInsets.symmetric(horizontal: 3.w),
+              child: GestureDetector(
+                onTap: () => onChanged(cat),
+                child: AnimatedContainer(
+                  duration: const Duration(milliseconds: 200),
+                  padding: EdgeInsets.symmetric(vertical: 12.h),
+                  decoration: BoxDecoration(
+                    color: isSel ? color.withValues(alpha: 0.2) : Colors.transparent,
+                    borderRadius: BorderRadius.circular(AppRadius.md),
+                    border: Border.all(
+                      color: isSel ? color : (isDark ? AppColors.glassBorderSubtle : AppColors.glassBorderLight),
+                      width: isSel ? 1.5 : 0.5,
+                    ),
+                  ),
+                  child: Column(
+                    children: [
+                      Icon(_categoryIcon(cat), size: 18, color: isSel ? color : AppColors.glassTextDim),
+                      SizedBox(height: 4.h),
+                      Text(
+                        _categoryDisplay(cat),
+                        style: TextStyle(
+                          fontFamily: 'Inter',
+                          fontSize: 12.sp,
+                          fontWeight: isSel ? FontWeight.w600 : FontWeight.w400,
+                          color: isSel ? color : AppColors.glassTextDim,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          );
+        }).toList(),
+      ),
+    );
+  }
+
+  // ═══ ONE-TIME CONTENT ═══════════════════════════════════════════════════
   Widget _buildOneTimeContent(bool isDark) {
     return BlocBuilder<ProductCatalogBloc, ProductCatalogState>(
       builder: (context, state) {
         List<CatalogItem> items = [];
-        List<String> categories = [];
 
         if (state is ProductCatalogLoaded) {
           items = state.items;
-          categories = state.categories;
-          _categories = categories;
-          if (_selectedCategory == null && categories.isNotEmpty) {
-            _selectedCategory = categories[0];
-            // Auto-apply the first category filter (usually "Delight")
-            context.read<ProductCatalogBloc>().add(FilterByCategory(category: _selectedCategory!));
-            // Return early; the filter event will rebuild with filtered state
-            return const SizedBox.shrink();
-          }
+          _cachedOneTimeCategories = state.categories;
         } else if (state is ProductCatalogFiltered) {
           items = state.items;
-          categories = _categories;
         } else if (state is ProductCatalogLoading) {
           return const Center(child: CircularProgressIndicator());
         } else if (state is ProductCatalogEmpty) {
@@ -166,17 +213,9 @@ class MenuTabState extends State<MenuTab> {
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                const Icon(Icons.inventory_2_outlined, size: 64,
-                    color: AppColors.glassTextDim,),
+                const Icon(Icons.inventory_2_outlined, size: 64, color: AppColors.glassTextDim),
                 SizedBox(height: 16.h),
-                Text(
-                  'No products found',
-                  style: TextStyle(
-                    fontFamily: 'Inter',
-                    fontSize: 16.sp,
-                    color: AppColors.glassTextDim,
-                  ),
-                ),
+                Text('No products found', style: TextStyle(fontSize: 16.sp, color: AppColors.glassTextDim)),
               ],
             ),
           );
@@ -185,11 +224,9 @@ class MenuTabState extends State<MenuTab> {
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                const Icon(Icons.error_outline, size: 64,
-                    color: AppColors.glassTextDim,),
+                const Icon(Icons.error_outline, size: 64, color: AppColors.glassTextDim),
                 SizedBox(height: 16.h),
-                Text(state.message,
-                    style: const TextStyle(color: AppColors.glassTextDim),),
+                Text(state.message, style: const TextStyle(color: AppColors.glassTextDim)),
                 SizedBox(height: 16.h),
                 GestureDetector(
                   onTap: () => context.read<ProductCatalogBloc>().add(const LoadProductCatalog()),
@@ -204,81 +241,55 @@ class MenuTabState extends State<MenuTab> {
           );
         }
 
-        if (items.isEmpty) {
-          return const Center(child: Text('No products'));
+        // Filter by selected category
+        if (_selectedCategory != null) {
+          items = items.where((item) =>
+              item.category.toLowerCase() == _selectedCategory!.toLowerCase()).toList();
         }
 
-        // Extract unique categories from catalog items if state is ProductCatalogFiltered
-        if (state is ProductCatalogFiltered && categories.isEmpty) {
-          // We'll still show the filter chips based on the last loaded categories
-        }
-
-        return CustomScrollView(
-          physics: const BouncingScrollPhysics(),
-          slivers: [
-            // Category filter chips (only if not searching)
-            if (_searchQuery.isEmpty && categories.isNotEmpty)
-              SliverToBoxAdapter(
-                child: Padding(
-                  padding: EdgeInsets.only(left: 16.w, right: 16.w, bottom: 8.h),
-                  child: _buildCategoryChips(categories, isDark),
-                ),
-              ),
-
-            // Product grid
-            SliverPadding(
-              padding: EdgeInsets.symmetric(horizontal: 16.w),
-              sliver: SliverGrid(
-                gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                  crossAxisCount: 2,
-                  childAspectRatio: 0.75,
-                  crossAxisSpacing: 12.w,
-                  mainAxisSpacing: 12.h,
-                ),
-                delegate: SliverChildBuilderDelegate(
-                  (context, index) => _buildProductCard(items[index], isDark),
-                  childCount: items.length,
-                ),
-              ),
+        return Column(
+          children: [
+            // Three-way category toggle
+            _buildCategoryToggle(
+              selected: _selectedCategory,
+              onChanged: (cat) {
+                setState(() => _selectedCategory = cat);
+                context.read<ProductCatalogBloc>().add(FilterByCategory(category: cat));
+              },
+              isDark: isDark,
             ),
-
-            SliverToBoxAdapter(child: SizedBox(height: 24.h)),
+            SizedBox(height: 8.h),
+            // Product grid
+            Expanded(
+              child: items.isEmpty
+                  ? Center(child: Text('No items in $_selectedCategory', style: TextStyle(color: AppColors.glassTextDim)))
+                  : GridView.builder(
+                      physics: const BouncingScrollPhysics(),
+                      padding: EdgeInsets.symmetric(horizontal: 16.w),
+                      gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                        crossAxisCount: 2,
+                        childAspectRatio: 0.75,
+                        crossAxisSpacing: 12.w,
+                        mainAxisSpacing: 12.h,
+                      ),
+                      itemCount: items.length,
+                      itemBuilder: (context, index) => _buildProductCard(items[index], isDark),
+                    ),
+            ),
           ],
         );
       },
     );
   }
 
-  Widget _buildCategoryChips(List<String> categories, bool isDark) {
-    return SingleChildScrollView(
-      scrollDirection: Axis.horizontal,
-      child: Row(
-        children: categories.map((cat) {
-          final isSel = _selectedCategory == cat;
-          return Padding(
-            padding: EdgeInsets.only(right: 8.w),
-            child: GlassChip(
-              label: cat,
-              isSelected: isSel,
-              selectedColor: AppColors.glassAccent,
-              onTap: () {
-                setState(() => _selectedCategory = cat);
-                context.read<ProductCatalogBloc>().add(FilterByCategory(category: cat));
-              },
-            ),
-          );
-        }).toList(),
-      ),
-    );
-  }
-
+  /// Product card showing minimum available price
   Widget _buildProductCard(CatalogItem item, bool isDark) {
-    final defaultPrice = item.prices.isNotEmpty
-        ? item.prices.firstWhere(
-            (p) => p.name?.contains('500ml') ?? false,
-            orElse: () => item.prices.first,
-          )
-        : null;
+    // Find the cheapest price (smallest size)
+    ItemPrice? cheapest;
+    if (item.prices.isNotEmpty) {
+      cheapest = item.prices.reduce((a, b) =>
+          (a.price ?? double.infinity) < (b.price ?? double.infinity) ? a : b);
+    }
 
     return GlassCard(
       padding: EdgeInsets.zero,
@@ -293,23 +304,14 @@ class MenuTabState extends State<MenuTab> {
               width: double.infinity,
               decoration: BoxDecoration(
                 gradient: LinearGradient(
-                  colors: [
-                    _hexToColor(item.startColor),
-                    _hexToColor(item.endColor),
-                  ],
+                  colors: [_hexToColor(item.startColor), _hexToColor(item.endColor)],
                   begin: Alignment.topLeft,
                   end: Alignment.bottomRight,
                 ),
-                borderRadius: const BorderRadius.vertical(
-                  top: Radius.circular(AppRadius.lg),
-                ),
+                borderRadius: const BorderRadius.vertical(top: Radius.circular(AppRadius.lg)),
               ),
               child: Center(
-                child: Icon(
-                  Icons.local_drink,
-                  size: 48,
-                  color: Colors.white.withValues(alpha: 0.6),
-                ),
+                child: Icon(Icons.local_drink, size: 48, color: Colors.white.withValues(alpha: 0.6)),
               ),
             ),
           ),
@@ -323,56 +325,34 @@ class MenuTabState extends State<MenuTab> {
                 Container(
                   padding: EdgeInsets.symmetric(horizontal: 8.w, vertical: 3.h),
                   decoration: BoxDecoration(
-                    color: AppColors.glassAccent.withValues(alpha: 0.15),
+                    color: _categoryColor(item.category).withValues(alpha: 0.15),
                     borderRadius: BorderRadius.circular(AppRadius.md),
                   ),
                   child: Text(
                     item.category,
-                    style: TextStyle(
-                      fontFamily: 'Inter',
-                      fontSize: 10.sp,
-                      fontWeight: FontWeight.w600,
-                      color: AppColors.glassAccent,
-                    ),
+                    style: TextStyle(fontSize: 10.sp, fontWeight: FontWeight.w600, color: _categoryColor(item.category)),
                   ),
                 ),
                 SizedBox(height: 8.h),
-                // Name
                 Text(
                   item.name,
                   style: TextStyle(
-                    fontFamily: 'Poppins',
-                    fontSize: 14.sp,
-                    fontWeight: FontWeight.w600,
+                    fontFamily: 'Poppins', fontSize: 14.sp, fontWeight: FontWeight.w600,
                     color: isDark ? AppColors.glassText : AppColors.lightTextPrimary,
                   ),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
+                  maxLines: 1, overflow: TextOverflow.ellipsis,
                 ),
                 SizedBox(height: 4.h),
-                // Calories
-                Text(
-                  '${item.calories} cal',
-                  style: TextStyle(
-                    fontFamily: 'Inter',
-                    fontSize: 11.sp,
-                    color: AppColors.glassTextDim,
-                  ),
-                ),
+                Text('${item.calories} cal',
+                    style: TextStyle(fontFamily: 'Inter', fontSize: 11.sp, color: AppColors.glassTextDim)),
                 SizedBox(height: 8.h),
-                // Price + Add
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     Text(
-                      defaultPrice != null
-                          ? '₹${defaultPrice.price?.toStringAsFixed(0) ?? '0'}'
-                          : 'From ₹75',
+                      cheapest != null ? 'From ₹${cheapest.price?.toStringAsFixed(0) ?? '0'}' : 'From ₹75',
                       style: TextStyle(
-                        fontFamily: 'Poppins',
-                        fontSize: 16.sp,
-                        fontWeight: FontWeight.bold,
-                        color: AppColors.glassAccent,
+                        fontFamily: 'Poppins', fontSize: 16.sp, fontWeight: FontWeight.bold, color: AppColors.glassAccent,
                       ),
                     ),
                     Container(
@@ -380,16 +360,9 @@ class MenuTabState extends State<MenuTab> {
                       decoration: BoxDecoration(
                         color: AppColors.glassAccent.withValues(alpha: 0.15),
                         borderRadius: BorderRadius.circular(AppRadius.md),
-                        border: Border.all(
-                          color: AppColors.glassAccent.withValues(alpha: 0.3),
-                          width: 0.5,
-                        ),
+                        border: Border.all(color: AppColors.glassAccent.withValues(alpha: 0.3), width: 0.5),
                       ),
-                      child: const Icon(
-                        Icons.add,
-                        size: 18,
-                        color: AppColors.glassAccent,
-                      ),
+                      child: const Icon(Icons.add, size: 18, color: AppColors.glassAccent),
                     ),
                   ],
                 ),
@@ -405,9 +378,7 @@ class MenuTabState extends State<MenuTab> {
     showModalBottomSheet(
       context: context,
       backgroundColor: Colors.transparent,
-      builder: (ctx) {
-        return _SizeSelectionSheet(item: item);
-      },
+      builder: (ctx) => _SizeSelectionSheet(item: item),
     );
   }
 
@@ -415,216 +386,283 @@ class MenuTabState extends State<MenuTab> {
   Widget _buildSubscribeContent(bool isDark) {
     return BlocBuilder<SubscriptionBloc, SubscriptionState>(
       builder: (context, state) {
-        List<SubscriptionPlan> plans = [];
-
-        if (state is SubscriptionPlansLoaded) {
-          plans = state.plans;
-        } else if (state is SubscriptionLoading && plans.isEmpty) {
+        if (state is SubscriptionLoading) {
           return const Center(child: CircularProgressIndicator());
         }
 
-        if (plans.isEmpty) {
-          // Fallback plans
-          plans = [
-            const SubscriptionPlan(
-              id: '1', name: 'Delight', planID: 1,
-              description: 'Perfect for beginners',
-              features: ['2 juices/week', 'Flexible schedule', 'Free delivery'],
-            ),
-            const SubscriptionPlan(
-              id: '2', name: 'Premium', planID: 2,
-              description: 'Our most popular plan',
-              features: ['Daily juice', 'Choice of any size', 'Priority support', 'Free delivery'],
-              startColor: '#22C55E', endColor: '#16A34A',
-            ),
-            const SubscriptionPlan(
-              id: '3', name: 'Signature', planID: 3,
-              description: 'The ultimate experience',
-              features: ['2 juices/day', 'All sizes included', 'VIP support', 'Free delivery', 'Exclusive recipes'],
-              startColor: '#E91E63', endColor: '#880E4F',
-            ),
-          ];
+        List<SubscriptionPlan> allPlans = [];
+        if (state is SubscriptionPlansLoaded) {
+          allPlans = state.plans;
         }
 
-        return ListView.builder(
-          physics: const BouncingScrollPhysics(),
-          padding: EdgeInsets.symmetric(horizontal: 16.w),
-          itemCount: plans.length + 1, // +1 for header
-          itemBuilder: (context, index) {
-            if (index == 0) {
-              return Padding(
-                padding: EdgeInsets.only(bottom: 12.h),
-                child: Text(
-                  'Choose Your Plan',
-                  style: TextStyle(
-                    fontFamily: 'Poppins',
-                    fontSize: 18.sp,
-                    fontWeight: FontWeight.w600,
-                    color: isDark ? AppColors.glassText : AppColors.lightTextPrimary,
-                  ),
-                ),
-              );
-            }
-            final plan = plans[index - 1];
-            return Padding(
-              padding: EdgeInsets.only(bottom: 12.h),
-              child: _buildPlanCard(plan, isDark),
-            );
-          },
+    if (allPlans.isEmpty) {
+      return Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            const Icon(Icons.subscriptions_outlined, size: 64, color: AppColors.glassTextDim),
+            SizedBox(height: 16.h),
+            Text(
+              state is SubscriptionError ? 'Loading plans...' : 'No subscription plans available',
+              style: TextStyle(fontSize: 16.sp, color: AppColors.glassTextDim)),
+            SizedBox(height: 16.h),
+            GestureDetector(
+              onTap: () => context.read<SubscriptionBloc>().add(const LoadSubscriptionPlans()),
+              child: const GlassCard(
+                padding: EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                borderRadius: AppRadius.lg,
+                child: Text('Retry'),
+              ),
+            ),
+          ],
+        ),
+      );
+    }
+
+        // Filter by selected category
+        final filtered = allPlans
+            .where((p) => p.category == _selectedSubCategory)
+            .toList();
+
+        // Separate weekly and monthly plans
+        final weeklyPlans = filtered.where((p) => p.period == 'Weekly').toList();
+        final monthlyPlans = filtered.where((p) => p.period == 'Monthly').toList();
+
+        return Column(
+          children: [
+            // Three-way category toggle
+            _buildCategoryToggle(
+              selected: _selectedSubCategory,
+              onChanged: (cat) {
+                setState(() => _selectedSubCategory = cat);
+              },
+              isDark: isDark,
+            ),
+            SizedBox(height: 8.h),
+            // Weekly/Monthly cards
+            Expanded(
+              child: ListView(
+                physics: const BouncingScrollPhysics(),
+                padding: EdgeInsets.symmetric(horizontal: 16.w),
+                children: [
+                  // Weekly card
+                  if (weeklyPlans.isNotEmpty)
+                    _buildPeriodCard(
+                      title: 'Weekly',
+                      icon: Icons.calendar_view_week,
+                      plans: weeklyPlans,
+                      catColor: _categoryColor(_selectedSubCategory ?? 'delight'),
+                      isDark: isDark,
+                    ),
+                  SizedBox(height: 12.h),
+                  // Monthly card
+                  if (monthlyPlans.isNotEmpty)
+                    _buildPeriodCard(
+                      title: 'Monthly',
+                      icon: Icons.calendar_month,
+                      plans: monthlyPlans,
+                      catColor: _categoryColor(_selectedSubCategory ?? 'delight'),
+                      isDark: isDark,
+                    ),
+                  SizedBox(height: 24.h),
+                ],
+              ),
+            ),
+          ],
         );
       },
     );
   }
 
-  Widget _buildPlanCard(SubscriptionPlan plan, bool isDark) {
-    final colors = [
-      _hexToColor(plan.startColor),
-      _hexToColor(plan.endColor),
-    ];
+  /// Card for Weekly or Monthly section, containing clickable size sub-options
+  Widget _buildPeriodCard({
+    required String title,
+    required IconData icon,
+    required List<SubscriptionPlan> plans,
+    required Color catColor,
+    required bool isDark,
+  }) {
+    if (plans.isEmpty) return const SizedBox.shrink();
+
+    // Sort by size
+    plans.sort((a, b) => int.parse(a.sizeLabel).compareTo(int.parse(b.sizeLabel)));
 
     return GlassCard(
-      padding: const EdgeInsets.all(20),
-      hasGlow: plan.name == 'Premium',
-      glowColor: colors[0].withValues(alpha: 0.3),
+      padding: const EdgeInsets.all(16),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Plan header
+          // Header
           Row(
             children: [
               Container(
-                width: 48,
-                height: 48,
+                width: 36,
+                height: 36,
                 decoration: BoxDecoration(
                   gradient: LinearGradient(
-                    colors: colors,
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
+                    colors: [catColor, catColor.withValues(alpha: 0.7)],
                   ),
                   borderRadius: BorderRadius.circular(AppRadius.md),
                 ),
-                child: Icon(
-                  plan.name == 'Delight'
-                      ? Icons.emoji_emotions_outlined
-                      : plan.name == 'Premium'
-                          ? Icons.star_outline
-                          : Icons.diamond_outlined,
-                  color: Colors.white,
-                  size: 24,
-                ),
+                child: Icon(icon, color: Colors.white, size: 20),
               ),
-              SizedBox(width: 12.w),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      plan.name,
-                      style: TextStyle(
-                        fontFamily: 'Poppins',
-                        fontSize: 18.sp,
-                        fontWeight: FontWeight.w600,
-                        color: isDark
-                            ? AppColors.glassText
-                            : AppColors.lightTextPrimary,
-                      ),
-                    ),
-                    Text(
-                      plan.description,
-                      style: TextStyle(
-                        fontFamily: 'Inter',
-                        fontSize: 12.sp,
-                        color: AppColors.glassTextDim,
-                      ),
-                    ),
-                  ],
+              SizedBox(width: 10.w),
+              Text(
+                title,
+                style: TextStyle(
+                  fontFamily: 'Poppins',
+                  fontSize: 16.sp,
+                  fontWeight: FontWeight.w600,
+                  color: isDark ? AppColors.glassText : AppColors.lightTextPrimary,
                 ),
               ),
             ],
           ),
-          SizedBox(height: 16.h),
-          // Divider
-          Container(
-            height: 0.5,
-            color: isDark ? AppColors.glassBorder : AppColors.glassBorderLight,
-          ),
-          SizedBox(height: 16.h),
-          // Features
-          ...plan.features.map((f) => Padding(
-                padding: EdgeInsets.only(bottom: 8.h),
+          SizedBox(height: 14.h),
+          // Size options as clickable tiles
+          ...plans.map((plan) {
+            final priceStr = plan.price != null
+                ? '₹${(plan.price is int ? (plan.price as int) / 100 : plan.price).toStringAsFixed(0)}'
+                : 'N/A';
+
+            return GestureDetector(
+              onTap: () => _createSubscriptionAndNavigate(context, plan.id),
+              child: Container(
+                margin: EdgeInsets.only(bottom: 8.h),
+                padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 14.h),
+                decoration: BoxDecoration(
+                  color: catColor.withValues(alpha: 0.08),
+                  borderRadius: BorderRadius.circular(AppRadius.md),
+                  border: Border.all(color: catColor.withValues(alpha: 0.25)),
+                ),
                 child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    const Icon(
-                      Icons.check_circle,
-                      size: 16,
-                      color: AppColors.glassAccent,
+                    Row(
+                      children: [
+                        Container(
+                          padding: EdgeInsets.symmetric(horizontal: 8.w, vertical: 4.h),
+                          decoration: BoxDecoration(
+                            color: catColor.withValues(alpha: 0.15),
+                            borderRadius: BorderRadius.circular(AppRadius.sm),
+                          ),
+                          child: Text(
+                            '${plan.sizeLabel}ml',
+                            style: TextStyle(
+                              fontFamily: 'Inter',
+                              fontSize: 13.sp,
+                              fontWeight: FontWeight.w600,
+                              color: catColor,
+                            ),
+                          ),
+                        ),
+                        SizedBox(width: 10.w),
+                        Text(
+                          plan.name,
+                          style: TextStyle(
+                            fontFamily: 'Inter',
+                            fontSize: 13.sp,
+                            color: isDark ? AppColors.glassTextDim : AppColors.lightTextSecondary,
+                          ),
+                        ),
+                      ],
                     ),
-                    SizedBox(width: 8.w),
-                    Text(
-                      f,
-                      style: TextStyle(
-                        fontFamily: 'Inter',
-                        fontSize: 13.sp,
-                        color: isDark
-                            ? AppColors.glassTextDim
-                            : AppColors.lightTextSecondary,
-                      ),
+                    Row(
+                      children: [
+                        Text(
+                          '$priceStr/$title',
+                          style: TextStyle(
+                            fontFamily: 'Poppins',
+                            fontSize: 14.sp,
+                            fontWeight: FontWeight.bold,
+                            color: isDark ? AppColors.glassAccent : AppColors.primaryGreen,
+                          ),
+                        ),
+                        SizedBox(width: 6.w),
+                        Icon(Icons.arrow_forward_ios, size: 14, color: catColor),
+                      ],
                     ),
                   ],
                 ),
-              ),),
-          SizedBox(height: 16.h),
-          // Subscribe button
-          GestureDetector(
-            onTap: () {
-              context
-                  .read<SubscriptionBloc>()
-                  .add(CreateSubscription(planId: plan.planID, startDate: DateTime.now()));
-            },
-            child: Container(
-              width: double.infinity,
-              padding: const EdgeInsets.symmetric(vertical: 14),
-              decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  colors: colors,
-                ),
-                borderRadius: BorderRadius.circular(AppRadius.md),
-                boxShadow: [
-                  BoxShadow(
-                    color: colors[0].withValues(alpha: 0.3),
-                    blurRadius: 12,
-                    offset: const Offset(0, 4),
-                  ),
-                ],
               ),
-              child: Text(
-                'Subscribe with Chargebee',
-                textAlign: TextAlign.center,
-                style: TextStyle(
-                  fontFamily: 'Inter',
-                  fontSize: 14.sp,
-                  fontWeight: FontWeight.w600,
-                  color: Colors.white,
-                ),
-              ),
-            ),
-          ),
+            );
+          }),
         ],
       ),
     );
   }
 
-  // ─── Helpers ──────────────────────────────────────────────────────────────
+  /// Create subscription and navigate to Chargebee hosted checkout
+  Future<void> _createSubscriptionAndNavigate(BuildContext context, String planId) async {
+    // Show loading
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (_) => const Center(child: CircularProgressIndicator()),
+    );
+
+    try {
+      final service = SubscriptionService();
+      final result = await service.createSubscription(planId);
+      final url = result['url'] as String?;
+
+      if (mounted) Navigator.pop(context); // dismiss loading
+
+      if (url != null && url.isNotEmpty && mounted) {
+        Navigator.pushNamed(context, '/subscription-checkout', arguments: url);
+      } else {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('Failed to get checkout: ${result['message'] ?? 'Unknown error'}')),
+          );
+        }
+      }
+    } catch (e) {
+      if (mounted) Navigator.pop(context);
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Error: $e')),
+        );
+      }
+    }
+  }
+
+  // ─── Category Helpers ───────────────────────────────────────────────────
+  String _categoryDisplay(String cat) {
+    switch (cat) {
+      case 'delight': return 'Delight';
+      case 'signature': return 'Signature';
+      case 'premium': return 'Premium';
+      default: return cat;
+    }
+  }
+
+  Color _categoryColor(String cat) {
+    switch (cat) {
+      case 'delight': return AppColors.success;
+      case 'signature': return AppColors.info;
+      case 'premium': return AppColors.primaryOrangeDark;
+      default: return AppColors.glassAccent;
+    }
+  }
+
+  IconData _categoryIcon(String cat) {
+    switch (cat) {
+      case 'delight': return Icons.eco;
+      case 'signature': return Icons.auto_awesome;
+      case 'premium': return Icons.star;
+      default: return Icons.category;
+    }
+  }
+
   Color _hexToColor(String hex) {
     hex = hex.replaceAll('#', '');
-    if (hex.length == 6) {
-      return Color(int.parse('FF$hex', radix: 16));
-    }
+    if (hex.length == 6) return Color(int.parse('FF$hex', radix: 16));
     return AppColors.glassAccent;
   }
 }
 
-// ═══ Glass Segment Toggle (local version to avoid Bloc issues) ═══════════
+// ═══ Glass Segment Toggle ═══════════════════════════════════════════════
 class _GlassSegmentToggle extends StatelessWidget {
   final List<String> segments;
   final int selectedIndex;
@@ -647,13 +685,9 @@ class _GlassSegmentToggle extends StatelessWidget {
         child: Container(
           padding: const EdgeInsets.all(4),
           decoration: BoxDecoration(
-            color: isDark
-                ? AppColors.glassSurface.withValues(alpha: 0.8)
-                : AppColors.glassSurfaceLight.withValues(alpha: 0.8),
+            color: isDark ? AppColors.glassSurface.withValues(alpha: 0.8) : AppColors.glassSurfaceLight.withValues(alpha: 0.8),
             borderRadius: BorderRadius.circular(AppRadius.lg),
-            border: Border.all(
-              color: isDark ? AppColors.glassBorderSubtle : AppColors.glassBorderLight,
-            ),
+            border: Border.all(color: isDark ? AppColors.glassBorderSubtle : AppColors.glassBorderLight),
           ),
           child: Row(
             children: List.generate(segments.length, (index) {
@@ -665,9 +699,7 @@ class _GlassSegmentToggle extends StatelessWidget {
                     duration: const Duration(milliseconds: 200),
                     padding: const EdgeInsets.symmetric(vertical: 12),
                     decoration: BoxDecoration(
-                      color: isSelected
-                          ? AppColors.glassAccent.withValues(alpha: 0.25)
-                          : Colors.transparent,
+                      color: isSelected ? AppColors.glassAccent.withValues(alpha: 0.25) : Colors.transparent,
                       borderRadius: BorderRadius.circular(AppRadius.md),
                     ),
                     child: Text(
@@ -677,11 +709,7 @@ class _GlassSegmentToggle extends StatelessWidget {
                         fontFamily: 'Inter',
                         fontSize: 14.sp,
                         fontWeight: isSelected ? FontWeight.w600 : FontWeight.w400,
-                        color: isSelected
-                            ? AppColors.glassAccent
-                            : (isDark
-                                ? AppColors.glassTextDim
-                                : AppColors.lightTextSecondary),
+                        color: isSelected ? AppColors.glassAccent : (isDark ? AppColors.glassTextDim : AppColors.lightTextSecondary),
                       ),
                     ),
                   ),
@@ -717,28 +745,19 @@ class _SizeSelectionSheetState extends State<_SizeSelectionSheet> {
       decoration: BoxDecoration(
         color: isDark ? AppColors.glassElevated : AppColors.glassElevatedLight,
         borderRadius: BorderRadius.circular(AppRadius.xl),
-        border: Border.all(
-          color: isDark ? AppColors.glassBorder : AppColors.glassBorderLight,
-        ),
+        border: Border.all(color: isDark ? AppColors.glassBorder : AppColors.glassBorderLight),
       ),
       child: Column(
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Header
           Row(
             children: [
               Container(
-                width: 48,
-                height: 48,
+                width: 48, height: 48,
                 decoration: BoxDecoration(
                   gradient: LinearGradient(
-                    colors: [
-                      _hexToColor(widget.item.startColor),
-                      _hexToColor(widget.item.endColor),
-                    ],
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
+                    colors: [_hexToColor(widget.item.startColor), _hexToColor(widget.item.endColor)],
                   ),
                   borderRadius: BorderRadius.circular(AppRadius.md),
                 ),
@@ -749,23 +768,8 @@ class _SizeSelectionSheetState extends State<_SizeSelectionSheet> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(
-                      widget.item.name,
-                      style: TextStyle(
-                        fontFamily: 'Poppins',
-                        fontSize: 18.sp,
-                        fontWeight: FontWeight.w600,
-                        color: isDark ? AppColors.glassText : AppColors.lightTextPrimary,
-                      ),
-                    ),
-                    Text(
-                      'Select size',
-                      style: TextStyle(
-                        fontFamily: 'Inter',
-                        fontSize: 13.sp,
-                        color: AppColors.glassTextDim,
-                      ),
-                    ),
+                    Text(widget.item.name, style: TextStyle(fontFamily: 'Poppins', fontSize: 18.sp, fontWeight: FontWeight.w600, color: isDark ? AppColors.glassText : AppColors.lightTextPrimary)),
+                    Text('Select size', style: TextStyle(fontFamily: 'Inter', fontSize: 13.sp, color: AppColors.glassTextDim)),
                   ],
                 ),
               ),
@@ -774,9 +778,7 @@ class _SizeSelectionSheetState extends State<_SizeSelectionSheet> {
                 child: Container(
                   padding: const EdgeInsets.all(4),
                   decoration: BoxDecoration(
-                    color: isDark
-                        ? AppColors.glassSurface.withValues(alpha: 0.6)
-                        : AppColors.glassSurfaceLight.withValues(alpha: 0.6),
+                    color: isDark ? AppColors.glassSurface.withValues(alpha: 0.6) : AppColors.glassSurfaceLight.withValues(alpha: 0.6),
                     shape: BoxShape.circle,
                   ),
                   child: const Icon(Icons.close, size: 18, color: AppColors.glassTextDim),
@@ -785,8 +787,6 @@ class _SizeSelectionSheetState extends State<_SizeSelectionSheet> {
             ],
           ),
           SizedBox(height: 24.h),
-
-          // Size options
           ...widget.item.prices.map((price) {
             final isSelected = _selectedPrice == price;
             return GestureDetector(
@@ -795,74 +795,30 @@ class _SizeSelectionSheetState extends State<_SizeSelectionSheet> {
                 margin: EdgeInsets.only(bottom: 8.h),
                 padding: const EdgeInsets.all(16),
                 decoration: BoxDecoration(
-                  color: isSelected
-                      ? AppColors.glassAccent.withValues(alpha: 0.1)
-                      : (isDark
-                          ? AppColors.glassSurface
-                          : AppColors.glassSurfaceLight),
+                  color: isSelected ? AppColors.glassAccent.withValues(alpha: 0.1) : (isDark ? AppColors.glassSurface : AppColors.glassSurfaceLight),
                   borderRadius: BorderRadius.circular(AppRadius.md),
                   border: Border.all(
-                    color: isSelected
-                        ? AppColors.glassAccent.withValues(alpha: 0.5)
-                        : (isDark
-                            ? AppColors.glassBorderSubtle
-                            : AppColors.glassBorderLight),
+                    color: isSelected ? AppColors.glassAccent.withValues(alpha: 0.5) : (isDark ? AppColors.glassBorderSubtle : AppColors.glassBorderLight),
                     width: isSelected ? 1 : 0.5,
                   ),
                 ),
                 child: Row(
                   children: [
-                    Expanded(
-                      child: Text(
-                        price.name ?? 'Standard',
-                        style: TextStyle(
-                          fontFamily: 'Inter',
-                          fontSize: 14.sp,
-                          fontWeight: isSelected ? FontWeight.w600 : FontWeight.w400,
-                          color: isDark
-                              ? AppColors.glassText
-                              : AppColors.lightTextPrimary,
-                        ),
-                      ),
-                    ),
-                    Text(
-                      '₹${price.price?.toStringAsFixed(0) ?? '0'}',
-                      style: TextStyle(
-                        fontFamily: 'Poppins',
-                        fontSize: 16.sp,
-                        fontWeight: FontWeight.bold,
-                        color: isSelected
-                            ? AppColors.glassAccent
-                            : AppColors.glassTextDim,
-                      ),
-                    ),
+                    Expanded(child: Text(price.name ?? 'Standard', style: TextStyle(fontFamily: 'Inter', fontSize: 14.sp, fontWeight: isSelected ? FontWeight.w600 : FontWeight.w400, color: isDark ? AppColors.glassText : AppColors.lightTextPrimary))),
+                    Text('₹${price.price?.toStringAsFixed(0) ?? '0'}', style: TextStyle(fontFamily: 'Poppins', fontSize: 16.sp, fontWeight: FontWeight.bold, color: isSelected ? AppColors.glassAccent : AppColors.glassTextDim)),
                   ],
                 ),
               ),
             );
           }),
-
           SizedBox(height: 16.h),
-
-          // Add to Cart button
           GestureDetector(
             onTap: _selectedPrice != null
                 ? () {
-                    context.read<CartBloc>().add(AddToCart(
-                      CartItem(
-                        item: widget.item.item,
-                        selectedPrice: _selectedPrice,
-                      ),
-                    ),);
+                    context.read<CartBloc>().add(AddToCart(CartItem(item: widget.item.item, selectedPrice: _selectedPrice)));
                     Navigator.pop(context);
                     ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(
-                        content: Text(
-                          '${widget.item.name} (${_selectedPrice!.name}) added to cart',
-                        ),
-                        behavior: SnackBarBehavior.floating,
-                        backgroundColor: AppColors.glassAccent,
-                      ),
+                      SnackBar(content: Text('${widget.item.name} (${_selectedPrice!.name}) added to cart'), behavior: SnackBarBehavior.floating, backgroundColor: AppColors.glassAccent),
                     );
                   }
                 : null,
@@ -870,21 +826,10 @@ class _SizeSelectionSheetState extends State<_SizeSelectionSheet> {
               width: double.infinity,
               padding: const EdgeInsets.symmetric(vertical: 16),
               decoration: BoxDecoration(
-                color: _selectedPrice != null
-                    ? AppColors.glassAccent
-                    : AppColors.glassTextDim.withValues(alpha: 0.3),
+                color: _selectedPrice != null ? AppColors.glassAccent : AppColors.glassTextDim.withValues(alpha: 0.3),
                 borderRadius: BorderRadius.circular(AppRadius.md),
               ),
-              child: Text(
-                'Add to Cart',
-                textAlign: TextAlign.center,
-                style: TextStyle(
-                  fontFamily: 'Inter',
-                  fontSize: 15.sp,
-                  fontWeight: FontWeight.w600,
-                  color: _selectedPrice != null ? Colors.black : AppColors.glassTextDim,
-                ),
-              ),
+              child: Text('Add to Cart', textAlign: TextAlign.center, style: TextStyle(fontFamily: 'Inter', fontSize: 15.sp, fontWeight: FontWeight.w600, color: _selectedPrice != null ? Colors.black : AppColors.glassTextDim)),
             ),
           ),
         ],
@@ -894,9 +839,7 @@ class _SizeSelectionSheetState extends State<_SizeSelectionSheet> {
 
   Color _hexToColor(String hex) {
     hex = hex.replaceAll('#', '');
-    if (hex.length == 6) {
-      return Color(int.parse('FF$hex', radix: 16));
-    }
+    if (hex.length == 6) return Color(int.parse('FF$hex', radix: 16));
     return AppColors.glassAccent;
   }
 }

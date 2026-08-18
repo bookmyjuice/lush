@@ -58,6 +58,7 @@ import 'views/screens/phone_login_screen.dart';
 import 'views/screens/phone_otp_verification_screen.dart';
 import 'views/screens/phone_signup_screen.dart';
 import 'views/screens/product_catalog_screen.dart';
+import 'views/screens/user_profile_screen.dart';
 import 'views/screens/reset_password_email_screen.dart';
 import 'views/screens/reset_password_mobile_screen.dart';
 // New unified signup flow screens
@@ -315,8 +316,10 @@ class BookMyJuiceApp extends StatelessWidget {
                 '/login': (_) => const LoginPage(
                     toastMessage: '', toastHeading: '',),
                 '/dashboard': (_) => Dashboard(),
+                '/catalog': (_) => const ProductCatalogScreen(),
                 '/product-catalog': (_) => const ProductCatalogScreen(),
                 '/plan-selection': (_) => const PlanSelectionScreen(),
+                '/user-profile': (_) => const UserProfileScreen(),
               },
               onGenerateRoute: (settings) {
                 if (settings.name == '/myaccount') {

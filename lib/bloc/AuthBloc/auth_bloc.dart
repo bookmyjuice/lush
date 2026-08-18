@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:lush/get_it.dart';
 import 'package:lush/views/models/firebase_phone_auth.dart';
+
 import '../../CartRepository/cart_repository.dart';
 import '../../UserRepository/user_repository.dart';
 import '../../utils/analytics_service.dart';
@@ -525,10 +526,12 @@ class AuthenticationBloc extends Bloc<AuthenticationEvent, AuthenticationState> 
     on<FacebookSignUp>((event, emit) {
       // BUG FIX 21: Provide meaningful response instead of no-op handler
 
-      emit(const SignUpFailed(
-        errorHeading: 'Coming Soon',
-        error: 'Facebook sign-up is not yet available. Please use Email or Google sign-up.',
-      ));
+      emit(
+        const SignUpFailed(
+          errorHeading: 'Coming Soon',
+          error: 'Facebook sign-up is not yet available. Please use Email or Google sign-up.',
+        ),
+      );
     });
 
     // ============================================================

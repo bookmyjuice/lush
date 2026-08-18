@@ -1,5 +1,5 @@
 //When offering subscriptions of products or services,
-//each entity that is made available for sale is represented by an “item” object.
+//each entity that is made available for sale is represented by an "item" object.
 //Items therefore represent the various plans, addons or charges
 //that you offer as part of your product catalog.
 //Non-metered items are charged upfront in Chargebee,
@@ -241,8 +241,10 @@ class ItemPrice {
 
   factory ItemPrice.fromJson(Map<String, dynamic> json) {
     // Handle different key formats (snake_case vs camelCase)
+    // The charge-items endpoint sends 'priceId' (camelCase from backend DTO),
+    // while Chargebee native API sends 'id' (snake_case).
     return ItemPrice(
-      id: (json['id'] ?? json['id']) as String?,
+      id: (json['priceId'] ?? json['id']) as String?,
       accountingCategory1:
           (json['accounting_category1'] ?? json['accountingCategory1']) as String?,
       accountingCategory2:

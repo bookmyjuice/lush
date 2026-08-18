@@ -22,6 +22,13 @@ class SubscriptionPlan {
   final String imagePath;
   final List<String> features;
   final int planID;
+  /// Structured fields from backend API response
+  final String category;    // delight, signature, premium
+  final String sizeLabel;   // 200, 300, 500
+  final String period;      // Weekly, Monthly
+  final dynamic price;      // price in paise
+  final String currencyCode;
+  final String periodUnit;  // week, month
 
   const SubscriptionPlan({
     required this.id,
@@ -33,7 +40,49 @@ class SubscriptionPlan {
     this.imagePath = 'assets/subscription.png',
     this.features = const [],
     required this.planID,
+    this.category = 'delight',
+    this.sizeLabel = '200',
+    this.period = 'Weekly',
+    this.price,
+    this.currencyCode = 'INR',
+    this.periodUnit = 'week',
   });
+
+  SubscriptionPlan copyWith({
+    String? id,
+    String? name,
+    String? description,
+    String? pricingPageUrl,
+    String? startColor,
+    String? endColor,
+    String? imagePath,
+    List<String>? features,
+    int? planID,
+    String? category,
+    String? sizeLabel,
+    String? period,
+    dynamic price,
+    String? currencyCode,
+    String? periodUnit,
+  }) {
+    return SubscriptionPlan(
+      id: id ?? this.id,
+      name: name ?? this.name,
+      description: description ?? this.description,
+      pricingPageUrl: pricingPageUrl ?? this.pricingPageUrl,
+      startColor: startColor ?? this.startColor,
+      endColor: endColor ?? this.endColor,
+      imagePath: imagePath ?? this.imagePath,
+      features: features ?? this.features,
+      planID: planID ?? this.planID,
+      category: category ?? this.category,
+      sizeLabel: sizeLabel ?? this.sizeLabel,
+      period: period ?? this.period,
+      price: price ?? this.price,
+      currencyCode: currencyCode ?? this.currencyCode,
+      periodUnit: periodUnit ?? this.periodUnit,
+    );
+  }
 }
 
 // Events
@@ -380,27 +429,6 @@ class SubscriptionBloc extends Bloc<SubscriptionEvent, SubscriptionState> {
     on<ModifySubscriptionSchedule>(_onModifySubscriptionSchedule);
   }
 
-  SubscriptionPlan _getDefaultSubscriptionPlan({
-    int planID = 1,
-    String name = 'Premium',
-  }) {
-    return SubscriptionPlan(
-      id: planID.toString(),
-      name: name,
-      description: 'Default subscription plan',
-      features: ['Daily delivery', 'Premium juices', 'Free delivery'],
-      planID: planID,
-    );
-  }
-
-  List<SubscriptionPlan> _getDefaultSubscriptionPlans() {
-    return [
-      _getDefaultSubscriptionPlan(),
-      _getDefaultSubscriptionPlan(planID: 2, name: 'Signature'),
-      _getDefaultSubscriptionPlan(planID: 3, name: 'Delight'),
-    ];
-  }
-
   Future<void> _onLoadSubscriptionCatalog(
     LoadSubscriptionCatalog event,
     Emitter<SubscriptionState> emit,
@@ -522,14 +550,16 @@ class SubscriptionBloc extends Bloc<SubscriptionEvent, SubscriptionState> {
           imagePath: json['imagePath'] as String? ?? 'assets/subscription.png',
           features: (json['features'] as List?)?.cast<String>() ?? [],
           planID: (json['planId'] ?? json['planID'] ?? 1) as int,
+          category: (json['category'] as String? ?? 'delight').toLowerCase(),
+          sizeLabel: json['sizeLabel'] as String? ?? '200',
+          period: json['period'] as String? ?? 'Weekly',
+          price: json['price'],
+          currencyCode: json['currencyCode'] as String? ?? 'INR',
+          periodUnit: json['periodUnit'] as String? ?? 'week',
         );
       }).toList();
       if (isClosed) return;
-      if (plans.isEmpty) {
-        emit(const SubscriptionError(message: 'No subscription plans available'));
-      } else {
-        emit(SubscriptionPlansLoaded(plans: plans));
-      }
+      emit(SubscriptionPlansLoaded(plans: plans));
     } catch (e) {
       if (isClosed) return;
       emit(SubscriptionError(message: e.toString()));
@@ -602,7 +632,13 @@ class SubscriptionBloc extends Bloc<SubscriptionEvent, SubscriptionState> {
         id: response['subscriptionId'] as String? ??
             response['id'] as String? ??
             'sub_${DateTime.now().millisecondsSinceEpoch}',
-        plan: _getDefaultSubscriptionPlan(planID: event.planId),
+        plan: SubscriptionPlan(
+          id: event.planId.toString(),
+          name: 'Subscription',
+          description: 'Subscription plan',
+          features: [],
+          planID: event.planId,
+        ),
         status: response['status'] as String? ?? 'active',
         startDate: event.startDate,
         endDate: event.startDate.add(const Duration(days: 30)),

@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:lush/UserRepository/user_repository.dart';
 import 'package:lush/bloc/CartBloc/cart_bloc.dart';
 import 'package:lush/bloc/CartBloc/cart_event.dart';
 import 'package:lush/bloc/CartBloc/cart_state.dart';
+import 'package:lush/get_it.dart';
 import 'package:lush/theme/app_colors.dart';
 
 class OrderCheckoutScreen extends StatefulWidget {
@@ -14,8 +16,49 @@ class OrderCheckoutScreen extends StatefulWidget {
 }
 
 class _OrderCheckoutScreenState extends State<OrderCheckoutScreen> {
+  final UserRepository _userRepo = getIt.get<UserRepository>();
   DateTime _selectedDate = DateTime.now().add(const Duration(days: 1));
   bool _isPlacing = false;
+  Map<String, dynamic>? _defaultAddress;
+  bool _isLoadingAddress = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadDefaultAddress();
+  }
+
+  Future<void> _loadDefaultAddress() async {
+    setState(() => _isLoadingAddress = true);
+    try {
+      final result = await _userRepo.getUserAddresses();
+      if (result['status'] == 'success' && result['data'] is List) {
+        final addresses = result['data'] as List;
+        for (final addr in addresses) {
+          if (addr is Map<String, dynamic> &&
+              (addr['default'] == true || addr['isDefault'] == true)) {
+            setState(() => _defaultAddress = addr);
+            break;
+          }
+        }
+        // If no default found, use the first address
+        if (_defaultAddress == null && addresses.isNotEmpty) {
+          setState(() => _defaultAddress = addresses.first as Map<String, dynamic>?);
+        }
+      }
+    } catch (_) {
+      // Silently handle
+    } finally {
+      if (mounted) setState(() => _isLoadingAddress = false);
+    }
+  }
+
+  Future<void> _navigateToAddressSelection() async {
+    final result = await Navigator.pushNamed(context, '/address-selection');
+    if (result != null && result is Map<String, dynamic>) {
+      setState(() => _defaultAddress = result);
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -81,6 +124,71 @@ class _OrderCheckoutScreenState extends State<OrderCheckoutScreen> {
                     ]),
                     SizedBox(height: 16.h),
 
+                    // Delivery address section (auto-fetches default)
+                    Container(
+                      width: double.infinity,
+                      margin: EdgeInsets.only(bottom: 16.h),
+                      padding: EdgeInsets.all(16.r),
+                      decoration: BoxDecoration(
+                        color: AppColors.white,
+                        borderRadius: BorderRadius.circular(12.r),
+                        border: Border.all(color: AppColors.lightDivider),
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Text('Delivery Address',
+                                  style: TextStyle(fontSize: 16.sp, fontWeight: FontWeight.w600, color: AppColors.lightTextPrimary)),
+                              TextButton(
+                                onPressed: _navigateToAddressSelection,
+                                child: const Text('Change', style: TextStyle(color: AppColors.primaryOrange)),
+                              ),
+                            ],
+                          ),
+                          SizedBox(height: 8.h),
+                          if (_isLoadingAddress)
+                            const SizedBox(
+                              height: 40,
+                              child: Center(child: CircularProgressIndicator(strokeWidth: 2)),
+                            )
+                          else if (_defaultAddress != null)
+                            Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  _defaultAddress!['addressLine1'] as String? ?? '',
+                                  style: TextStyle(fontSize: 14.sp, color: AppColors.lightTextPrimary),
+                                ),
+                                if ((_defaultAddress!['addressLine2'] as String? ?? '').isNotEmpty)
+                                  Text(
+                                    _defaultAddress!['addressLine2'] as String,
+                                    style: TextStyle(fontSize: 14.sp, color: AppColors.lightTextPrimary),
+                                  ),
+                                Text(
+                                  _buildAddressSummary(_defaultAddress!),
+                                  style: TextStyle(fontSize: 14.sp, color: AppColors.lightTextPrimary),
+                                ),
+                              ],
+                            )
+                          else
+                            GestureDetector(
+                              onTap: _navigateToAddressSelection,
+                              child: Row(
+                                children: [
+                                  const Icon(Icons.add_location_alt, color: AppColors.primaryOrange, size: 20),
+                                  SizedBox(width: 8.w),
+                                  Text('Add delivery address',
+                                      style: TextStyle(fontSize: 14.sp, color: AppColors.primaryOrange)),
+                                ],
+                              ),
+                            ),
+                        ],
+                      ),
+                    ),
+
                     // Delivery date picker
                     _buildSection('Delivery Date', [
                       ListTile(
@@ -99,14 +207,23 @@ class _OrderCheckoutScreenState extends State<OrderCheckoutScreen> {
                       width: double.infinity,
                       height: 50.h,
                       child: ElevatedButton(
-                        onPressed: () {
-                          setState(() => _isPlacing = true);
-                          context.read<CartBloc>().add(PlaceOneTimeOrder(
-                            items: items,
-                            deliveryAddress: 'User address',
-                            deliveryDate: _selectedDate,
-                          ),);
-                        },
+                        onPressed: _defaultAddress == null
+                            ? null
+                            : () {
+                                setState(() => _isPlacing = true);
+                                final addrLine = _defaultAddress!['addressLine1'] as String? ?? '';
+                                final addrLine2 = _defaultAddress!['addressLine2'] as String? ?? '';
+                                final city = _defaultAddress!['city'] as String? ?? '';
+                                final pincode = _defaultAddress!['pincode'] as String? ?? '';
+                                final fullAddr = [addrLine, addrLine2, city, 'PIN: $pincode']
+                                    .where((s) => s.isNotEmpty)
+                                    .join(', ');
+                                context.read<CartBloc>().add(PlaceOneTimeOrder(
+                                  items: items,
+                                  deliveryAddress: fullAddr.isNotEmpty ? fullAddr : 'Address on file',
+                                  deliveryDate: _selectedDate,
+                                ));
+                              },
                         style: ElevatedButton.styleFrom(
                           backgroundColor: AppColors.primaryOrange,
                           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12.r)),
@@ -136,6 +253,18 @@ class _OrderCheckoutScreenState extends State<OrderCheckoutScreen> {
         ...children,
       ],),
     );
+  }
+
+  String _buildAddressSummary(Map<String, dynamic> addr) {
+    final city = addr['city'] as String? ?? '';
+    final state = addr['state'] as String? ?? '';
+    final pincode = addr['pincode'] as String? ?? '';
+    final parts = <String>[
+      if (city.isNotEmpty) city,
+      if (state.isNotEmpty) state,
+      if (pincode.isNotEmpty) 'PIN: $pincode',
+    ];
+    return parts.join(', ');
   }
 
   Future<void> _pickDate(BuildContext context) async {

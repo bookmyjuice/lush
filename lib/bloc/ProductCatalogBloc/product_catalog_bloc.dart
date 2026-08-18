@@ -309,17 +309,15 @@ class ProductCatalogBloc extends Bloc<ProductCatalogEvent, ProductCatalogState> 
       }).toList();
     }
 
-    if (filteredItems.isEmpty) {
-      emit(const ProductCatalogEmpty());
-    } else {
-      emit(ProductCatalogFiltered(
-        items: filteredItems,
-        categories: _extractCategories(_allItems),
-        sizes: _extractSizes(_allItems),
-        selectedCategory: _selectedCategory,
-        selectedSize: _selectedSize,
-      ),);
-    }
+    // BUG FIX 1: Preserve categories and sizes even when filtered list is empty
+    // so filter chips stay visible instead of vanishing.
+    emit(ProductCatalogFiltered(
+      items: filteredItems,
+      categories: _extractCategories(_allItems),
+      sizes: _extractSizes(_allItems),
+      selectedCategory: _selectedCategory,
+      selectedSize: _selectedSize,
+    ),);
   }
 
   List<CatalogItem> _convertToCatalogItems(List<Map<String, dynamic>> apiResponse) {

@@ -220,74 +220,82 @@ class ProfileTab extends StatelessWidget {
         ? user!.firstName[0].toUpperCase()
         : 'U';
 
-    return GlassCard(
-      padding: const EdgeInsets.all(20),
-      width: double.infinity,
-      child: Row(
-        children: [
-          // Avatar
-          Container(
-            width: 64,
-            height: 64,
-            decoration: BoxDecoration(
-              gradient: const LinearGradient(
-                colors: [
-                  AppColors.primaryGreen,
-                  AppColors.primaryGreenLight,
+    return GestureDetector(
+      onTap: () => Navigator.pushNamed(context, '/user-profile'),
+      child: GlassCard(
+        padding: const EdgeInsets.all(20),
+        width: double.infinity,
+        child: Row(
+          children: [
+            // Avatar
+            Container(
+              width: 64,
+              height: 64,
+              decoration: BoxDecoration(
+                gradient: const LinearGradient(
+                  colors: [
+                    AppColors.primaryGreen,
+                    AppColors.primaryGreenLight,
+                  ],
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                ),
+                shape: BoxShape.circle,
+                boxShadow: [
+                  BoxShadow(
+                    color: AppColors.primaryGreen.withValues(alpha: 0.3),
+                    blurRadius: 12,
+                    offset: const Offset(0, 4),
+                  ),
                 ],
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
               ),
-              shape: BoxShape.circle,
-              boxShadow: [
-                BoxShadow(
-                  color: AppColors.primaryGreen.withValues(alpha: 0.3),
-                  blurRadius: 12,
-                  offset: const Offset(0, 4),
-                ),
-              ],
-            ),
-            child: Center(
-              child: Text(
-                initial,
-                style: TextStyle(
-                  fontFamily: 'Poppins',
-                  fontSize: 28.sp,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.white,
+              child: Center(
+                child: Semantics(
+                  label: 'View Profile',
+                  button: true,
+                  child: Text(
+                    initial,
+                    style: TextStyle(
+                      fontFamily: 'Poppins',
+                      fontSize: 28.sp,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white,
+                    ),
+                  ),
                 ),
               ),
             ),
-          ),
-          SizedBox(width: 16.w),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  '${user!.firstName} ${user!.lastName}',
-                  style: TextStyle(
-                    fontFamily: 'Poppins',
-                    fontSize: 18.sp,
-                    fontWeight: FontWeight.w600,
-                    color: isDark ? AppColors.glassText : AppColors.lightTextPrimary,
+            SizedBox(width: 16.w),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    '${user!.firstName} ${user!.lastName}',
+                    style: TextStyle(
+                      fontFamily: 'Poppins',
+                      fontSize: 18.sp,
+                      fontWeight: FontWeight.w600,
+                      color: isDark ? AppColors.glassText : AppColors.lightTextPrimary,
+                    ),
                   ),
-                ),
-                SizedBox(height: 4.h),
-                Text(
-                  user!.email,
-                  style: TextStyle(
-                    fontFamily: 'Inter',
-                    fontSize: 13.sp,
-                    color: AppColors.glassTextDim,
+                  SizedBox(height: 4.h),
+                  Text(
+                    user!.email,
+                    style: TextStyle(
+                      fontFamily: 'Inter',
+                      fontSize: 13.sp,
+                      color: AppColors.glassAccent,
+                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
                   ),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                ),
-              ],
+                ],
+              ),
             ),
-          ),
-        ],
+            Icon(Icons.chevron_right, size: 20, color: AppColors.glassTextDim),
+          ],
+        ),
       ),
     );
   }

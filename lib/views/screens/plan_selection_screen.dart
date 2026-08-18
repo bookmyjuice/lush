@@ -169,8 +169,9 @@ class _PlanSelectionScreenState extends State<PlanSelectionScreen> {
 
   String _formatPrice(dynamic price) {
     if (price == null) return 'N/A';
+    // Backend now sends prices in rupees (movePointLeft(2) applied)
     if (price is int) {
-      return '₹${(price / 100).toStringAsFixed(0)}'; // Convert from paise to rupees
+      return '₹${price.toStringAsFixed(0)}';
     }
     if (price is double) {
       return '₹${price.toStringAsFixed(0)}';
@@ -254,14 +255,14 @@ class _PlanSelectionScreenState extends State<PlanSelectionScreen> {
                         children: [
                           Icon(Icons.subscriptions_outlined, size: 64, color: AppColors.grey),
                           const SizedBox(height: 16),
-                          const Text(
+                          Text(
                             'No subscription plans available',
-                            style: TextStyle(fontSize: 18, color: Colors.grey),
+                            style: TextStyle(fontSize: 18, color: AppColors.grey),
                           ),
                           const SizedBox(height: 8),
                           Text(
                             'Plans will appear once configured in Chargebee.',
-                            style: TextStyle(fontSize: 14, color: Colors.grey.shade600),
+                            style: TextStyle(fontSize: 14, color: AppColors.darkGrey),
                           ),
                         ],
                       ),
@@ -366,7 +367,7 @@ class _PlanSelectionScreenState extends State<PlanSelectionScreen> {
                       style: TextStyle(
                         fontSize: 14,
                         fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
-                        color: isSelected ? color : Colors.grey.shade600,
+                        color: isSelected ? color : AppColors.grey,
                       ),
                     ),
                   ],
@@ -422,7 +423,7 @@ class _PlanSelectionScreenState extends State<PlanSelectionScreen> {
                   style: TextStyle(
                     fontSize: 16,
                     fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
-                    color: isSelected ? AppColors.info : Colors.grey.shade600,
+                    color: isSelected ? AppColors.info : AppColors.grey,
                   ),
                 ),
               ),
@@ -498,7 +499,7 @@ class _PlanSelectionScreenState extends State<PlanSelectionScreen> {
                         fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
                         color: isSelected
                             ? periodColor
-                            : Colors.grey.shade600,
+                            : AppColors.grey,
                       ),
                     ),
                     if (periodPrice.isNotEmpty) ...[
@@ -508,7 +509,7 @@ class _PlanSelectionScreenState extends State<PlanSelectionScreen> {
                         style: TextStyle(
                           fontSize: 13,
                           fontWeight: FontWeight.w600,
-                          color: isSelected ? AppColors.success : Colors.grey.shade500,
+                          color: isSelected ? AppColors.success : AppColors.grey,
                         ),
                       ),
                     ],
@@ -597,7 +598,7 @@ class _PlanSelectionScreenState extends State<PlanSelectionScreen> {
                 description,
                 style: TextStyle(
                   fontSize: 14,
-                  color: Colors.grey.shade600,
+                  color: AppColors.darkGrey,
                 ),
               ),
             ],
@@ -618,7 +619,7 @@ class _PlanSelectionScreenState extends State<PlanSelectionScreen> {
                         '$period Plan',
                         style: TextStyle(
                           fontSize: 13,
-                          color: Colors.grey.shade600,
+                          color: AppColors.darkGrey,
                         ),
                       ),
                       Text(
@@ -666,7 +667,7 @@ class _PlanSelectionScreenState extends State<PlanSelectionScreen> {
               textAlign: TextAlign.center,
               style: TextStyle(
                 fontSize: 12,
-                color: Colors.grey.shade500,
+                color: AppColors.grey,
               ),
             ),
           ],

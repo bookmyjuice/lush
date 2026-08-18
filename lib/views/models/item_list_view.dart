@@ -12,8 +12,7 @@ class ItemListView extends StatefulWidget {
       this.items,
       this.category,
       this.size,
-      this.type,
-      this.useFallbackItems = false,});
+      this.type});
 
   final AnimationController? mainScreenAnimationController;
   final Animation<double>? mainScreenAnimation;
@@ -21,8 +20,6 @@ class ItemListView extends StatefulWidget {
   final String? category;
   final String? size; // Selected size filter
   final String? type; // Selected type filter (CHARGE, PLAN, ADDON)
-  final bool
-      useFallbackItems; // Flag to determine whether to use fallback items or fetch from server
 
   @override
   ItemListViewState createState() => ItemListViewState();
@@ -87,8 +84,8 @@ class ItemListViewState extends State<ItemListView>
           return const Center(child: CircularProgressIndicator());
         } else if (snapshot.hasError) {
           print('Error loading items: ${snapshot.error}');
-          // Use fallback items instead of showing error
-          return _buildFallbackItems();
+          // Show empty state with error message
+          return _buildErrorState(snapshot.error.toString());
         } else if (snapshot.hasData && snapshot.data!.isNotEmpty) {
           final items = snapshot.data!;
           print('Items loaded: ${items.length}');
@@ -125,13 +122,13 @@ class ItemListViewState extends State<ItemListView>
           }).toList();
 
           if (filteredItems.isEmpty) {
-            return _buildFallbackItems();
+            return _buildEmptyState();
           }
 
           return _buildItemGrid(filteredItems);
         } else {
           // No data or empty data
-          return _buildFallbackItems();
+          return _buildEmptyState();
         }
       },
     );
@@ -141,18 +138,12 @@ class ItemListViewState extends State<ItemListView>
     try {
       final ItemService itemService = getIt.get<ItemService>();
 
-      // If useFallbackItems is true, directly return fallback items
-      if (widget.useFallbackItems) {
-        print('Using fallback items as requested');
-        return _getFallbackItems();
-      }
-
-      // Otherwise, fetch items from the server
+      // Fetch items from the server
       final dynamicItems = await itemService.fetchItems();
 
       if (dynamicItems.isEmpty) {
-        print('No items returned from server, using fallback items');
-        return _getFallbackItems();
+        print('No items returned from server');
+        return [];
       }
 
       // Convert DynamicItem objects to Item objects
@@ -160,24 +151,8 @@ class ItemListViewState extends State<ItemListView>
       return dynamicItems.map(itemService.convertToItem).toList();
     } catch (e) {
       print('Error in _loadItems: $e');
-      return _getFallbackItems();
+      return [];
     }
-  }
-
-  List<Item> _getFallbackItems() {
-    final ItemService itemService= getIt.get<ItemService>();
-    final dynamicItems = itemService.getFallbackItems();
-
-    // Convert DynamicItem objects to Item objects
-    return dynamicItems
-        .map(itemService.convertToItem)
-        .toList();
-  }
-
-  Widget _buildFallbackItems() {
-    print('Building fallback items');
-    final fallbackItems = _getFallbackItems();
-    return _buildItemGrid(fallbackItems);
   }
 
   Widget _buildItemGrid(List<Item> items) {
@@ -236,6 +211,56 @@ class ItemListViewState extends State<ItemListView>
               ),
       );
     },);
+  }
+
+  // Error state widget when API call fails
+  Widget _buildErrorState(String errorMessage) {
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(
+            Icons.cloud_off,
+            size: 64,
+            color: Colors.grey[400],
+          ),
+          const SizedBox(height: 16),
+          Text(
+            'Unable to load items',
+            style: TextStyle(
+              fontSize: 18,
+              fontWeight: FontWeight.bold,
+              color: Colors.grey[700],
+            ),
+          ),
+          const SizedBox(height: 8),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 32),
+            child: Text(
+              errorMessage,
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                fontSize: 14,
+                color: Colors.grey[600],
+              ),
+            ),
+          ),
+          const SizedBox(height: 24),
+          ElevatedButton.icon(
+            onPressed: () {
+              setState(() {});
+            },
+            icon: const Icon(Icons.refresh),
+            label: const Text('Retry'),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.orange,
+              foregroundColor: Colors.white,
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+            ),
+          ),
+        ],
+      ),
+    );
   }
 
   // Empty state widget when no items match the filters

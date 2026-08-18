@@ -170,100 +170,9 @@ class UserRepository {
       }
     } catch (e) {
       debugPrint('🛒 Error fetching charge items: $e');
-      // Return fallback data
-      return _getFallbackChargeItems();
+      // Return empty list on error — UI will handle empty state
+      return [];
     }
-  }
-
-  /// Fallback charge items when API is unavailable
-  List<Map<String, dynamic>> _getFallbackChargeItems() {
-    return [
-      {
-        'itemId': 'delight_watermelon',
-        'name': 'Watermelon',
-        'description': 'Refreshing watermelon juice',
-        'category': 'Delight',
-        'imagePath': 'assets/watermelon.png',
-        'startColor': '#FFB1C9',
-        'endColor': '#B8292C',
-        'calories': 525,
-        'meals': ['Watermelon juice'],
-        'enabledForCheckout': true,
-        'prices': [
-          {'id': 'watermelon_200', 'name': '200ml', 'price': 75.0, 'currencyCode': 'INR'},
-          {'id': 'watermelon_300', 'name': '300ml', 'price': 99.0, 'currencyCode': 'INR'},
-          {'id': 'watermelon_500', 'name': '500ml', 'price': 149.0, 'currencyCode': 'INR'},
-        ],
-      },
-      {
-        'itemId': 'delight_pineapple',
-        'name': 'Pineapple',
-        'description': 'Fresh pineapple juice',
-        'category': 'Delight',
-        'imagePath': 'assets/pineapple.png',
-        'startColor': '#fad704',
-        'endColor': '#ffd964',
-        'calories': 602,
-        'meals': ['Fresh pineapple', 'a pinch of salt'],
-        'enabledForCheckout': true,
-        'prices': [
-          {'id': 'pineapple_200', 'name': '200ml', 'price': 75.0, 'currencyCode': 'INR'},
-          {'id': 'pineapple_300', 'name': '300ml', 'price': 99.0, 'currencyCode': 'INR'},
-          {'id': 'pineapple_500', 'name': '500ml', 'price': 149.0, 'currencyCode': 'INR'},
-        ],
-      },
-      {
-        'itemId': 'signature_abc',
-        'name': 'ABC Juice',
-        'description': 'Apple Beetroot Carrot blend',
-        'category': 'Signature',
-        'imagePath': 'assets/ABC.png',
-        'startColor': '#673f45',
-        'endColor': '#7a1f3d',
-        'calories': 0,
-        'meals': ['Apple', 'Beetroot', 'Carrot'],
-        'enabledForCheckout': true,
-        'prices': [
-          {'id': 'abc_200', 'name': '200ml', 'price': 99.0, 'currencyCode': 'INR'},
-          {'id': 'abc_300', 'name': '300ml', 'price': 129.0, 'currencyCode': 'INR'},
-          {'id': 'abc_500', 'name': '500ml', 'price': 199.0, 'currencyCode': 'INR'},
-        ],
-      },
-      {
-        'itemId': 'signature_vitaminc',
-        'name': 'Vitamin C',
-        'description': 'Immune boosting blend',
-        'category': 'Signature',
-        'imagePath': 'assets/VitaminC.png',
-        'startColor': '#FFF12D',
-        'endColor': '#988623',
-        'calories': 0,
-        'meals': ['Amla', 'Pineapple', 'Tangerine'],
-        'enabledForCheckout': true,
-        'prices': [
-          {'id': 'vitaminc_200', 'name': '200ml', 'price': 99.0, 'currencyCode': 'INR'},
-          {'id': 'vitaminc_300', 'name': '300ml', 'price': 129.0, 'currencyCode': 'INR'},
-          {'id': 'vitaminc_500', 'name': '500ml', 'price': 199.0, 'currencyCode': 'INR'},
-        ],
-      },
-      {
-        'itemId': 'premium_pbc',
-        'name': 'Bloody Red',
-        'description': 'Premium beetroot blend',
-        'category': 'Premium',
-        'imagePath': 'assets/PBC.png',
-        'startColor': '#880808',
-        'endColor': '#B8292C',
-        'calories': 0,
-        'meals': ['Beetroot', 'Pomegranate'],
-        'enabledForCheckout': true,
-        'prices': [
-          {'id': 'pbc_200', 'name': '200ml', 'price': 129.0, 'currencyCode': 'INR'},
-          {'id': 'pbc_300', 'name': '300ml', 'price': 169.0, 'currencyCode': 'INR'},
-          {'id': 'pbc_500', 'name': '500ml', 'price': 249.0, 'currencyCode': 'INR'},
-        ],
-      },
-    ];
   }
 
   /// BR-006: Auto-login decodes JWT locally to check token validity.
@@ -934,7 +843,7 @@ class UserRepository {
       final googleAccount = GoogleSignInHelper.instance.currentUser;
       if (googleAccount == null) return null;
 
-      final auth = googleAccount.authentication;
+      final auth = await googleAccount.authentication;
       final idToken = auth.idToken;
 
       if (idToken == null) {
@@ -983,6 +892,11 @@ class UserRepository {
           }
         }
       }
+    } on SocketException {
+      // Propagate network errors so the outer googleSignIn() can emit AuthError
+      rethrow;
+    } on http.ClientException {
+      rethrow;
     } catch (e) {
       debugPrint('⚠️ Google login failed: $e');
     }

@@ -52,53 +52,11 @@ class ItemService {
       return items;
     } catch (e) {
       appLogger.e('Error fetching items from backend', error: e);
-      // Return fallback data based on static item list
-      return getFallbackItems();
+      // Return empty list on error — UI will handle empty state
+      return [];
     }
   }
 
-  /// Get fallback items based on the original static data
-  List<DynamicItem> getFallbackItems() {
-    return ItemData.tabIconsList.map((item) {
-      return DynamicItem(
-        itemID: item.itemID.toString(),
-        name: item.titleTxt,
-        description: '${item.titleTxt} juice',
-        imagePath: item.imagePath,
-        startColor: item.startColor,
-        endColor: item.endColor,
-        meals: item.meals ?? [],
-        kacl: item.kacl,
-        type: 'CHARGE',
-        status: 'ACTIVE',
-        enabledForCheckout: true,
-        enabledInPortal: true,
-        itemPrices: [
-          {
-            'id': '${item.itemID}_small',
-            'name': 'Small (100ml)',
-            'description': 'Perfect for a quick refreshment',
-            'price': 9.99,
-            'currencyCode': 'INR',
-          },
-          {
-            'id': '${item.itemID}_medium',
-            'name': 'Medium (250ml)',
-            'description': 'Our most popular size',
-            'price': 19.99,
-            'currencyCode': 'INR',
-          },
-          {
-            'id': '${item.itemID}_large',
-            'name': 'Large (500ml)',
-            'description': 'Great value for sharing',
-            'price': 34.99,
-            'currencyCode': 'INR',
-          },
-        ],
-      );
-    }).toList();
-  }
 
   /// Convert DynamicItem to Item for use in the UI
   Item convertToItem(DynamicItem dynamicItem) {
@@ -115,31 +73,6 @@ class ItemService {
           currencyCode: (priceData['currencyCode'] as String?) ?? 'INR',
         );
       }).toList();
-    } else {
-      // Create default item prices if none are available
-      itemPrices = [
-        ItemPrice(
-          id: '${dynamicItem.itemID}_small',
-          name: 'Small (100ml)',
-          description: 'Perfect for a quick refreshment',
-          price: 9.99,
-          currencyCode: 'INR',
-        ),
-        ItemPrice(
-          id: '${dynamicItem.itemID}_medium',
-          name: 'Medium (250ml)',
-          description: 'Our most popular size',
-          price: 19.99,
-          currencyCode: 'INR',
-        ),
-        ItemPrice(
-          id: '${dynamicItem.itemID}_large',
-          name: 'Large (500ml)',
-          description: 'Great value for sharing',
-          price: 34.99,
-          currencyCode: 'INR',
-        ),
-      ];
     }
 
     return Item(

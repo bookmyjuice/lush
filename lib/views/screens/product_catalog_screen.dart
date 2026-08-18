@@ -117,6 +117,8 @@ class ProductCatalogScreenState extends State<ProductCatalogScreen> {
                             Icon(Icons.inventory_2_outlined, size: 64, color: Colors.grey),
                             SizedBox(height: 16),
                             Text('No products found', style: TextStyle(fontSize: 18, color: Colors.grey)),
+                            SizedBox(height: 8),
+                            Text('Try selecting a different category or size', style: TextStyle(fontSize: 14, color: Colors.grey)),
                           ],
                         ),
                       );
@@ -321,11 +323,13 @@ class ProductCatalogScreenState extends State<ProductCatalogScreen> {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    if (defaultPrice != null)
-                      Text('₹${defaultPrice.price?.toStringAsFixed(2) ?? '0.00'}',
-                          style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: AppColors.primaryOrange),)
-                    else
-                      const Text('From ₹75', style: TextStyle(fontSize: 14, color: Colors.grey)),
+                    Flexible(
+                      child: defaultPrice != null
+                          ? Text('₹${defaultPrice.price?.toStringAsFixed(2) ?? '0.00'}',
+                              style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: AppColors.primaryOrange),
+                              overflow: TextOverflow.ellipsis,)
+                          : const Text('From ₹75', style: TextStyle(fontSize: 14, color: Colors.grey), overflow: TextOverflow.ellipsis),
+                    ),
                     IconButton(
                       icon: const Icon(Icons.add_circle, size: 32),
                       color: AppColors.primaryOrange,
@@ -342,19 +346,31 @@ class ProductCatalogScreenState extends State<ProductCatalogScreen> {
   }
 
   /// Returns the price matching the given size filter,
-  /// or the first available price as fallback.
+  /// or the cheapest available price as fallback.
+  /// BUG FIX 2: Use cheapest price instead of first price (which was always 500ml).
   ItemPrice? _getDisplayPrice(CatalogItem item, String? selectedSize) {
     if (item.prices.isEmpty) return null;
 
     if (selectedSize != null && selectedSize.isNotEmpty) {
       final match = item.prices.firstWhere(
         (p) => (p.name?.toLowerCase().contains(selectedSize.toLowerCase()) ?? false),
-        orElse: () => item.prices.first,
+        orElse: () => _cheapestPrice(item.prices),
       );
       return match;
     }
 
-    return item.prices.first;
+    return _cheapestPrice(item.prices);
+  }
+
+  /// Pick the cheapest/lowest price as the default display price.
+  ItemPrice _cheapestPrice(List<ItemPrice> prices) {
+    ItemPrice best = prices.first;
+    for (final p in prices) {
+      if ((p.price ?? double.infinity) < (best.price ?? double.infinity)) {
+        best = p;
+      }
+    }
+    return best;
   }
 
   void _showSizeSelectionDialog(CatalogItem item) {

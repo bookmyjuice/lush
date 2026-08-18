@@ -113,7 +113,7 @@ graph TD
 - **Multi-method Sign-up/Login**
   - Email/Password authentication
   - Google Sign-In integration
-  - Facebook authentication
+  <!-- - Facebook authentication -->
   - OTP-based mobile verification
 - **Password Management**
   - Secure password validation
@@ -1010,7 +1010,7 @@ dependencies:
 ```yaml
 dependencies:
   google_sign_in: ^6.2.2         # Google authentication
-  flutter_facebook_auth: ^7.0.1  # Facebook authentication
+  # flutter_facebook_auth: ^7.0.1  # Facebook authentication (TBD later)
   flutter_pw_validator: ^1.5.0   # Password validation
   pin_input_text_field: ^4.2.0   # OTP input
 ```
