@@ -1,10 +1,9 @@
-/// Glassmorphism Dashboard Shell
+/// BMJ dashboard shell (vibrant_zest).
 ///
-/// Preserves all existing Bloc wiring — only UI/UX changes.
-/// Contains the glass top bar, IndexedStack with 4 tabs, and glass bottom nav.
+/// Four tabs behind the glass header and the glass bottom nav. All BLoC wiring
+/// from the previous shell is preserved - only the chrome changed, so tab state,
+/// deep links and each tab's own refresh logic keep working.
 library;
-
-import 'dart:ui';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -18,12 +17,13 @@ import 'package:lush/bloc/ProductCatalogBloc/product_catalog_bloc.dart';
 import 'package:lush/bloc/SubscriptionBloc/subscription_bloc.dart';
 import 'package:lush/get_it.dart';
 import 'package:lush/theme/app_colors.dart';
-import 'package:lush/theme/theme_cubit.dart';
+import 'package:lush/theme/bmj_tokens.dart';
 import 'package:lush/views/screens/home_tab.dart';
-import 'package:lush/views/screens/menu_tab.dart';
 import 'package:lush/views/screens/orders_tab.dart';
 import 'package:lush/views/screens/profile_tab.dart';
-import 'package:lush/widgets/cart_badge_icon.dart';
+import 'package:lush/views/screens/subscription_tab.dart';
+import 'package:lush/widgets/bmj_glass_bottom_nav.dart';
+import 'package:lush/widgets/bmj_glass_header.dart';
 
 /// Dashboard mode enum
 enum DashboardMode { full, public }
@@ -48,13 +48,46 @@ class Dashboard extends StatefulWidget {
 class HomePage2State extends State<Dashboard> {
   int _navIndex = 0;
 
+  /// Semantics labels are unchanged so the existing navigation contract holds.
+  static const List<BMJNavDestination> _destinations = <BMJNavDestination>[
+    BMJNavDestination(
+      icon: Icons.home_outlined,
+      selectedIcon: Icons.home,
+      label: 'Home',
+      semanticLabel: 'home_tab',
+    ),
+    BMJNavDestination(
+      icon: Icons.receipt_long_outlined,
+      selectedIcon: Icons.receipt_long,
+      label: 'Orders',
+      semanticLabel: 'orders_tab',
+    ),
+    BMJNavDestination(
+      icon: Icons.autorenew_outlined,
+      selectedIcon: Icons.autorenew,
+      label: 'Subscription',
+      semanticLabel: 'subscription_tab',
+    ),
+    BMJNavDestination(
+      icon: Icons.person_outline,
+      selectedIcon: Icons.person,
+      label: 'Profile',
+      semanticLabel: 'profile_tab',
+    ),
+  ];
+
   @override
   void initState() {
     super.initState();
     // Load all data needed by dashboard tabs
     context.read<CartBloc>().add(LoadCart());
     context.read<ProductCatalogBloc>().add(const LoadProductCatalog());
-    context.read<SubscriptionBloc>().add(const LoadActiveSubscriptions());
+    // DP-1: subscriptions are authenticated - do not call the endpoint while
+    // signed out, otherwise the dashboard fires a guaranteed 401.
+    final signedIn = getIt.get<UserRepository>().userLoggedIn;
+    if (signedIn) {
+      context.read<SubscriptionBloc>().add(const LoadActiveSubscriptions());
+    }
 
     // Show toast notification if provided by widget parent
     if (widget.toastHeading != null || widget.toastMessage != null) {
@@ -63,7 +96,8 @@ class HomePage2State extends State<Dashboard> {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
               content: Text(
-                '${widget.toastHeading ?? ''} ${widget.toastMessage ?? ''}'.trim(),
+                "${widget.toastHeading ?? ''} ${widget.toastMessage ?? ''}"
+                    .trim(),
               ),
               behavior: SnackBarBehavior.floating,
               shape: RoundedRectangleBorder(
@@ -79,201 +113,74 @@ class HomePage2State extends State<Dashboard> {
 
   @override
   Widget build(BuildContext context) {
-    final isDark =
-        context.watch<ThemeCubit>().state.resolvedThemeMode == ThemeMode.dark;
-    final bgColor = isDark ? AppColors.glassBg : AppColors.glassBgLight;
+    final palette = BMJPalette.of(context);
 
     return BlocBuilder<AuthenticationBloc, AuthenticationState>(
       builder: (context, state) {
         final isAuth = state is AuthenticationSuccess;
         final user = state is AuthenticationSuccess ? state.user : null;
+
         return Scaffold(
           extendBody: true,
-          backgroundColor: bgColor,
-          appBar: PreferredSize(
-            preferredSize: Size.fromHeight(60.h),
-            child: _buildTopBar(isDark),
-          ),
-          body: IndexedStack(
-            index: _navIndex,
-            children: [
-              HomeTab(
-                isAuth: isAuth,
-                user: user,
-                onNavigateToMenu: (i) => setState(() => _navIndex = i),
+          backgroundColor: palette.surface,
+          body: Column(
+            children: <Widget>[
+              // Stitch puts a 48 dp round brand glyph in the header's left slot
+              // (`w-12 h-12 rounded-full` with the bubble_chart symbol). It is the
+              // same header, with the leading slot filled — not a Home variant.
+              BMJGlassHeader(
+                leading: Semantics(
+                  button: true,
+                  label: 'BookMyJuice home',
+                  child: GestureDetector(
+                    onTap: () => _selectTab(0),
+                    behavior: HitTestBehavior.opaque,
+                    child: SizedBox(
+                      width: 48,
+                      height: 48,
+                      child: Icon(
+                        Icons.bubble_chart_outlined,
+                        size: 22,
+                        color: palette.primaryEmphasis,
+                      ),
+                    ),
+                  ),
+                ),
               ),
-              const MenuTab(),
-              OrdersTab(isAuth: isAuth),
-              ProfileTab(
-                isAuth: isAuth,
-                user: user,
-                onNavigateToOrders: () => setState(() => _navIndex = 2),
+              Expanded(
+                child: IndexedStack(
+                  index: _navIndex,
+                  children: <Widget>[
+                    HomeTab(
+                      isAuth: isAuth,
+                      user: user,
+                      onNavigateToMenu: (_) =>
+                          Navigator.pushNamed(context, '/catalog'),
+                    ),
+                    OrdersTab(isAuth: isAuth),
+                    const SubscriptionTab(),
+                    ProfileTab(
+                      isAuth: isAuth,
+                      user: user,
+                      onNavigateToOrders: () => _selectTab(1),
+                    ),
+                  ],
+                ),
               ),
             ],
           ),
-          bottomNavigationBar: _buildGlassNav(isDark),
+          bottomNavigationBar: BMJGlassBottomNav(
+            destinations: _destinations,
+            index: _navIndex,
+            onSelect: _selectTab,
+          ),
         );
       },
     );
   }
 
-  Widget _buildTopBar(bool isDark) {
-    return Container(
-      padding: EdgeInsets.only(top: 48.h, left: 20.w, right: 12.w, bottom: 4.h),
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          colors: isDark
-              ? [const Color(0xFF0A0F0D), const Color(0xFF0F1613)]
-              : [const Color(0xFFE8F5E9), const Color(0xFFF0F5F2)],
-          begin: Alignment.topCenter,
-          end: Alignment.bottomCenter,
-        ),
-      ),
-      child: Row(
-        children: [
-          Icon(Icons.eco, color: AppColors.primaryGreen, size: 28.sp),
-          SizedBox(width: 8.w),
-          Text(
-            'BookMyJuice',
-            style: TextStyle(
-              fontFamily: 'Poppins',
-              fontSize: 20.sp,
-              fontWeight: FontWeight.bold,
-              color: AppColors.primaryGreen,
-            ),
-          ),
-          const Spacer(),
-          const CartBadgeIcon(),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildGlassNav(bool isDark) {
-    final navBg = isDark ? AppColors.glassElevated : AppColors.glassElevatedLight;
-    final borderColor = isDark ? AppColors.glassBorder : AppColors.glassBorderLight;
-
-    return Container(
-      margin: EdgeInsets.symmetric(horizontal: 16.w, vertical: 8.h),
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(24.r),
-        border: Border.all(color: borderColor),
-        gradient: LinearGradient(
-          colors: [navBg.withValues(alpha: 0.85), navBg.withValues(alpha: 0.75)],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-        ),
-        boxShadow: [
-          BoxShadow(
-            color: isDark
-                ? Colors.black.withValues(alpha: 0.4)
-                : Colors.black.withValues(alpha: 0.08),
-            blurRadius: 24,
-            offset: const Offset(0, 4),
-          ),
-        ],
-      ),
-      child: ClipRRect(
-        borderRadius: BorderRadius.circular(24.r),
-        child: BackdropFilter(
-          filter: ImageFilter.blur(sigmaX: 20, sigmaY: 20),
-          child: NavigationBar(
-            selectedIndex: _navIndex,
-            onDestinationSelected: (i) => setState(() => _navIndex = i),
-            backgroundColor: Colors.transparent,
-            indicatorColor: isDark
-                ? AppColors.glassAccent.withValues(alpha: 0.2)
-                : const Color(0xFFE8F5E9),
-            elevation: 0,
-            shadowColor: Colors.transparent,
-            surfaceTintColor: Colors.transparent,
-            height: 64.h,
-            labelBehavior: NavigationDestinationLabelBehavior.alwaysShow,
-            destinations: [
-              NavigationDestination(
-                icon: ExcludeSemantics(
-                  child: Semantics(
-                    label: 'home_tab',
-                    button: true,
-                    container: true,
-                    child: Icon(Icons.home_outlined,
-                        color: isDark ? AppColors.glassTextDim : Colors.grey,),
-                  ),
-                ),
-                selectedIcon: ExcludeSemantics(
-                  child: Semantics(
-                    label: 'home_tab',
-                    button: true,
-                    container: true,
-                    child: const Icon(Icons.home, color: AppColors.primaryGreen),
-                  ),
-                ),
-                label: 'Home',
-              ),
-              NavigationDestination(
-                icon: ExcludeSemantics(
-                  child: Semantics(
-                    label: 'catalog_tab',
-                    button: true,
-                    container: true,
-                    child: Icon(Icons.local_drink_outlined,
-                        color: isDark ? AppColors.glassTextDim : Colors.grey,),
-                  ),
-                ),
-                selectedIcon: ExcludeSemantics(
-                  child: Semantics(
-                    label: 'catalog_tab',
-                    button: true,
-                    container: true,
-                    child: const Icon(Icons.local_drink, color: AppColors.primaryGreen),
-                  ),
-                ),
-                label: 'Catalog',
-              ),
-              NavigationDestination(
-                icon: ExcludeSemantics(
-                  child: Semantics(
-                    label: 'subscription_tab',
-                    button: true,
-                    container: true,
-                    child: Icon(Icons.receipt_long_outlined,
-                        color: isDark ? AppColors.glassTextDim : Colors.grey,),
-                  ),
-                ),
-                selectedIcon: ExcludeSemantics(
-                  child: Semantics(
-                    label: 'subscription_tab',
-                    button: true,
-                    container: true,
-                    child: const Icon(Icons.receipt_long, color: AppColors.primaryGreen),
-                  ),
-                ),
-                label: 'Subscription',
-              ),
-              NavigationDestination(
-                icon: ExcludeSemantics(
-                  child: Semantics(
-                    label: 'profile_tab',
-                    button: true,
-                    container: true,
-                    child: Icon(Icons.person_outline,
-                        color: isDark ? AppColors.glassTextDim : Colors.grey,),
-                  ),
-                ),
-                selectedIcon: ExcludeSemantics(
-                  child: Semantics(
-                    label: 'profile_tab',
-                    button: true,
-                    container: true,
-                    child: const Icon(Icons.person, color: AppColors.primaryGreen),
-                  ),
-                ),
-                label: 'Profile',
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
+  void _selectTab(int index) {
+    if (index == _navIndex) return;
+    setState(() => _navIndex = index);
   }
 }

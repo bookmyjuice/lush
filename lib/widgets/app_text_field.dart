@@ -5,7 +5,7 @@ import 'package:lush/theme/app_spacing.dart';
 import 'package:lush/theme/app_theme.dart';
 
 /// Reusable TextField component following BookMyJuice Design System
-/// 
+///
 /// Usage:
 /// ```dart
 /// AppTextField(
@@ -89,9 +89,10 @@ class AppTextField extends StatelessWidget {
             prefixIcon: prefixIcon != null
                 ? Icon(prefixIcon, size: 20, color: AppColors.nearlyBlack)
                 : null,
-            suffixIcon: suffixWidget ?? (suffixIcon != null
-                ? Icon(suffixIcon, size: 20, color: AppColors.darkGrey)
-                : null),
+            suffixIcon: suffixWidget ??
+                (suffixIcon != null
+                    ? Icon(suffixIcon, size: 20, color: AppColors.darkGrey)
+                    : null),
             filled: true,
             fillColor: AppColors.darkCard,
             border: OutlineInputBorder(
@@ -156,7 +157,8 @@ bool isValidPhone(String phone) {
 /// Password validation helper (FLAG-010: 2 numbers required)
 bool isValidPassword(String password) {
   // Minimum 8 characters, at least 1 uppercase, 1 lowercase, 2 numbers, 1 special character
-  return RegExp(r'^(?=.*[a-z])(?=.*[A-Z])(?=(?:.*[0-9]){2})(?=.*[@$!%*?&])[A-Za-z0-9@$!%*?&]{8,}$')
+  return RegExp(
+          r'^(?=.*[a-z])(?=.*[A-Z])(?=(?:.*[0-9]){2})(?=.*[@$!%*?&])[A-Za-z0-9@$!%*?&]{8,}$')
       .hasMatch(password);
 }
 

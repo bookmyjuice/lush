@@ -3,11 +3,13 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:hexcolor/hexcolor.dart' as hex;
 import 'package:lush/theme/app_colors.dart';
 import 'package:lush/theme/app_text_styles.dart';
+import 'package:lush/utils/price_utils.dart';
 import '../../bloc/CartBloc/cart_bloc.dart';
 import '../../bloc/CartBloc/cart_event.dart';
 import '../widgets/size_selection_modal.dart';
 import '../models/item.dart';
 import '../models/cart_item.dart';
+import 'package:lush/theme/bmj_tokens.dart';
 
 class ItemCardView extends StatelessWidget {
   final Item item;
@@ -26,16 +28,13 @@ class ItemCardView extends StatelessWidget {
       // Convert to cart-compatible item with prices
       final cartItem = createCartCompatibleItem();
 
-      print('Opening size selection modal for ${item.name ?? item.titleTxt}');
-      print('Item has ${cartItem.itemPrices?.length ?? 0} price options');
-
       if (cartItem.itemPrices == null || cartItem.itemPrices!.isEmpty) {
         // If no prices are available, show an error message
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(
               'No size/price options available for ${cartItem.name ?? 'this item'}',
-              style: const TextStyle(color: Colors.white),
+              style: const TextStyle(color: BMJTokens.inkOnBrand),
             ),
             backgroundColor: Colors.red,
             duration: const Duration(seconds: 2),
@@ -53,9 +52,6 @@ class ItemCardView extends StatelessWidget {
           item: cartItem,
           onPriceSelected: (selectedPrice) {
             try {
-              print(
-                  'Selected price: ${selectedPrice.name} - ₹${selectedPrice.price}',);
-
               // Add to cart with the selected price
               context.read<CartBloc>().add(
                     AddToCart(
@@ -75,7 +71,7 @@ class ItemCardView extends StatelessWidget {
                   backgroundColor: hex.HexColor(item.endColor ?? '#FF9800'),
                   action: SnackBarAction(
                     label: 'VIEW CART',
-                    textColor: Colors.white,
+                    textColor: BMJTokens.inkOnBrand,
                     onPressed: () {
                       // Use a delayed future to ensure we're not using a disposed context
                       Future<void>.delayed(Duration.zero, () {
@@ -92,12 +88,11 @@ class ItemCardView extends StatelessWidget {
                 ),
               );
             } catch (e) {
-              print('Error adding item to cart: $e');
               ScaffoldMessenger.of(context).showSnackBar(
                 SnackBar(
                   content: Text(
                     'Error adding item to cart: $e',
-                    style: const TextStyle(color: Colors.white),
+                    style: const TextStyle(color: BMJTokens.inkOnBrand),
                   ),
                   backgroundColor: Colors.red,
                   duration: const Duration(seconds: 2),
@@ -109,12 +104,11 @@ class ItemCardView extends StatelessWidget {
         ),
       );
     } catch (e) {
-      print('Error opening size selection modal: $e');
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(
             'Error selecting size: $e',
-            style: const TextStyle(color: Colors.white),
+            style: const TextStyle(color: BMJTokens.inkOnBrand),
           ),
           backgroundColor: Colors.red,
           duration: const Duration(seconds: 2),
@@ -124,35 +118,35 @@ class ItemCardView extends StatelessWidget {
     }
   }
 
-  // Create a cart-compatible item with item prices
+  // Create a cart-compatible item with item prices.
+  //
+  // Only prices the catalog actually returned are used — a missing price is
+  // never replaced with a made-up ₹9.99, because that produced carts whose
+  // total did not match the product page.
   Item createCartCompatibleItem() {
     // If item already has prices, use them
     if (item.itemPrices != null && item.itemPrices!.isNotEmpty) {
       return item;
     }
 
-    // Otherwise, create default item prices for different sizes
-    final basePrice = item.price ?? 9.99;
-    final itemPrices = [
+    final double? basePrice = item.price;
+    if (basePrice == null || basePrice <= 0) {
+      // No Chargebee prices and no headline price: return the item untouched
+      // so the caller shows "No size/price options available".
+      return item;
+    }
+
+    // A single real price — the catalog does not describe other sizes, so
+    // fabricating 250 ml / 500 ml variants would invent products that cannot
+    // be billed.
+    final String label =
+        item.servingSize.trim().isEmpty ? 'Regular' : item.servingSize.trim();
+    final List<ItemPrice> itemPrices = <ItemPrice>[
       ItemPrice(
-        id: '${item.id}_small',
-        name: 'Small (100ml)',
-        description: 'Perfect for a quick refreshment',
+        id: '${item.id}_default',
+        name: label,
+        description: item.description ?? label,
         price: basePrice,
-        currencyCode: 'INR',
-      ),
-      ItemPrice(
-        id: '${item.id}_medium',
-        name: 'Medium (250ml)',
-        description: 'Our most popular size',
-        price: basePrice * 2,
-        currencyCode: 'INR',
-      ),
-      ItemPrice(
-        id: '${item.id}_large',
-        name: 'Large (500ml)',
-        description: 'Great value for sharing',
-        price: basePrice * 3.5,
         currencyCode: 'INR',
       ),
     ];
@@ -263,7 +257,7 @@ class ItemCardView extends StatelessWidget {
                                   padding: const EdgeInsets.symmetric(
                                       horizontal: 6, vertical: 2,),
                                   decoration: BoxDecoration(
-                                    color: Colors.white.withValues(alpha: 0.2),
+                                    color: BMJTokens.inkOnBrand.withValues(alpha: 0.2),
                                     borderRadius: BorderRadius.circular(10),
                                   ),
                                   child: Text(
@@ -271,21 +265,22 @@ class ItemCardView extends StatelessWidget {
                                     style: const TextStyle(
                                       fontSize: 9,
                                       fontWeight: FontWeight.w500,
-                                      color: Colors.white,
+                                      color: BMJTokens.inkOnBrand,
                                     ),
                                   ),
                                 ),
 
                                 const SizedBox(height: 4),
 
-                                // Price display
+                                // Price display — cheapest *real* price; an
+                                // unpriced item shows "MRP: —" instead of ₹0.
                                 Text(
-                                  'MRP: ₹${(item.itemPrices?.isNotEmpty ?? false) ? (item.itemPrices![0].price?.toStringAsFixed(0) ?? '0') : (item.price?.toStringAsFixed(0) ?? '0')}',
+                                  'MRP: ${formatRupees(cheapestPrice(item.itemPrices ?? const <ItemPrice>[]) ?? item.price)}',
                                   style: const TextStyle(
                                     fontFamily: AppTextStyles.fontFamily,
                                     fontWeight: FontWeight.bold,
                                     fontSize: 12,
-                                    color: Colors.white,
+                                    color: BMJTokens.inkOnBrand,
                                   ),
                                 ),
 
@@ -297,14 +292,14 @@ class ItemCardView extends StatelessWidget {
                                     icon: const Icon(
                                       Icons.add_shopping_cart,
                                       size: 14,
-                                      color: Colors.white,
+                                      color: BMJTokens.inkOnBrand,
                                     ),
                                     label: const Text(
                                       'Select',
                                       style: TextStyle(
                                         fontSize: 10,
                                         fontWeight: FontWeight.bold,
-                                        color: Colors.white,
+                                        color: BMJTokens.inkOnBrand,
                                       ),
                                     ),
                                     style: ElevatedButton.styleFrom(
@@ -334,7 +329,7 @@ class ItemCardView extends StatelessWidget {
                           width: 84,
                           height: 84,
                           decoration: BoxDecoration(
-                            color: Colors.white.withValues(alpha: 0.3),
+                            color: BMJTokens.inkOnBrand.withValues(alpha: 0.3),
                             shape: BoxShape.circle,
                             boxShadow: [
                               BoxShadow(
@@ -355,7 +350,7 @@ class ItemCardView extends StatelessWidget {
                           height: 74,
                           decoration: BoxDecoration(
                             shape: BoxShape.circle,
-                            color: Colors.white,
+                            color: BMJTokens.inkOnBrand,
                             boxShadow: [
                               BoxShadow(
                                 color: Colors.black.withValues(alpha: 0.05),

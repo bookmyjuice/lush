@@ -4,6 +4,7 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import '../../bloc/CartBloc/cart_bloc.dart';
 import '../../bloc/CartBloc/cart_state.dart';
 import 'package:lush/theme/app_colors.dart';
+import 'package:lush/theme/bmj_tokens.dart';
 
 class CartIcon extends StatelessWidget {
   final VoidCallback? onTap;
@@ -63,7 +64,7 @@ class CartIcon extends StatelessWidget {
                         child: Text(
                           itemCount > 99 ? '99+' : itemCount.toString(),
                           style: TextStyle(
-                            color: Colors.white,
+                            color: BMJTokens.inkOnBrand,
                             fontSize: 10.sp,
                             fontWeight: FontWeight.bold,
                           ),

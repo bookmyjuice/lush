@@ -30,7 +30,8 @@ class ProfileTab extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final isDark = context.watch<ThemeCubit>().state.resolvedThemeMode == ThemeMode.dark;
+    final isDark =
+        context.watch<ThemeCubit>().state.resolvedThemeMode == ThemeMode.dark;
     final bgColor = isDark ? AppColors.glassBg : AppColors.glassBgLight;
 
     return Container(
@@ -168,7 +169,8 @@ class ProfileTab extends StatelessWidget {
                   icon: Icons.subscriptions_outlined,
                   label: 'Manage Subscriptions',
                   isDark: isDark,
-                  onTap: () => Navigator.pushNamed(context, '/manage-subscriptions'),
+                  onTap: () =>
+                      Navigator.pushNamed(context, '/manage-subscriptions'),
                 ),
               ),
             ],
@@ -216,9 +218,8 @@ class ProfileTab extends StatelessWidget {
   }
 
   Widget _buildProfileHeader(BuildContext context, bool isDark) {
-    final initial = user!.firstName.isNotEmpty
-        ? user!.firstName[0].toUpperCase()
-        : 'U';
+    final initial =
+        user!.firstName.isNotEmpty ? user!.firstName[0].toUpperCase() : 'U';
 
     return GestureDetector(
       onTap: () => Navigator.pushNamed(context, '/user-profile'),
@@ -276,7 +277,9 @@ class ProfileTab extends StatelessWidget {
                       fontFamily: 'Poppins',
                       fontSize: 18.sp,
                       fontWeight: FontWeight.w600,
-                      color: isDark ? AppColors.glassText : AppColors.lightTextPrimary,
+                      color: isDark
+                          ? AppColors.glassText
+                          : AppColors.lightTextPrimary,
                     ),
                   ),
                   SizedBox(height: 4.h),
@@ -393,16 +396,20 @@ class ProfileTab extends StatelessWidget {
                 fontFamily: 'Inter',
                 fontSize: 15.sp,
                 fontWeight: FontWeight.w500,
-                color: isDark ? AppColors.glassText : AppColors.lightTextPrimary,
+                color:
+                    isDark ? AppColors.glassText : AppColors.lightTextPrimary,
               ),
             ),
           ),
           // Theme mode chips
-          _themeChip('System', AppThemeMode.system, currentMode, themeCubit, isDark),
+          _themeChip(
+              'System', AppThemeMode.system, currentMode, themeCubit, isDark),
           SizedBox(width: 4.w),
-          _themeChip('Light', AppThemeMode.light, currentMode, themeCubit, isDark),
+          _themeChip(
+              'Light', AppThemeMode.light, currentMode, themeCubit, isDark),
           SizedBox(width: 4.w),
-          _themeChip('Dark', AppThemeMode.dark, currentMode, themeCubit, isDark),
+          _themeChip(
+              'Dark', AppThemeMode.dark, currentMode, themeCubit, isDark),
         ],
       ),
     );
@@ -437,7 +444,9 @@ class ProfileTab extends StatelessWidget {
           border: Border.all(
             color: isSelected
                 ? AppColors.glassAccent.withValues(alpha: 0.5)
-                : (isDark ? AppColors.glassBorderSubtle : AppColors.glassBorderLight),
+                : (isDark
+                    ? AppColors.glassBorderSubtle
+                    : AppColors.glassBorderLight),
             width: 0.5,
           ),
         ),
@@ -447,9 +456,7 @@ class ProfileTab extends StatelessWidget {
             fontFamily: 'Inter',
             fontSize: 11.sp,
             fontWeight: isSelected ? FontWeight.w600 : FontWeight.w400,
-            color: isSelected
-                ? AppColors.glassAccent
-                : AppColors.glassTextDim,
+            color: isSelected ? AppColors.glassAccent : AppColors.glassTextDim,
           ),
         ),
       ),
@@ -465,10 +472,12 @@ class ProfileTab extends StatelessWidget {
           margin: EdgeInsets.all(16.w),
           padding: EdgeInsets.all(24.w),
           decoration: BoxDecoration(
-            color: isDark ? AppColors.glassElevated : AppColors.glassElevatedLight,
+            color:
+                isDark ? AppColors.glassElevated : AppColors.glassElevatedLight,
             borderRadius: BorderRadius.circular(AppRadius.xl),
             border: Border.all(
-              color: isDark ? AppColors.glassBorder : AppColors.glassBorderLight,
+              color:
+                  isDark ? AppColors.glassBorder : AppColors.glassBorderLight,
             ),
           ),
           child: Column(
@@ -493,7 +502,8 @@ class ProfileTab extends StatelessWidget {
                   fontFamily: 'Poppins',
                   fontSize: 18.sp,
                   fontWeight: FontWeight.w600,
-                  color: isDark ? AppColors.glassText : AppColors.lightTextPrimary,
+                  color:
+                      isDark ? AppColors.glassText : AppColors.lightTextPrimary,
                 ),
               ),
               SizedBox(height: 8.h),

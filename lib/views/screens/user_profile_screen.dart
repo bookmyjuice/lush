@@ -82,8 +82,7 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content:
-                Text(result['message'] as String? ?? 'Failed to update'),
+            content: Text(result['message'] as String? ?? 'Failed to update'),
             backgroundColor: AppColors.error,
           ),
         );
@@ -178,12 +177,10 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
                   ),
                   SizedBox(height: 16.h),
                   _infoRow(Icons.phone_outlined, 'Phone', user.phone, isDark),
-                  if (user.referralCode != null && user.referralCode!.isNotEmpty)
-                    _infoRow(
-                        Icons.card_giftcard_outlined,
-                        'Referral Code',
-                        user.referralCode!,
-                        isDark),
+                  if (user.referralCode != null &&
+                      user.referralCode!.isNotEmpty)
+                    _infoRow(Icons.card_giftcard_outlined, 'Referral Code',
+                        user.referralCode!, isDark),
                 ],
               ),
             ),
@@ -253,9 +250,8 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
               style: TextStyle(
                 fontFamily: 'Inter',
                 fontSize: 14.sp,
-                color: isDark
-                    ? AppColors.glassText
-                    : AppColors.lightTextPrimary,
+                color:
+                    isDark ? AppColors.glassText : AppColors.lightTextPrimary,
               ),
             ),
           ),
@@ -270,8 +266,7 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
       width: double.infinity,
       child: Column(
         children: [
-          Icon(Icons.location_off,
-              size: 48, color: AppColors.glassTextDim),
+          Icon(Icons.location_off, size: 48, color: AppColors.glassTextDim),
           SizedBox(height: 12.h),
           Text(
             'No addresses saved yet',
@@ -308,16 +303,12 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
 
   Widget _addressCard(UserAddress addr, bool isDark) {
     return GestureDetector(
-      onTap: addr.isDefault
-          ? null
-          : () => _setDefaultAddress(addr),
+      onTap: addr.isDefault ? null : () => _setDefaultAddress(addr),
       child: Container(
         margin: EdgeInsets.only(bottom: 10.h),
         padding: EdgeInsets.all(14.w),
         decoration: BoxDecoration(
-          color: isDark
-              ? AppColors.glassSurface
-              : AppColors.glassSurfaceLight,
+          color: isDark ? AppColors.glassSurface : AppColors.glassSurfaceLight,
           borderRadius: BorderRadius.circular(AppRadius.md),
           border: Border.all(
             color: addr.isDefault
@@ -342,8 +333,7 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
                               horizontal: 6.w, vertical: 2.h),
                           decoration: BoxDecoration(
                             color: AppColors.glassAccent.withAlpha(25),
-                            borderRadius:
-                                BorderRadius.circular(AppRadius.sm),
+                            borderRadius: BorderRadius.circular(AppRadius.sm),
                           ),
                           child: Text(
                             addr.label,
@@ -361,8 +351,7 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
                               horizontal: 6.w, vertical: 2.h),
                           decoration: BoxDecoration(
                             color: AppColors.success.withAlpha(25),
-                            borderRadius:
-                                BorderRadius.circular(AppRadius.sm),
+                            borderRadius: BorderRadius.circular(AppRadius.sm),
                           ),
                           child: Text(
                             'DEFAULT',
@@ -400,9 +389,8 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
               style: TextStyle(
                 fontFamily: 'Inter',
                 fontSize: 13.sp,
-                color: isDark
-                    ? AppColors.glassText
-                    : AppColors.lightTextPrimary,
+                color:
+                    isDark ? AppColors.glassText : AppColors.lightTextPrimary,
               ),
             ),
             if (addr.addressLine2.isNotEmpty) SizedBox(height: 2.h),
@@ -412,9 +400,8 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
                 style: TextStyle(
                   fontFamily: 'Inter',
                   fontSize: 13.sp,
-                  color: isDark
-                      ? AppColors.glassText
-                      : AppColors.lightTextPrimary,
+                  color:
+                      isDark ? AppColors.glassText : AppColors.lightTextPrimary,
                 ),
               ),
             SizedBox(height: 2.h),
@@ -423,9 +410,8 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
               style: TextStyle(
                 fontFamily: 'Inter',
                 fontSize: 13.sp,
-                color: isDark
-                    ? AppColors.glassText
-                    : AppColors.lightTextPrimary,
+                color:
+                    isDark ? AppColors.glassText : AppColors.lightTextPrimary,
               ),
             ),
           ],

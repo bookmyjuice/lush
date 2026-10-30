@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:lush/theme/bmj_tokens.dart';
 
 class HeroHeader extends StatelessWidget {
   final String userName;
@@ -26,7 +27,8 @@ class HeroHeader extends StatelessWidget {
           bottomRight: Radius.circular(28),
         ),
       ),
-      padding: EdgeInsets.fromLTRB(20.w, MediaQuery.of(context).padding.top + 20.h, 12.w, 0),
+      padding: EdgeInsets.fromLTRB(
+          20.w, MediaQuery.of(context).padding.top + 20.h, 12.w, 0),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -43,7 +45,7 @@ class HeroHeader extends StatelessWidget {
                         fontFamily: 'Poppins',
                         fontSize: 22.sp,
                         fontWeight: FontWeight.bold,
-                        color: Colors.white,
+                        color: BMJTokens.inkOnBrand,
                       ),
                     ),
                     SizedBox(height: 4.h),
@@ -59,7 +61,8 @@ class HeroHeader extends StatelessWidget {
                 ),
               ),
               IconButton(
-                icon: const Icon(Icons.notifications_outlined, color: Colors.white),
+                icon: const Icon(Icons.notifications_outlined,
+                    color: BMJTokens.inkOnBrand),
                 onPressed: onNotificationTap ?? () {},
               ),
             ],

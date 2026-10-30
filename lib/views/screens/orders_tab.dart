@@ -30,7 +30,8 @@ class OrdersTab extends StatefulWidget {
 class _OrdersTabState extends State<OrdersTab> {
   @override
   Widget build(BuildContext context) {
-    final isDark = context.watch<ThemeCubit>().state.resolvedThemeMode == ThemeMode.dark;
+    final isDark =
+        context.watch<ThemeCubit>().state.resolvedThemeMode == ThemeMode.dark;
     final bgColor = isDark ? AppColors.glassBg : AppColors.glassBgLight;
 
     if (!widget.isAuth) {
@@ -56,7 +57,8 @@ class _OrdersTabState extends State<OrdersTab> {
               ),
               SizedBox(height: 24.h),
               GlassCard(
-                padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 14),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 32, vertical: 14),
                 borderRadius: AppRadius.lg,
                 onTap: () => Navigator.pushNamed(context, '/login'),
                 child: Text(
@@ -124,7 +126,8 @@ class _OrderHistoryGlassState extends State<_OrderHistoryGlass> {
 
   @override
   Widget build(BuildContext context) {
-    final isDark = context.watch<ThemeCubit>().state.resolvedThemeMode == ThemeMode.dark;
+    final isDark =
+        context.watch<ThemeCubit>().state.resolvedThemeMode == ThemeMode.dark;
 
     return Column(
       children: [
@@ -139,7 +142,8 @@ class _OrderHistoryGlassState extends State<_OrderHistoryGlass> {
                   fontFamily: 'Poppins',
                   fontSize: 20.sp,
                   fontWeight: FontWeight.w600,
-                  color: isDark ? AppColors.glassText : AppColors.lightTextPrimary,
+                  color:
+                      isDark ? AppColors.glassText : AppColors.lightTextPrimary,
                 ),
               ),
               const Spacer(),
@@ -191,7 +195,8 @@ class _OrderHistoryGlassState extends State<_OrderHistoryGlass> {
                       ),
                       SizedBox(height: 16.h),
                       GlassCard(
-                        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 24, vertical: 12),
                         borderRadius: AppRadius.lg,
                         onTap: () => Navigator.pushNamed(context, '/catalog'),
                         child: Text(
@@ -223,9 +228,11 @@ class _OrderHistoryGlassState extends State<_OrderHistoryGlass> {
                         ),
                         SizedBox(height: 16.h),
                         GlassCard(
-                          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 24, vertical: 12),
                           borderRadius: AppRadius.lg,
-                          onTap: () => _orderBloc.add(const RefreshOrderHistory()),
+                          onTap: () =>
+                              _orderBloc.add(const RefreshOrderHistory()),
                           child: Text(
                             'Retry',
                             style: TextStyle(
@@ -312,7 +319,9 @@ class _GlassOrderTile extends StatelessWidget {
                     fontFamily: 'Inter',
                     fontSize: 13.sp,
                     fontWeight: FontWeight.w600,
-                    color: isDark ? AppColors.glassText : AppColors.lightTextPrimary,
+                    color: isDark
+                        ? AppColors.glassText
+                        : AppColors.lightTextPrimary,
                   ),
                 ),
                 Text(
@@ -333,7 +342,8 @@ class _GlassOrderTile extends StatelessWidget {
                 fontFamily: 'Poppins',
                 fontSize: 16.sp,
                 fontWeight: FontWeight.bold,
-                color: isDark ? AppColors.glassText : AppColors.lightTextPrimary,
+                color:
+                    isDark ? AppColors.glassText : AppColors.lightTextPrimary,
               ),
             ),
             SizedBox(width: 8.w),

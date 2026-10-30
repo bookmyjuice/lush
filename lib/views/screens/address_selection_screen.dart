@@ -49,7 +49,8 @@ class AddressSelectionScreenState extends State<AddressSelectionScreen> {
           setState(() => _addresses = []);
         }
       } else {
-        setState(() => _error = result['message'] as String? ?? 'Failed to load addresses');
+        setState(() => _error =
+            result['message'] as String? ?? 'Failed to load addresses');
       }
     } catch (e) {
       setState(() => _error = 'Error loading addresses: $e');
@@ -95,7 +96,8 @@ class AddressSelectionScreenState extends State<AddressSelectionScreen> {
           ),
           TextButton(
             onPressed: () => Navigator.pop(ctx, true),
-            child: const Text('Delete', style: TextStyle(color: AppColors.error)),
+            child:
+                const Text('Delete', style: TextStyle(color: AppColors.error)),
           ),
         ],
       ),
@@ -234,7 +236,8 @@ class AddressSelectionScreenState extends State<AddressSelectionScreen> {
         itemCount: _addresses.length,
         itemBuilder: (context, index) {
           final address = _addresses[index];
-          final isDefault = address['default'] == true || address['isDefault'] == true;
+          final isDefault =
+              address['default'] == true || address['isDefault'] == true;
           final addressId = address['id'] as int? ?? 0;
           final fullName = address['fullName'] as String? ?? '';
           final phone = address['phone'] as String? ?? '';
@@ -267,7 +270,8 @@ class AddressSelectionScreenState extends State<AddressSelectionScreen> {
                       children: [
                         if (label.isNotEmpty)
                           Container(
-                            padding: EdgeInsets.symmetric(horizontal: 8.w, vertical: 4.h),
+                            padding: EdgeInsets.symmetric(
+                                horizontal: 8.w, vertical: 4.h),
                             decoration: BoxDecoration(
                               color: AppColors.primaryOrange.withAlpha(30),
                               borderRadius: BorderRadius.circular(4.r),
@@ -284,7 +288,8 @@ class AddressSelectionScreenState extends State<AddressSelectionScreen> {
                         if (label.isNotEmpty) SizedBox(width: 8.w),
                         if (isDefault)
                           Container(
-                            padding: EdgeInsets.symmetric(horizontal: 8.w, vertical: 4.h),
+                            padding: EdgeInsets.symmetric(
+                                horizontal: 8.w, vertical: 4.h),
                             decoration: BoxDecoration(
                               color: AppColors.success.withAlpha(30),
                               borderRadius: BorderRadius.circular(4.r),
@@ -323,9 +328,11 @@ class AddressSelectionScreenState extends State<AddressSelectionScreen> {
                               value: 'delete',
                               child: Row(
                                 children: [
-                                  Icon(Icons.delete_outline, size: 18, color: AppColors.error),
+                                  Icon(Icons.delete_outline,
+                                      size: 18, color: AppColors.error),
                                   SizedBox(width: 8),
-                                  Text('Delete', style: TextStyle(color: AppColors.error)),
+                                  Text('Delete',
+                                      style: TextStyle(color: AppColors.error)),
                                 ],
                               ),
                             ),
@@ -346,27 +353,34 @@ class AddressSelectionScreenState extends State<AddressSelectionScreen> {
                     if (fullName.isNotEmpty) SizedBox(height: 4.h),
                     Text(
                       line1,
-                      style: TextStyle(fontSize: 14.sp, color: AppColors.lightTextPrimary),
+                      style: TextStyle(
+                          fontSize: 14.sp, color: AppColors.lightTextPrimary),
                     ),
                     if (line2.isNotEmpty)
                       Text(
                         line2,
-                        style: TextStyle(fontSize: 14.sp, color: AppColors.lightTextPrimary),
+                        style: TextStyle(
+                            fontSize: 14.sp, color: AppColors.lightTextPrimary),
                       ),
                     if (landmark.isNotEmpty)
                       Text(
                         'Near: $landmark',
-                        style: TextStyle(fontSize: 12.sp, color: AppColors.lightTextSecondary),
+                        style: TextStyle(
+                            fontSize: 12.sp,
+                            color: AppColors.lightTextSecondary),
                       ),
                     Text(
                       '$city, $state - $pincode',
-                      style: TextStyle(fontSize: 14.sp, color: AppColors.lightTextPrimary),
+                      style: TextStyle(
+                          fontSize: 14.sp, color: AppColors.lightTextPrimary),
                     ),
                     if (phone.isNotEmpty) SizedBox(height: 4.h),
                     if (phone.isNotEmpty)
                       Text(
                         'Phone: $phone',
-                        style: TextStyle(fontSize: 12.sp, color: AppColors.lightTextSecondary),
+                        style: TextStyle(
+                            fontSize: 12.sp,
+                            color: AppColors.lightTextSecondary),
                       ),
                   ],
                 ),

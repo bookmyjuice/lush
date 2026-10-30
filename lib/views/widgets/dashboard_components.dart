@@ -3,6 +3,7 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:lush/theme/app_colors.dart';
 import 'app_card.dart';
 import '../models/item.dart';
+import 'package:lush/theme/bmj_tokens.dart';
 
 class QuickActionCard extends StatelessWidget {
   final IconData icon;
@@ -252,7 +253,7 @@ class JuiceRecommendationCard extends StatelessWidget {
                             child: Icon(
                               Icons.local_drink,
                               size: 40.sp,
-                              color: Colors.white,
+                              color: BMJTokens.inkOnBrand,
                             ),
                           );
                         },
@@ -262,7 +263,7 @@ class JuiceRecommendationCard extends StatelessWidget {
                       child: Icon(
                         Icons.local_drink,
                         size: 40.sp,
-                        color: Colors.white,
+                        color: BMJTokens.inkOnBrand,
                       ),
                     ),
             ),

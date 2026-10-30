@@ -43,7 +43,8 @@ class _AddressScreenState extends State<AddressScreen> {
   void _checkPincode() {
     final pincode = _pincodeController.text.trim();
     setState(() {
-      _isPincodeValid = pincode.isEmpty || ServiceabilityChecker.isServiceable(pincode);
+      _isPincodeValid =
+          pincode.isEmpty || ServiceabilityChecker.isServiceable(pincode);
     });
   }
 
@@ -51,8 +52,10 @@ class _AddressScreenState extends State<AddressScreen> {
     if (!_formKey.currentState!.validate()) return;
     if (!_isPincodeValid) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(ServiceabilityChecker.notServiceableMessage),
-            backgroundColor: AppColors.error,),
+        SnackBar(
+          content: Text(ServiceabilityChecker.notServiceableMessage),
+          backgroundColor: AppColors.error,
+        ),
       );
       return;
     }
@@ -66,7 +69,9 @@ class _AddressScreenState extends State<AddressScreen> {
       if (mounted) {
         setState(() => _isSaving = false);
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Failed to save: $e'), backgroundColor: AppColors.error),
+          SnackBar(
+              content: Text('Failed to save: $e'),
+              backgroundColor: AppColors.error),
         );
       }
     }
@@ -74,9 +79,12 @@ class _AddressScreenState extends State<AddressScreen> {
 
   @override
   void dispose() {
-    _flatController.dispose(); _buildingController.dispose();
-    _streetController.dispose(); _areaController.dispose();
-    _cityController.dispose(); _pincodeController.dispose();
+    _flatController.dispose();
+    _buildingController.dispose();
+    _streetController.dispose();
+    _areaController.dispose();
+    _cityController.dispose();
+    _pincodeController.dispose();
     _instructionsController.dispose();
     super.dispose();
   }
@@ -86,86 +94,157 @@ class _AddressScreenState extends State<AddressScreen> {
     return Scaffold(
       backgroundColor: AppColors.lightBackground,
       appBar: AppBar(
-        backgroundColor: AppColors.white, elevation: 0,
-        title: const Text('Delivery Address',
-            style: TextStyle(fontWeight: FontWeight.bold, color: AppColors.lightTextPrimary),),
+        backgroundColor: AppColors.white,
+        elevation: 0,
+        title: const Text(
+          'Delivery Address',
+          style: TextStyle(
+              fontWeight: FontWeight.bold, color: AppColors.lightTextPrimary),
+        ),
         iconTheme: const IconThemeData(color: AppColors.lightTextPrimary),
       ),
       body: _isSaving
           ? const Center(child: CircularProgressIndicator())
           : SingleChildScrollView(
               padding: EdgeInsets.all(16.r),
-              child: Form(key: _formKey, child: Column(
+              child: Form(
+                key: _formKey,
+                child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                _buildField('Flat / House No. *', _flatController, Icons.home_outlined,
-                    validator: (v) => (v == null || v.trim().isEmpty) ? 'Required' : null,),
-                SizedBox(height: 16.h),
-                _buildField('Building Name *', _buildingController, Icons.apartment_outlined,
-                    validator: (v) => (v == null || v.trim().isEmpty) ? 'Required' : null,),
-                SizedBox(height: 16.h),
-                _buildField('Street / Locality *', _streetController, Icons.location_on_outlined,
-                    validator: (v) => (v == null || v.trim().isEmpty) ? 'Required' : null,),
-                SizedBox(height: 16.h),
-                _buildField('Area / Sector', _areaController, Icons.map_outlined),
-                SizedBox(height: 16.h),
-                _buildField('City *', _cityController, Icons.location_city,
-                    validator: (v) => (v == null || v.trim().isEmpty) ? 'Required' : null,),
-                SizedBox(height: 16.h),
-                _buildField('Pincode *', _pincodeController, Icons.pin_drop_outlined,
-                    keyboardType: TextInputType.number, maxLength: 6,
-                    validator: (v) {
-                      if (v == null || v.trim().isEmpty) return 'Required';
-                      if (v.trim().length != 6) return 'Enter 6-digit pincode';
-                      if (!RegExp(r'^\d{6}$').hasMatch(v.trim())) return 'Digits only';
-                      if (!ServiceabilityChecker.isServiceable(v.trim())) {
-                        return ServiceabilityChecker.notServiceableMessage;
-                      }
-                      return null;
-                    },
-                    onChanged: (_) => _checkPincode(),),
-                SizedBox(height: 16.h),
-                _buildField('Delivery Instructions (optional)', _instructionsController,
-                    Icons.note_alt_outlined, maxLines: 3,),
-                SizedBox(height: 24.h),
-                SizedBox(width: double.infinity, height: 50.h,
-                  child: ElevatedButton(
-                    onPressed: _isPincodeValid ? _save : null,
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: AppColors.primaryOrange,
-                      disabledBackgroundColor: AppColors.lightDivider,
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12.r)),
+                    _buildField(
+                      'Flat / House No. *',
+                      _flatController,
+                      Icons.home_outlined,
+                      validator: (v) =>
+                          (v == null || v.trim().isEmpty) ? 'Required' : null,
                     ),
-                    child: Text('Save Address',
-                        style: TextStyle(fontSize: 16.sp, fontWeight: FontWeight.bold, color: AppColors.white),),
-                  ),
+                    SizedBox(height: 16.h),
+                    _buildField(
+                      'Building Name *',
+                      _buildingController,
+                      Icons.apartment_outlined,
+                      validator: (v) =>
+                          (v == null || v.trim().isEmpty) ? 'Required' : null,
+                    ),
+                    SizedBox(height: 16.h),
+                    _buildField(
+                      'Street / Locality *',
+                      _streetController,
+                      Icons.location_on_outlined,
+                      validator: (v) =>
+                          (v == null || v.trim().isEmpty) ? 'Required' : null,
+                    ),
+                    SizedBox(height: 16.h),
+                    _buildField(
+                        'Area / Sector', _areaController, Icons.map_outlined),
+                    SizedBox(height: 16.h),
+                    _buildField(
+                      'City *',
+                      _cityController,
+                      Icons.location_city,
+                      validator: (v) =>
+                          (v == null || v.trim().isEmpty) ? 'Required' : null,
+                    ),
+                    SizedBox(height: 16.h),
+                    _buildField(
+                      'Pincode *',
+                      _pincodeController,
+                      Icons.pin_drop_outlined,
+                      keyboardType: TextInputType.number,
+                      maxLength: 6,
+                      validator: (v) {
+                        if (v == null || v.trim().isEmpty) return 'Required';
+                        if (v.trim().length != 6)
+                          return 'Enter 6-digit pincode';
+                        if (!RegExp(r'^\d{6}$').hasMatch(v.trim()))
+                          return 'Digits only';
+                        if (!ServiceabilityChecker.isServiceable(v.trim())) {
+                          return ServiceabilityChecker.notServiceableMessage;
+                        }
+                        return null;
+                      },
+                      onChanged: (_) => _checkPincode(),
+                    ),
+                    SizedBox(height: 16.h),
+                    _buildField(
+                      'Delivery Instructions (optional)',
+                      _instructionsController,
+                      Icons.note_alt_outlined,
+                      maxLines: 3,
+                    ),
+                    SizedBox(height: 24.h),
+                    SizedBox(
+                      width: double.infinity,
+                      height: 50.h,
+                      child: ElevatedButton(
+                        onPressed: _isPincodeValid ? _save : null,
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: AppColors.primaryOrange,
+                          disabledBackgroundColor: AppColors.lightDivider,
+                          shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12.r)),
+                        ),
+                        child: Text(
+                          'Save Address',
+                          style: TextStyle(
+                              fontSize: 16.sp,
+                              fontWeight: FontWeight.bold,
+                              color: AppColors.white),
+                        ),
+                      ),
+                    ),
+                    SizedBox(height: 24.h),
+                  ],
                 ),
-                SizedBox(height: 24.h),
-              ],),),
+              ),
             ),
     );
   }
 
-  Widget _buildField(String label, TextEditingController controller, IconData icon, {
-    String? Function(String?)? validator, TextInputType? keyboardType,
-    int? maxLength, int maxLines = 1, void Function(String)? onChanged,
+  Widget _buildField(
+    String label,
+    TextEditingController controller,
+    IconData icon, {
+    String? Function(String?)? validator,
+    TextInputType? keyboardType,
+    int? maxLength,
+    int maxLines = 1,
+    void Function(String)? onChanged,
   }) {
-    return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-      Text(label, style: TextStyle(fontSize: 14.sp, fontWeight: FontWeight.w600, color: AppColors.lightTextPrimary)),
-      SizedBox(height: 8.h),
-      TextFormField(
-        controller: controller, keyboardType: keyboardType,
-        maxLength: maxLength, maxLines: maxLines,
-        validator: validator, onChanged: onChanged,
-        decoration: InputDecoration(
-          prefixIcon: Icon(icon, size: 20.sp, color: AppColors.lightTextSecondary),
-          filled: true, fillColor: AppColors.white,
-          border: OutlineInputBorder(borderRadius: BorderRadius.circular(8.r), borderSide: const BorderSide(color: AppColors.lightDivider)),
-          enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(8.r), borderSide: const BorderSide(color: AppColors.lightDivider)),
-          contentPadding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 14.h),
-          counterText: '',
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(label,
+            style: TextStyle(
+                fontSize: 14.sp,
+                fontWeight: FontWeight.w600,
+                color: AppColors.lightTextPrimary)),
+        SizedBox(height: 8.h),
+        TextFormField(
+          controller: controller,
+          keyboardType: keyboardType,
+          maxLength: maxLength,
+          maxLines: maxLines,
+          validator: validator,
+          onChanged: onChanged,
+          decoration: InputDecoration(
+            prefixIcon:
+                Icon(icon, size: 20.sp, color: AppColors.lightTextSecondary),
+            filled: true,
+            fillColor: AppColors.white,
+            border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(8.r),
+                borderSide: const BorderSide(color: AppColors.lightDivider)),
+            enabledBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(8.r),
+                borderSide: const BorderSide(color: AppColors.lightDivider)),
+            contentPadding:
+                EdgeInsets.symmetric(horizontal: 12.w, vertical: 14.h),
+            counterText: '',
+          ),
         ),
-      ),
-    ],);
+      ],
+    );
   }
 }

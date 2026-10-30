@@ -6,10 +6,10 @@ library;
 
 import 'dart:ui';
 import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:lush/theme/app_colors.dart';
 import 'package:lush/theme/app_radius.dart';
-import 'package:lush/theme/theme_cubit.dart';
+import 'package:lush/theme/app_spacing.dart';
+import 'package:lush/theme/app_text_styles.dart';
+import 'package:lush/theme/bmj_tokens.dart';
 
 /// Glassmorphism card with configurable blur, opacity, border, and glow.
 class GlassCard extends StatelessWidget {
@@ -52,52 +52,65 @@ class GlassCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final isDark = context.watch<ThemeCubit>().state.resolvedThemeMode == ThemeMode.dark;
+    final palette = BMJPalette.of(context);
+    final radius = BorderRadius.circular(borderRadius);
+    final radiusValue = borderRadius;
+    final fill = backgroundColor ?? palette.glassFill;
+    final stroke = borderColor ?? palette.glassBorder;
 
-    final effectiveBg = backgroundColor ??
-        (isDark ? AppColors.glassSurface : AppColors.glassSurfaceLight);
-
-    final effectiveBorder = borderColor ??
-        (isDark ? AppColors.glassBorder : AppColors.glassBorderLight);
-
-    final effectiveShadow = boxShadow ??
+    final shadows = boxShadow ??
         (hasGlow
-            ? [
+            ? <BoxShadow>[
                 BoxShadow(
-                  color: glowColor ?? AppColors.glassGlow,
-                  blurRadius: 20,
-                  spreadRadius: 1,
+                  color: (glowColor ?? palette.primary).withValues(alpha: 0.22),
+                  blurRadius: BMJTokens.glowBlur,
+                  spreadRadius: BMJTokens.glowSpread,
                 ),
               ]
-            : []);
+            : null);
 
-    final card = ClipRRect(
-      borderRadius: BorderRadius.circular(borderRadius),
+    Widget card = ClipRRect(
+      borderRadius: radius,
       child: BackdropFilter(
-        filter: isDark
-            ? ImageFilter.blur(sigmaX: blur, sigmaY: blur)
-            : ImageFilter.blur(sigmaX: blur * 0.5, sigmaY: blur * 0.5),
+        filter: ImageFilter.blur(sigmaX: blur, sigmaY: blur),
         child: Container(
           height: height,
           width: width,
-          padding: padding ?? const EdgeInsets.all(16),
+          padding: padding ?? const EdgeInsets.all(AppSpacing.lg),
           decoration: BoxDecoration(
-            color: gradient != null ? Colors.transparent : effectiveBg,
-            borderRadius: BorderRadius.circular(borderRadius),
+            color: gradient != null ? null : fill,
+            borderRadius: radius,
             border: Border.all(
-              color: effectiveBorder,
-              width: borderWidth ?? 0.5,
+              color: stroke,
+              width: borderWidth ?? BMJTokens.hairline,
             ),
             gradient: gradient,
-            boxShadow: effectiveShadow.isNotEmpty ? effectiveShadow : null,
           ),
           child: child,
         ),
       ),
     );
 
+    if (shadows != null && shadows.isNotEmpty) {
+      card = DecoratedBox(
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(radiusValue),
+          boxShadow: shadows,
+        ),
+        child: card,
+      );
+    }
+
+    if (margin != null) {
+      card = Padding(padding: margin!, child: card);
+    }
+
     if (onTap != null) {
-      return GestureDetector(onTap: onTap, child: card);
+      return GestureDetector(
+        onTap: onTap,
+        behavior: HitTestBehavior.opaque,
+        child: card,
+      );
     }
     return card;
   }
@@ -126,53 +139,59 @@ class GlassChip extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final isDark = context.watch<ThemeCubit>().state.resolvedThemeMode == ThemeMode.dark;
+    final palette = BMJPalette.of(context);
+    final accent = selectedColor ?? palette.primaryEmphasis;
 
-    final bg = isSelected
-        ? (selectedColor ?? AppColors.glassAccent).withValues(alpha: 0.2)
-        : (isDark ? AppColors.glassSurface : AppColors.glassSurfaceLight);
+    final bg = isSelected ? accent.withValues(alpha: 0.14) : palette.glassFill;
+    final border =
+        isSelected ? accent.withValues(alpha: 0.45) : palette.glassBorder;
+    final textColor = isSelected ? accent : palette.onSurfaceVariant;
 
-    final border = isSelected
-        ? (selectedColor ?? AppColors.glassAccent).withValues(alpha: 0.5)
-        : (isDark ? AppColors.glassBorderSubtle : AppColors.glassBorderLight);
-
-    final textColor = isSelected
-        ? (selectedColor ?? AppColors.glassAccent)
-        : (isDark ? AppColors.glassTextDim : AppColors.lightTextSecondary);
-
-    return GestureDetector(
-      onTap: onTap,
-      child: ClipRRect(
-        borderRadius: BorderRadius.circular(borderRadius),
-        child: BackdropFilter(
-          filter: ImageFilter.blur(sigmaX: 5, sigmaY: 5),
-          child: Container(
-            padding: const EdgeInsets.symmetric(
-              horizontal: 16,
-              vertical: 8,
+    return Semantics(
+      button: onTap != null,
+      selected: isSelected,
+      label: label,
+      child: GestureDetector(
+        onTap: onTap,
+        behavior: HitTestBehavior.opaque,
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(borderRadius),
+          child: BackdropFilter(
+            filter: ImageFilter.blur(
+              sigmaX: BMJTokens.blurGlass * 0.5,
+              sigmaY: BMJTokens.blurGlass * 0.5,
             ),
-            decoration: BoxDecoration(
-              color: bg,
-              borderRadius: BorderRadius.circular(borderRadius),
-              border: Border.all(color: border, width: 0.5),
-            ),
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                if (icon != null) ...[
-                  Icon(icon, size: 16, color: textColor),
-                  const SizedBox(width: 4),
-                ],
-                Text(
-                  label,
-                  style: TextStyle(
-                    fontFamily: 'Inter',
-                    fontSize: fontSize ?? 13,
-                    fontWeight: isSelected ? FontWeight.w600 : FontWeight.w400,
-                    color: textColor,
-                  ),
+            child: Container(
+              padding: const EdgeInsets.symmetric(
+                horizontal: AppSpacing.md,
+                vertical: AppSpacing.sm,
+              ),
+              decoration: BoxDecoration(
+                color: bg,
+                borderRadius: BorderRadius.circular(borderRadius),
+                border: Border.all(
+                  color: border,
+                  width: BMJTokens.hairline,
                 ),
-              ],
+              ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: <Widget>[
+                  if (icon != null) ...<Widget>[
+                    Icon(icon, size: 16, color: textColor),
+                    const SizedBox(width: AppSpacing.xs),
+                  ],
+                  Text(
+                    label,
+                    style: AppTextStyles.textTheme.labelLarge?.copyWith(
+                      color: textColor,
+                      fontSize: fontSize,
+                      fontWeight:
+                          isSelected ? FontWeight.w700 : FontWeight.w500,
+                    ),
+                  ),
+                ],
+              ),
             ),
           ),
         ),
@@ -196,50 +215,62 @@ class GlassSegmentToggle extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final isDark = context.watch<ThemeCubit>().state.resolvedThemeMode == ThemeMode.dark;
+    final palette = BMJPalette.of(context);
 
     return ClipRRect(
       borderRadius: BorderRadius.circular(AppRadius.lg),
       child: BackdropFilter(
-        filter: ImageFilter.blur(sigmaX: 8, sigmaY: 8),
+        filter: ImageFilter.blur(
+          sigmaX: BMJTokens.blurGlass,
+          sigmaY: BMJTokens.blurGlass,
+        ),
         child: Container(
-          padding: const EdgeInsets.all(4),
+          padding: const EdgeInsets.all(AppSpacing.xs),
           decoration: BoxDecoration(
-            color: isDark
-                ? AppColors.glassSurface.withValues(alpha: 0.8)
-                : AppColors.glassSurfaceLight.withValues(alpha: 0.8),
+            color: palette.glassFill,
             borderRadius: BorderRadius.circular(AppRadius.lg),
             border: Border.all(
-              color: isDark ? AppColors.glassBorderSubtle : AppColors.glassBorderLight,
+              color: palette.glassBorder,
+              width: BMJTokens.hairline,
             ),
           ),
           child: Row(
-            children: List.generate(segments.length, (index) {
+            children: List<Widget>.generate(segments.length, (index) {
               final isSelected = index == selectedIndex;
               return Expanded(
-                child: GestureDetector(
-                  onTap: () => onSegmentChanged(index),
-                  child: AnimatedContainer(
-                    duration: const Duration(milliseconds: 200),
-                    padding: const EdgeInsets.symmetric(vertical: 10),
-                    decoration: BoxDecoration(
-                      color: isSelected
-                          ? AppColors.glassAccent.withValues(alpha: 0.25)
-                          : Colors.transparent,
-                      borderRadius: BorderRadius.circular(AppRadius.md),
-                    ),
-                    child: Text(
-                      segments[index],
-                      textAlign: TextAlign.center,
-                      style: TextStyle(
-                        fontFamily: 'Inter',
-                        fontSize: 13,
-                        fontWeight: isSelected ? FontWeight.w600 : FontWeight.w400,
+                child: Semantics(
+                  button: true,
+                  selected: isSelected,
+                  label: segments[index],
+                  child: GestureDetector(
+                    onTap: () => onSegmentChanged(index),
+                    behavior: HitTestBehavior.opaque,
+                    child: AnimatedContainer(
+                      duration: BMJTokens.motionFast,
+                      curve: BMJTokens.motionCurve,
+                      padding: const EdgeInsets.symmetric(vertical: 10),
+                      decoration: BoxDecoration(
                         color: isSelected
-                            ? AppColors.glassAccent
-                            : (isDark
-                                ? AppColors.glassTextDim
-                                : AppColors.lightTextSecondary),
+                            ? palette.primary.withValues(alpha: 0.16)
+                            : Colors.transparent,
+                        borderRadius: BorderRadius.circular(AppRadius.md),
+                        border: Border.all(
+                          color: isSelected
+                              ? palette.primary.withValues(alpha: 0.45)
+                              : Colors.transparent,
+                          width: BMJTokens.hairline,
+                        ),
+                      ),
+                      child: Text(
+                        segments[index],
+                        textAlign: TextAlign.center,
+                        style: AppTextStyles.textTheme.labelLarge?.copyWith(
+                          color: isSelected
+                              ? palette.primaryEmphasis
+                              : palette.onSurfaceVariant,
+                          fontWeight:
+                              isSelected ? FontWeight.w700 : FontWeight.w500,
+                        ),
                       ),
                     ),
                   ),

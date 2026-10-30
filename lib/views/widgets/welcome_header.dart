@@ -1,13 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:lush/UserRepository/user_repository.dart';
-import 'package:lush/get_it.dart';
 import 'package:lush/theme/app_colors.dart';
 import '../models/user.dart';
 
 class WelcomeHeader extends StatelessWidget {
   final User user;
-  final UserRepository userRepository = getIt.get();
 
   WelcomeHeader({
     super.key,
@@ -17,9 +14,12 @@ class WelcomeHeader extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return InkWell(
-      onTap: () async {
-        final String selfServePageUrl = await userRepository.getSelfServePageUrl();
-        Navigator.pushNamed(context, '/myaccount', arguments: selfServePageUrl);
+      onTap: () {
+        // V1 launch freeze: the Chargebee Portal (Self-Serve Page) is retired
+        // server-side and returns HTTP 410 Gone. The documented replacement is
+        // the native SubscriptionManagementScreen, so no /api/test/* route is
+        // reached from this entry point any more.
+        Navigator.pushNamed(context, '/manage-subscriptions');
       },
       child: Container(
         padding: EdgeInsets.all(20.w),

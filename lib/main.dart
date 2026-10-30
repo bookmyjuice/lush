@@ -37,32 +37,20 @@ import 'repositories/referral_repository.dart';
 import 'views/all_screens.dart';
 import 'views/models/model.dart';
 import 'views/screens/address_entry_screen.dart';
-import 'views/screens/create_password_screen.dart';
+import 'views/screens/signup_email_verification_screen.dart';
 import 'views/screens/day_wise_schedule_screen.dart';
 import 'views/screens/delete_account_screen.dart';
-import 'views/screens/email_entry_after_phone_screen.dart';
-import 'views/screens/email_signup_screen.dart';
-import 'views/screens/email_verification_after_phone_screen.dart';
-import 'views/screens/email_verification_screen.dart';
-import 'views/screens/forgot_password_page.dart';
-import 'views/screens/forgot_password_screen.dart';
-import 'views/screens/google_phone_entry_screen.dart';
 import 'views/screens/invoice_view_screen.dart';
 import 'views/screens/link_google_account_screen.dart';
 import 'views/screens/my_account_page.dart';
 import 'views/screens/notifications.dart';
 import 'views/screens/order_history_screen.dart';
 import 'views/screens/order/order_detail_screen.dart';
-import 'views/screens/phone_entry_after_email_screen.dart';
-import 'views/screens/phone_login_screen.dart';
+import 'views/screens/phone_entry_screen.dart';
 import 'views/screens/phone_otp_verification_screen.dart';
-import 'views/screens/phone_signup_screen.dart';
 import 'views/screens/product_catalog_screen.dart';
 import 'views/screens/user_profile_screen.dart';
-import 'views/screens/reset_password_email_screen.dart';
-import 'views/screens/reset_password_mobile_screen.dart';
 // New unified signup flow screens
-import 'views/screens/signup_method_selection_screen.dart';
 import 'views/screens/subscription_management_screen.dart';
 import 'views/screens/plan_selection_screen.dart';
 // For DashboardMode
@@ -190,6 +178,13 @@ void _initializeErrorHandling() {
   };
 }
 
+/// Every retired email/password route lands on the sign-in surface instead of
+/// 404-ing for stale deep links.
+Widget _retiredAuthRoute(BuildContext context) => const LoginPage(
+      toastMessage: '',
+      toastHeading: '',
+    );
+
 class BookMyJuiceApp extends StatelessWidget {
   const BookMyJuiceApp({super.key});
 
@@ -276,50 +271,51 @@ class BookMyJuiceApp extends StatelessWidget {
               routes: {
                 '/': (_) => const AuthWrapper(),
                 '/mobileNumberPage': (_) => const MobileNumberPage(),
-                '/phone-login': (_) => const PhoneLoginScreen(),
-                '/otp': (_) => const OTPLoginPage(),
-                // '/otpSignUpScreen': (_) => OTPSignUpScreen(),
-                '/forgotPasswordPage': (_) => const ForgotPasswordPage(),
-                '/forgot-password': (_) => const ForgotPasswordScreen(),
-                '/reset-password-mobile-otp': (_) => const ResetPasswordMobileScreen(),
-                '/reset-password-email-code': (_) => const ResetPasswordEmailScreen(),
+                // One phone journey: entry -> OTP. Legacy names land on it too.
+                '/phone-entry': (_) => const PhoneEntryScreen(),
+                '/phone-login': (_) => const PhoneEntryScreen(),
+                '/phone-signup': (_) => const PhoneEntryScreen(),
+                '/otp': (_) => const PhoneEntryScreen(),
+                '/phone-otp-verification': (_) =>
+                    const PhoneOtpVerificationScreen(),
+                '/google-signup': (_) => const GoogleSignupScreen(),
+                '/address-entry': (_) => const AddressEntryScreen(),
+                // Mandatory-email signup: phone OTP -> email OTP -> address.
+                '/signup-email-verification': (_) =>
+                    const SignupEmailVerificationScreen(),
+                '/login': (_) => const LoginPage(
+                      toastMessage: '',
+                      toastHeading: '',
+                    ),
+                '/dashboard': (_) => Dashboard(),
+                '/catalog': (_) => const ProductCatalogScreen(),
+                '/product-catalog': (_) => const ProductCatalogScreen(),
+                '/plan-selection': (_) => const PlanSelectionScreen(),
+                '/user-profile': (_) => const UserProfileScreen(),
                 '/day-wise-schedule': (_) => const DayWiseScheduleScreen(
                       availableJuices: [],
                       selectedPlan: {},
                     ),
                 '/delete-account': (_) => const DeleteAccountScreen(),
                 '/orders': (_) => const OrderHistoryPage(),
-                // New routes for enhanced navigation
                 '/manage-subscriptions': (_) =>
                     const SubscriptionManagementScreen(),
                 '/order-history': (_) => const OrderHistoryScreen(),
                 '/invoices': (_) => const InvoiceViewScreen(),
                 '/referral': (_) => const ReferralScreen(),
-                // New unified signup flow routes
-                '/signup-method-selection': (_) =>
-                    const SignupMethodSelectionScreen(),
-                '/email-signup': (_) => const EmailSignupScreen(),
-                '/email-verification': (_) => const EmailVerificationScreen(),
-                '/phone-entry-after-email': (_) =>
-                    const PhoneEntryAfterEmailScreen(),
-                '/phone-signup': (_) => const PhoneSignupScreen(),
-                '/phone-otp-verification': (_) =>
-                    const PhoneOtpVerificationScreen(),
-                '/email-entry-after-phone': (_) =>
-                    const EmailEntryAfterPhoneScreen(),
-                '/email-verification-after-phone': (_) =>
-                    const EmailVerificationAfterPhoneScreen(),
-                '/google-signup': (_) => const GoogleSignupScreen(),
-                '/google-phone-entry': (_) => const GooglePhoneEntryScreen(),
-                '/address-entry': (_) => const AddressEntryScreen(),
-                '/create-password': (_) => const CreatePasswordScreen(),
-                '/login': (_) => const LoginPage(
-                    toastMessage: '', toastHeading: '',),
-                '/dashboard': (_) => Dashboard(),
-                '/catalog': (_) => const ProductCatalogScreen(),
-                '/product-catalog': (_) => const ProductCatalogScreen(),
-                '/plan-selection': (_) => const PlanSelectionScreen(),
-                '/user-profile': (_) => const UserProfileScreen(),
+                // Retired email/password routes: keep stale links working.
+                '/signup-method-selection': _retiredAuthRoute,
+                '/email-signup': _retiredAuthRoute,
+                '/email-verification': _retiredAuthRoute,
+                '/phone-entry-after-email': _retiredAuthRoute,
+                '/email-entry-after-phone': _retiredAuthRoute,
+                '/email-verification-after-phone': _retiredAuthRoute,
+                '/create-password': _retiredAuthRoute,
+                '/forgotPasswordPage': _retiredAuthRoute,
+                '/forgot-password': _retiredAuthRoute,
+                '/reset-password-mobile-otp': _retiredAuthRoute,
+                '/reset-password-email-code': _retiredAuthRoute,
+                '/google-phone-entry': _retiredAuthRoute,
               },
               onGenerateRoute: (settings) {
                 if (settings.name == '/myaccount') {
@@ -329,11 +325,7 @@ class BookMyJuiceApp extends StatelessWidget {
                 }
                 if (settings.name == '/productDetails') {
                   return MaterialPageRoute(
-                    builder: (_) {
-                      return DetailPage(
-                        settings.arguments as Product,
-                      );
-                    },
+                    builder: (_) => DetailPage.fromArgument(settings.arguments),
                   );
                 } else if (settings.name == '/notifications') {
                   return MaterialPageRoute(
@@ -425,11 +417,6 @@ class AuthWrapper extends StatelessWidget {
         // ── Authenticated: Full Dashboard ──
         if (state is AuthenticationSuccess) {
           return Dashboard();
-        }
-
-        // ── Signup flow continues ──
-        if (state is SignUpStarted) {
-          return SignUpScreen(user: state.user);
         }
 
         // ── Google linking flow ──

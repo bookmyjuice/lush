@@ -46,7 +46,11 @@ class _OrderItemScreenState extends State<OrderItemScreen> {
         });
       }
     } catch (e) {
-      if (mounted) setState(() { _loading = false; _error = e.toString(); });
+      if (mounted)
+        setState(() {
+          _loading = false;
+          _error = e.toString();
+        });
     }
   }
 
@@ -79,15 +83,25 @@ class _OrderItemScreenState extends State<OrderItemScreen> {
         name: _item!.displayName,
         servingSize: _selectedSize,
         price: _selectedPrice,
-        itemPrices: [ItemPrice(id: pd['id'] as String? ?? '', name: _selectedSize, price: _selectedPrice)],
+        itemPrices: [
+          ItemPrice(
+              id: pd['id'] as String? ?? '',
+              name: _selectedSize,
+              price: _selectedPrice)
+        ],
       ),
       quantity: _quantity,
       selectedSize: _selectedSize,
-      selectedPrice: ItemPrice(id: pd['id'] as String? ?? '', name: _selectedSize, price: _selectedPrice),
+      selectedPrice: ItemPrice(
+          id: pd['id'] as String? ?? '',
+          name: _selectedSize,
+          price: _selectedPrice),
     );
     context.read<CartBloc>().add(AddToCart(cartItem));
     ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text('${_item!.displayName} added to cart'), backgroundColor: AppColors.success),
+      SnackBar(
+          content: Text('${_item!.displayName} added to cart'),
+          backgroundColor: AppColors.success),
     );
     Navigator.pop(context);
   }
@@ -99,81 +113,158 @@ class _OrderItemScreenState extends State<OrderItemScreen> {
       appBar: AppBar(
         backgroundColor: AppColors.white,
         elevation: 0,
-        title: Text(_item?.displayName ?? 'Item Details',
-            style: const TextStyle(fontWeight: FontWeight.bold, color: AppColors.lightTextPrimary),),
+        title: Text(
+          _item?.displayName ?? 'Item Details',
+          style: const TextStyle(
+              fontWeight: FontWeight.bold, color: AppColors.lightTextPrimary),
+        ),
         iconTheme: const IconThemeData(color: AppColors.lightTextPrimary),
       ),
       body: _loading
           ? const Center(child: CircularProgressIndicator())
           : _error != null
-              ? Center(child: Text(_error!, style: const TextStyle(color: AppColors.error)))
+              ? Center(
+                  child: Text(_error!,
+                      style: const TextStyle(color: AppColors.error)))
               : _item == null
                   ? const Center(child: Text('Item not found'))
                   : SingleChildScrollView(
                       padding: EdgeInsets.all(16.r),
-                      child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                        Text(
-                          _item!.displayName.replaceAll('-', ' ').split(' ').map((w) =>
-                              '${w[0].toUpperCase()}${w.substring(1)}',).join(' '),
-                          style: TextStyle(fontSize: 24.sp, fontWeight: FontWeight.bold, color: AppColors.lightTextPrimary),
-                        ),
-                        SizedBox(height: 12.h),
-                        Container(
-                          padding: EdgeInsets.symmetric(horizontal: 10.w, vertical: 4.h),
-                          decoration: BoxDecoration(color: AppColors.primaryOrange.withAlpha(30), borderRadius: BorderRadius.circular(8.r)),
-                          child: Text((_item!.metaData['family'] as String? ?? 'delight').toUpperCase(),
-                              style: TextStyle(fontSize: 12.sp, fontWeight: FontWeight.bold, color: AppColors.primaryOrange),),
-                        ),
-                        SizedBox(height: 24.h),
-                        Text('Select Size', style: TextStyle(fontSize: 16.sp, fontWeight: FontWeight.w600, color: AppColors.lightTextPrimary)),
-                        SizedBox(height: 12.h),
-                        Row(children: _sizes.map((s) {
-                          final selected = s == _selectedSize;
-                          return Padding(
-                            padding: EdgeInsets.only(right: 12.w),
-                            child: ChoiceChip(
-                              label: Text(s), selected: selected, selectedColor: AppColors.primaryOrange,
-                              labelStyle: TextStyle(color: selected ? AppColors.white : AppColors.lightTextPrimary, fontWeight: FontWeight.w600),
-                              onSelected: (_) => setState(() => _selectedSize = s),
-                            ),
-                          );
-                        }).toList(),),
-                        SizedBox(height: 24.h),
-                        Text('Quantity', style: TextStyle(fontSize: 16.sp, fontWeight: FontWeight.w600, color: AppColors.lightTextPrimary)),
-                        SizedBox(height: 12.h),
-                        Row(children: [
-                          _QtyButton(icon: Icons.remove, onTap: _quantity > 1 ? () => setState(() => _quantity--) : null),
-                          Container(width: 48.w, alignment: Alignment.center,
-                              child: Text('$_quantity', style: TextStyle(fontSize: 18.sp, fontWeight: FontWeight.bold)),),
-                          _QtyButton(icon: Icons.add, onTap: _quantity < 10 ? () => setState(() => _quantity++) : null),
-                        ],),
-                        SizedBox(height: 24.h),
-                        Container(
-                          width: double.infinity, padding: EdgeInsets.all(16.r),
-                          decoration: BoxDecoration(color: AppColors.white, borderRadius: BorderRadius.circular(12.r),
-                              border: Border.all(color: AppColors.lightDivider),),
-                          child: Column(children: [
-                            _PriceRow('Unit price', '₹${_selectedPrice.toStringAsFixed(0)}'),
-                            SizedBox(height: 8.h),
-                            _PriceRow('Quantity', '$_quantity'),
-                            SizedBox(height: 8.h),
-                            const Divider(color: AppColors.lightDivider),
-                            SizedBox(height: 8.h),
-                            _PriceRow('Total', '₹${_total.toStringAsFixed(0)}', bold: true),
-                          ],),
-                        ),
-                        SizedBox(height: 24.h),
-                        SizedBox(
-                          width: double.infinity, height: 50.h,
-                          child: ElevatedButton(
-                            onPressed: _addToCart,
-                            style: ElevatedButton.styleFrom(backgroundColor: AppColors.primaryOrange,
-                                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12.r)),),
-                            child: Text('Add to Cart', style: TextStyle(fontSize: 16.sp, fontWeight: FontWeight.bold, color: AppColors.white)),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            _item!.displayName
+                                .replaceAll('-', ' ')
+                                .split(' ')
+                                .map(
+                                  (w) =>
+                                      '${w[0].toUpperCase()}${w.substring(1)}',
+                                )
+                                .join(' '),
+                            style: TextStyle(
+                                fontSize: 24.sp,
+                                fontWeight: FontWeight.bold,
+                                color: AppColors.lightTextPrimary),
                           ),
-                        ),
-                        SizedBox(height: 16.h),
-                      ],),
+                          SizedBox(height: 12.h),
+                          Container(
+                            padding: EdgeInsets.symmetric(
+                                horizontal: 10.w, vertical: 4.h),
+                            decoration: BoxDecoration(
+                                color: AppColors.primaryOrange.withAlpha(30),
+                                borderRadius: BorderRadius.circular(8.r)),
+                            child: Text(
+                              (_item!.metaData['family'] as String? ??
+                                      'delight')
+                                  .toUpperCase(),
+                              style: TextStyle(
+                                  fontSize: 12.sp,
+                                  fontWeight: FontWeight.bold,
+                                  color: AppColors.primaryOrange),
+                            ),
+                          ),
+                          SizedBox(height: 24.h),
+                          Text('Select Size',
+                              style: TextStyle(
+                                  fontSize: 16.sp,
+                                  fontWeight: FontWeight.w600,
+                                  color: AppColors.lightTextPrimary)),
+                          SizedBox(height: 12.h),
+                          Row(
+                            children: _sizes.map((s) {
+                              final selected = s == _selectedSize;
+                              return Padding(
+                                padding: EdgeInsets.only(right: 12.w),
+                                child: ChoiceChip(
+                                  label: Text(s),
+                                  selected: selected,
+                                  selectedColor: AppColors.primaryOrange,
+                                  labelStyle: TextStyle(
+                                      color: selected
+                                          ? AppColors.white
+                                          : AppColors.lightTextPrimary,
+                                      fontWeight: FontWeight.w600),
+                                  onSelected: (_) =>
+                                      setState(() => _selectedSize = s),
+                                ),
+                              );
+                            }).toList(),
+                          ),
+                          SizedBox(height: 24.h),
+                          Text('Quantity',
+                              style: TextStyle(
+                                  fontSize: 16.sp,
+                                  fontWeight: FontWeight.w600,
+                                  color: AppColors.lightTextPrimary)),
+                          SizedBox(height: 12.h),
+                          Row(
+                            children: [
+                              _QtyButton(
+                                  icon: Icons.remove,
+                                  onTap: _quantity > 1
+                                      ? () => setState(() => _quantity--)
+                                      : null),
+                              Container(
+                                width: 48.w,
+                                alignment: Alignment.center,
+                                child: Text('$_quantity',
+                                    style: TextStyle(
+                                        fontSize: 18.sp,
+                                        fontWeight: FontWeight.bold)),
+                              ),
+                              _QtyButton(
+                                  icon: Icons.add,
+                                  onTap: _quantity < 10
+                                      ? () => setState(() => _quantity++)
+                                      : null),
+                            ],
+                          ),
+                          SizedBox(height: 24.h),
+                          Container(
+                            width: double.infinity,
+                            padding: EdgeInsets.all(16.r),
+                            decoration: BoxDecoration(
+                              color: AppColors.white,
+                              borderRadius: BorderRadius.circular(12.r),
+                              border: Border.all(color: AppColors.lightDivider),
+                            ),
+                            child: Column(
+                              children: [
+                                _PriceRow('Unit price',
+                                    '₹${_selectedPrice.toStringAsFixed(0)}'),
+                                SizedBox(height: 8.h),
+                                _PriceRow('Quantity', '$_quantity'),
+                                SizedBox(height: 8.h),
+                                const Divider(color: AppColors.lightDivider),
+                                SizedBox(height: 8.h),
+                                _PriceRow(
+                                    'Total', '₹${_total.toStringAsFixed(0)}',
+                                    bold: true),
+                              ],
+                            ),
+                          ),
+                          SizedBox(height: 24.h),
+                          SizedBox(
+                            width: double.infinity,
+                            height: 50.h,
+                            child: ElevatedButton(
+                              onPressed: _addToCart,
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: AppColors.primaryOrange,
+                                shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(12.r)),
+                              ),
+                              child: Text('Add to Cart',
+                                  style: TextStyle(
+                                      fontSize: 16.sp,
+                                      fontWeight: FontWeight.bold,
+                                      color: AppColors.white)),
+                            ),
+                          ),
+                          SizedBox(height: 16.h),
+                        ],
+                      ),
                     ),
     );
   }
@@ -189,9 +280,16 @@ class _QtyButton extends StatelessWidget {
     return GestureDetector(
       onTap: onTap,
       child: Container(
-        width: 40.r, height: 40.r,
-        decoration: BoxDecoration(color: onTap != null ? AppColors.primaryOrange : AppColors.grey.withAlpha(50), borderRadius: BorderRadius.circular(8.r)),
-        child: Icon(icon, size: 20.sp, color: onTap != null ? AppColors.white : AppColors.grey),
+        width: 40.r,
+        height: 40.r,
+        decoration: BoxDecoration(
+            color: onTap != null
+                ? AppColors.primaryOrange
+                : AppColors.grey.withAlpha(50),
+            borderRadius: BorderRadius.circular(8.r)),
+        child: Icon(icon,
+            size: 20.sp,
+            color: onTap != null ? AppColors.white : AppColors.grey),
       ),
     );
   }
@@ -205,9 +303,20 @@ class _PriceRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
-      Text(label, style: TextStyle(fontSize: 14.sp, color: AppColors.lightTextSecondary)),
-      Text(value, style: TextStyle(fontSize: bold ? 18.sp : 14.sp, fontWeight: bold ? FontWeight.bold : FontWeight.w500, color: bold ? AppColors.primaryOrange : AppColors.lightTextPrimary)),
-    ],);
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        Text(label,
+            style: TextStyle(
+                fontSize: 14.sp, color: AppColors.lightTextSecondary)),
+        Text(value,
+            style: TextStyle(
+                fontSize: bold ? 18.sp : 14.sp,
+                fontWeight: bold ? FontWeight.bold : FontWeight.w500,
+                color: bold
+                    ? AppColors.primaryOrange
+                    : AppColors.lightTextPrimary)),
+      ],
+    );
   }
 }

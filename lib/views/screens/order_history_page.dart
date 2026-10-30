@@ -115,16 +115,18 @@ class _OrderHistoryPageState extends State<OrderHistoryPage> {
     return ListView(
       padding: EdgeInsets.symmetric(horizontal: 20.w),
       children: filtered
-          .map((order) => _buildOrderCard(
-                orderId: order.documentNumber.isNotEmpty
-                    ? order.documentNumber
-                    : '#${order.id}',
-                date: order.createdAt,
-                status: order.status,
-                items: order.items.isNotEmpty ? order.items : ['No items'],
-                total: '?${order.total}',
-                statusColor: _getStatusColor(order.status),
-              ),)
+          .map(
+            (order) => _buildOrderCard(
+              orderId: order.documentNumber.isNotEmpty
+                  ? order.documentNumber
+                  : '#${order.id}',
+              date: order.createdAt,
+              status: order.status,
+              items: order.items.isNotEmpty ? order.items : ['No items'],
+              total: '?${order.total}',
+              statusColor: _getStatusColor(order.status),
+            ),
+          )
           .toList(),
     );
   }
@@ -171,7 +173,9 @@ class _OrderHistoryPageState extends State<OrderHistoryPage> {
               style: TextStyle(
                 fontSize: 14.sp,
                 fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
-                color: isSelected ? AppColors.lightTextPrimary : AppColors.lightTextSecondary,
+                color: isSelected
+                    ? AppColors.lightTextPrimary
+                    : AppColors.lightTextSecondary,
               ),
             ),
           ),
@@ -253,29 +257,31 @@ class _OrderHistoryPageState extends State<OrderHistoryPage> {
                 ),
               ),
               SizedBox(height: 8.h),
-              ...items.map((item) => Padding(
-                    padding: EdgeInsets.only(bottom: 4.h),
-                    child: Row(
-                      children: [
-                        Container(
-                          width: 4.w,
-                          height: 4.w,
-                          decoration: const BoxDecoration(
-                            color: AppColors.lightTextSecondary,
-                            shape: BoxShape.circle,
-                          ),
+              ...items.map(
+                (item) => Padding(
+                  padding: EdgeInsets.only(bottom: 4.h),
+                  child: Row(
+                    children: [
+                      Container(
+                        width: 4.w,
+                        height: 4.w,
+                        decoration: const BoxDecoration(
+                          color: AppColors.lightTextSecondary,
+                          shape: BoxShape.circle,
                         ),
-                        SizedBox(width: 8.w),
-                        Text(
-                          item,
-                          style: TextStyle(
-                            fontSize: 14.sp,
-                            color: AppColors.lightTextSecondary,
-                          ),
+                      ),
+                      SizedBox(width: 8.w),
+                      Text(
+                        item,
+                        style: TextStyle(
+                          fontSize: 14.sp,
+                          color: AppColors.lightTextSecondary,
                         ),
-                      ],
-                    ),
-                  ),),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
             ],
           ),
 

@@ -3,6 +3,7 @@ import 'package:hexcolor/hexcolor.dart' as hex;
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:lush/theme/app_text_styles.dart';
 import 'dynamic_juice.dart';
+import 'package:lush/theme/bmj_tokens.dart';
 
 class DetailedJuiceCard extends StatelessWidget {
   final DynamicJuice juice;
@@ -49,13 +50,13 @@ class DetailedJuiceCard extends StatelessWidget {
                   Container(
                     padding: EdgeInsets.all(10.w),
                     decoration: BoxDecoration(
-                      color: Colors.white.withValues(alpha: 0.2),
+                      color: BMJTokens.inkOnBrand.withValues(alpha: 0.2),
                       borderRadius: BorderRadius.circular(30),
                     ),
                     child: Icon(
                       Icons.local_drink,
                       size: 30,
-                      color: Colors.white.withValues(alpha: 0.8 * 255),
+                      color: BMJTokens.inkOnBrand.withValues(alpha: 0.8 * 255),
                     ),
                   ),
                   SizedBox(width: 12.w),
@@ -66,7 +67,7 @@ class DetailedJuiceCard extends StatelessWidget {
                         Text(
                           juice.name.isNotEmpty ? juice.name : 'Fresh Juice',
                           style: const TextStyle(
-                            color: Colors.white,
+                            color: BMJTokens.inkOnBrand,
                             fontSize: 18,
                             fontWeight: FontWeight.bold,
                             fontFamily: AppTextStyles.fontFamily,
@@ -76,7 +77,7 @@ class DetailedJuiceCard extends StatelessWidget {
                         Text(
                           juice.description.isNotEmpty ? juice.description : 'Delicious and nutritious',
                           style: const TextStyle(
-                            color: Colors.white,
+                            color: BMJTokens.inkOnBrand,
                             fontSize: 12,
                             fontFamily: AppTextStyles.fontFamily,
                           ),
@@ -123,13 +124,13 @@ class DetailedJuiceCard extends StatelessWidget {
                     return Container(
                       padding: EdgeInsets.symmetric(horizontal: 10.w, vertical: 6.h),
                       decoration: BoxDecoration(
-                        color: Colors.white.withValues(alpha: 0.2),
+                        color: BMJTokens.inkOnBrand.withValues(alpha: 0.2),
                         borderRadius: BorderRadius.circular(12),
                       ),
                       child: Text(
                         tag,
                         style: const TextStyle(
-                          color: Colors.white,
+                          color: BMJTokens.inkOnBrand,
                           fontSize: 10,
                           fontFamily: AppTextStyles.fontFamily,
                         ),
@@ -145,7 +146,7 @@ class DetailedJuiceCard extends StatelessWidget {
                 const Text(
                   'Ingredients',
                   style: TextStyle(
-                    color: Colors.white,
+                    color: BMJTokens.inkOnBrand,
                     fontSize: 14,
                     fontWeight: FontWeight.bold,
                     fontFamily: AppTextStyles.fontFamily,
@@ -159,7 +160,7 @@ class DetailedJuiceCard extends StatelessWidget {
                     return Container(
                       padding: EdgeInsets.symmetric(horizontal: 10.w, vertical: 6.h),
                       decoration: BoxDecoration(
-                        color: Colors.white.withValues(alpha: 0.2),
+                        color: BMJTokens.inkOnBrand.withValues(alpha: 0.2),
                         borderRadius: BorderRadius.circular(8),
                       ),
                       child: Row(
@@ -168,13 +169,13 @@ class DetailedJuiceCard extends StatelessWidget {
                           Icon(
                             Icons.check_circle,
                             size: 14,
-                            color: Colors.white.withValues(alpha: 0.9),
+                            color: BMJTokens.inkOnBrand.withValues(alpha: 0.9),
                           ),
                           SizedBox(width: 4.w),
                           Text(
                             meal,
                             style: const TextStyle(
-                              color: Colors.white,
+                              color: BMJTokens.inkOnBrand,
                               fontSize: 10,
                               fontFamily: AppTextStyles.fontFamily,
                             ),
@@ -201,7 +202,7 @@ class DetailedJuiceCard extends StatelessWidget {
       child: Container(
         padding: EdgeInsets.all(12.w),
         decoration: BoxDecoration(
-          color: Colors.white.withValues(alpha: 0.2),
+          color: BMJTokens.inkOnBrand.withValues(alpha: 0.2),
           borderRadius: BorderRadius.circular(12),
         ),
         child: Column(
@@ -209,13 +210,13 @@ class DetailedJuiceCard extends StatelessWidget {
             Icon(
               icon,
               size: 20,
-              color: Colors.white.withValues(alpha: 0.9),
+              color: BMJTokens.inkOnBrand.withValues(alpha: 0.9),
             ),
             SizedBox(height: 6.h),
             Text(
               value,
               style: const TextStyle(
-                color: Colors.white,
+                color: BMJTokens.inkOnBrand,
                 fontSize: 12,
                 fontWeight: FontWeight.bold,
                 fontFamily: AppTextStyles.fontFamily,
@@ -225,7 +226,7 @@ class DetailedJuiceCard extends StatelessWidget {
             Text(
               label,
               style: TextStyle(
-                color: Colors.white.withValues(alpha: 0.8),
+                color: BMJTokens.inkOnBrand.withValues(alpha: 0.8),
                 fontSize: 10,
                 fontFamily: AppTextStyles.fontFamily,
               ),

@@ -41,7 +41,8 @@ class _DeleteAccountScreenState extends State<DeleteAccountScreen> {
             type: ToastificationType.warning,
           );
           // Navigate to login and clear navigation stack
-          Navigator.pushNamedAndRemoveUntil(context, '/login', (route) => false);
+          Navigator.pushNamedAndRemoveUntil(
+              context, '/login', (route) => false);
         } else {
           toastification.show(
             title: const Text('Deletion Failed'),
@@ -73,7 +74,11 @@ class _DeleteAccountScreenState extends State<DeleteAccountScreen> {
           children: [
             Text(
               'Are you sure you want to delete your account?',
-              style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600, color: AppColors.lightTextPrimary, fontFamily: 'Roboto'),
+              style: TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w600,
+                  color: AppColors.lightTextPrimary,
+                  fontFamily: 'Roboto'),
             ),
             SizedBox(height: 16),
             Text(
@@ -81,7 +86,10 @@ class _DeleteAccountScreenState extends State<DeleteAccountScreen> {
               '• Your data will be soft-deleted and can be recovered within 30 days\n'
               '• After 30 days, your data will be permanently deleted\n'
               '• To recover your account within 30 days, contact support',
-              style: TextStyle(fontSize: 13, color: AppColors.darkGrey, fontFamily: 'Roboto'),
+              style: TextStyle(
+                  fontSize: 13,
+                  color: AppColors.darkGrey,
+                  fontFamily: 'Roboto'),
             ),
           ],
         ),
@@ -113,103 +121,124 @@ class _DeleteAccountScreenState extends State<DeleteAccountScreen> {
         final shouldPop = await BackButtonHandler.confirmExit(
           context,
           title: 'Leave Account Deletion?',
-          message: 'Are you sure you want to go back? Your account will not be deleted.',
+          message:
+              'Are you sure you want to go back? Your account will not be deleted.',
         );
         if (shouldPop && context.mounted) {
           Navigator.of(context).pop();
         }
       },
       child: Scaffold(
-      appBar: AppBar(
-        title: const Text('Delete Account'),
-        backgroundColor: AppColors.primaryOrange,
-        centerTitle: true,
-      ),
-      body: SafeArea(
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.all(24.0),
-          child: Column(
-            children: [
-              const SizedBox(height: 40),
-              Icon(Icons.delete_forever, size: 80, color: Colors.red[300]),
-              const SizedBox(height: 24),
-              const Text(
-                'Delete Your Account',
-                style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: AppColors.lightTextPrimary, fontFamily: 'Roboto'),
-              ),
-              const SizedBox(height: 16),
-              const Text(
-                'This action will soft-delete your account. Your data will be retained for 30 days in case you change your mind.',
-                style: TextStyle(fontSize: 14, color: AppColors.darkGrey, fontFamily: 'Roboto'),
-                textAlign: TextAlign.center,
-              ),
-              const SizedBox(height: 32),
-              Container(
-                padding: const EdgeInsets.all(16),
-                decoration: BoxDecoration(
-                  color: Colors.red[50],
-                  borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: Colors.red[200]!),
+        appBar: AppBar(
+          title: const Text('Delete Account'),
+          backgroundColor: AppColors.primaryOrange,
+          centerTitle: true,
+        ),
+        body: SafeArea(
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.all(24.0),
+            child: Column(
+              children: [
+                const SizedBox(height: 40),
+                Icon(Icons.delete_forever, size: 80, color: Colors.red[300]),
+                const SizedBox(height: 24),
+                const Text(
+                  'Delete Your Account',
+                  style: TextStyle(
+                      fontSize: 24,
+                      fontWeight: FontWeight.bold,
+                      color: AppColors.lightTextPrimary,
+                      fontFamily: 'Roboto'),
                 ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
-                      children: [
-                        const Icon(Icons.warning_amber_rounded, color: AppColors.error),
-                        const SizedBox(width: 8),
-                        Text(
-                          'What you will lose:',
-                          style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600, color: Colors.red[800], fontFamily: 'Roboto'),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 12),
-                    _buildLossItem('Access to active subscriptions'),
-                    _buildLossItem('Order history and invoices'),
-                    _buildLossItem('Saved delivery addresses'),
-                    _buildLossItem('Cart items and preferences'),
-                    const SizedBox(height: 12),
-                    const Text(
-                      'Recovery: Contact support within 30 days to recover your account.',
-                      style: TextStyle(fontSize: 12, color: AppColors.lightTextSecondary, fontFamily: 'Roboto'),
-
-                    ),
-                  ],
+                const SizedBox(height: 16),
+                const Text(
+                  'This action will soft-delete your account. Your data will be retained for 30 days in case you change your mind.',
+                  style: TextStyle(
+                      fontSize: 14,
+                      color: AppColors.darkGrey,
+                      fontFamily: 'Roboto'),
+                  textAlign: TextAlign.center,
                 ),
-              ),
-              const SizedBox(height: 32),
-              SizedBox(
-                width: double.infinity,
-                height: 50,
-                child: ElevatedButton(
-                  onPressed: _isLoading ? null : _deleteAccount,
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: AppColors.error,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
+                const SizedBox(height: 32),
+                Container(
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    color: Colors.red[50],
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(color: Colors.red[200]!),
                   ),
-                  child: _isLoading
-                      ? const CircularProgressIndicator(color: AppColors.white)
-                      : const Text(
-                          'Delete My Account',
-                          style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-                        ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        children: [
+                          const Icon(Icons.warning_amber_rounded,
+                              color: AppColors.error),
+                          const SizedBox(width: 8),
+                          Text(
+                            'What you will lose:',
+                            style: TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.w600,
+                                color: Colors.red[800],
+                                fontFamily: 'Roboto'),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 12),
+                      _buildLossItem('Access to active subscriptions'),
+                      _buildLossItem('Order history and invoices'),
+                      _buildLossItem('Saved delivery addresses'),
+                      _buildLossItem('Cart items and preferences'),
+                      const SizedBox(height: 12),
+                      const Text(
+                        'Recovery: Contact support within 30 days to recover your account.',
+                        style: TextStyle(
+                            fontSize: 12,
+                            color: AppColors.lightTextSecondary,
+                            fontFamily: 'Roboto'),
+                      ),
+                    ],
+                  ),
                 ),
-              ),
-              const SizedBox(height: 16),
-              TextButton(
-                onPressed: () => Navigator.of(context).pop(),
-                child: const Text(
-                  'Cancel',
-                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600, color: AppColors.lightTextSecondary, fontFamily: 'Roboto'),
+                const SizedBox(height: 32),
+                SizedBox(
+                  width: double.infinity,
+                  height: 50,
+                  child: ElevatedButton(
+                    onPressed: _isLoading ? null : _deleteAccount,
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: AppColors.error,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                    ),
+                    child: _isLoading
+                        ? const CircularProgressIndicator(
+                            color: AppColors.white)
+                        : const Text(
+                            'Delete My Account',
+                            style: TextStyle(
+                                fontSize: 16, fontWeight: FontWeight.bold),
+                          ),
+                  ),
                 ),
-              ),
-            ],
+                const SizedBox(height: 16),
+                TextButton(
+                  onPressed: () => Navigator.of(context).pop(),
+                  child: const Text(
+                    'Cancel',
+                    style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w600,
+                        color: AppColors.lightTextSecondary,
+                        fontFamily: 'Roboto'),
+                  ),
+                ),
+              ],
+            ),
           ),
         ),
-      ),
       ),
     );
   }
@@ -224,7 +253,8 @@ class _DeleteAccountScreenState extends State<DeleteAccountScreen> {
           Expanded(
             child: Text(
               text,
-              style: TextStyle(fontSize: 14, color: Colors.grey[800], fontFamily: 'Roboto'),
+              style: TextStyle(
+                  fontSize: 14, color: Colors.grey[800], fontFamily: 'Roboto'),
             ),
           ),
         ],

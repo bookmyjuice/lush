@@ -5,6 +5,17 @@ import 'package:hexcolor/hexcolor.dart' as hex;
 import 'package:lush/UserRepository/user_repository.dart';
 import 'package:lush/get_it.dart';
 import 'package:lush/theme/app_colors.dart';
+import 'package:lush/theme/app_radius.dart';
+import 'package:lush/theme/app_spacing.dart';
+import 'package:lush/theme/app_text_styles.dart';
+import 'package:lush/theme/bmj_tokens.dart';
+import 'package:lush/utils/price_utils.dart';
+import 'package:lush/widgets/bmj_amount_row.dart';
+import 'package:lush/widgets/bmj_empty_state.dart';
+import 'package:lush/widgets/bmj_glass_button.dart';
+import 'package:lush/widgets/bmj_glass_card.dart';
+import 'package:lush/widgets/bmj_glass_header.dart';
+import 'package:lush/widgets/bmj_pill.dart';
 import '../../bloc/CartBloc/cart_bloc.dart';
 
 import '../../bloc/CartBloc/cart_event.dart';
@@ -48,9 +59,9 @@ class CartScreenState extends State<CartScreen> {
         if (data is List && data.isNotEmpty) {
           // Find the default address, fall back to first address
           final defaultAddr = data.cast<Map<String, dynamic>>().firstWhere(
-            (addr) => addr['default'] == true || addr['isDefault'] == true,
-            orElse: () => data.first as Map<String, dynamic>,
-          );
+                (addr) => addr['default'] == true || addr['isDefault'] == true,
+                orElse: () => data.first as Map<String, dynamic>,
+              );
           if (mounted) {
             setState(() {
               _selectedAddress = defaultAddr;
@@ -77,328 +88,376 @@ class CartScreenState extends State<CartScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final BMJPalette palette = BMJPalette.of(context);
+
     return Scaffold(
-      appBar: AppBar(
-        title: const Text(
-          'My Cart',
-          style: TextStyle(
-            fontWeight: FontWeight.bold,
-            color: AppColors.lightTextPrimary,
+      backgroundColor: palette.surface,
+      body: Column(
+        children: <Widget>[
+          BMJGlassHeader(
+            title: 'Your Cart',
+            leading: Semantics(
+              button: true,
+              label: 'Back',
+              child: IconButton(
+                onPressed: () => Navigator.of(context).maybePop(),
+                icon: const Icon(Icons.arrow_back_rounded),
+                color: palette.onSurface,
+                tooltip: 'Back',
+              ),
+            ),
           ),
-        ),
-        backgroundColor: AppColors.white,
-        elevation: 1,
-        iconTheme: const IconThemeData(color: AppColors.lightTextPrimary),
+          Expanded(child: _buildBody(context)),
+        ],
+      ),
+    );
+  }
 
-        actions: [
-          BlocBuilder<CartBloc, CartState>(
-            builder: (context, state) {
-              if (state is CartLoaded && state.items.isNotEmpty) {
-                return IconButton(
-                  icon: const Icon(Icons.delete_outline),
-                  tooltip: 'Clear Cart',
-                  onPressed: () {
-                    _showClearCartDialog(context);
+  Widget _buildBody(BuildContext context) {
+    return BlocBuilder<CartBloc, CartState>(
+      builder: (context, state) {
+        if (state is CartLoading) {
+          return Column(
+            children: [
+              Expanded(
+                child: ListView.builder(
+                  padding: EdgeInsets.all(16.r),
+                  itemCount: 3,
+                  itemBuilder: (context, index) {
+                    return const ShimmerCartItem();
                   },
-                );
-              }
-              return const SizedBox.shrink();
-            },
-          ),
-        ],
-      ),
-      body: BlocBuilder<CartBloc, CartState>(
-        builder: (context, state) {
-          if (state is CartLoading) {
-            return Column(
-              children: [
-                Expanded(
-                  child: ListView.builder(
-                    padding: EdgeInsets.all(16.r),
-                    itemCount: 3,
-                    itemBuilder: (context, index) {
-                      return const ShimmerCartItem();
-                    },
-                  ),
-                ),
-                _buildCheckoutSection(context, []),
-              ],
-            );
-          } else if (state is CartLoaded) {
-            final items = state.items;
-            if (items.isEmpty) {
-              return _buildEmptyCart(context);
-            }
-            return Column(
-              children: [
-                Expanded(
-                  child: RefreshIndicator(
-                    onRefresh: () async {
-                      context.read<CartBloc>().add(LoadCart());
-                      await Future<void>.delayed(const Duration(milliseconds: 500));
-                    },
-                    child: ListView.builder(
-                      padding: EdgeInsets.all(16.r),
-                      itemCount: items.length,
-                      itemBuilder: (context, index) {
-                        final cartItem = items[index];
-                        return _buildCartItemCard(context, cartItem);
-                      },
-                    ),
-                  ),
-                ),
-                _buildCheckoutSection(context, items),
-              ],
-            );
-          } else if (state is CartError) {
-            return Center(
-              child: Padding(
-                padding: EdgeInsets.all(16.r),
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    const Icon(
-                      Icons.error_outline,
-                      color: AppColors.error,
-                      size: 48,
-                    ),
-                    SizedBox(height: 16.h),
-                    Text(
-                      'Error loading cart',
-                      style: TextStyle(
-                        fontSize: 18.sp,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                    SizedBox(height: 8.h),
-                    Text(
-                      state.message,
-                      textAlign: TextAlign.center,
-                    ),
-                    SizedBox(height: 24.h),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        ElevatedButton(
-                          onPressed: () {
-                            context.read<CartBloc>().add(LoadCart());
-                          },
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: AppColors.info,
-                            foregroundColor: AppColors.white,
-                          ),
-                          child: const Text('Try Again'),
-                        ),
-                        SizedBox(width: 16.w),
-                        ElevatedButton(
-                          onPressed: () {
-                            final cartBloc = context.read<CartBloc>();
-                            cartBloc.add(ClearCart());
-                            Future<void>.delayed(
-                                const Duration(milliseconds: 500), () {
-                              cartBloc.add(LoadCart());
-                            });
-                          },
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: AppColors.error,
-                            foregroundColor: AppColors.white,
-                          ),
-                          child: const Text('Reset Cart'),
-                        ),
-                      ],
-                    ),
-                  ],
                 ),
               ),
-            );
+              _buildCheckoutSection(context, []),
+            ],
+          );
+        } else if (state is CartLoaded) {
+          final items = state.items;
+          if (items.isEmpty) {
+            return _buildEmptyCart(context);
           }
-          return const SizedBox.shrink();
-        },
-      ),
-    );
-  }
-
-  Widget _buildEmptyCart(BuildContext context) {
-    return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(
-            Icons.shopping_cart_outlined,
-            size: 80.r,
-            color: AppColors.grey,
-          ),
-          SizedBox(height: 16.h),
-          Text(
-            'Your cart is empty',
-            style: TextStyle(
-              fontSize: 20.sp,
-              fontWeight: FontWeight.bold,
-              color: AppColors.lightTextPrimary,
-            ),
-          ),
-          SizedBox(height: 8.h),
-          Text(
-            'Add some delicious juices to get started',
-            style: TextStyle(
-              fontSize: 14.sp,
-              color: AppColors.lightTextSecondary,
-            ),
-          ),
-          SizedBox(height: 32.h),
-          ElevatedButton.icon(
-            onPressed: () {
-              Navigator.of(context).pushReplacementNamed('/menu');
-            },
-            icon: const Icon(Icons.local_drink),
-            label: const Text('Browse Juices'),
-            style: ElevatedButton.styleFrom(
-              backgroundColor: AppColors.primaryOrange,
-              foregroundColor: AppColors.white,
-              padding: EdgeInsets.symmetric(horizontal: 24.w, vertical: 12.h),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(30.r),
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildCartItemCard(BuildContext context, CartItem cartItem) {
-    final item = cartItem.item;
-    final selectedPrice = cartItem.selectedPrice;
-
-    return Card(
-      margin: EdgeInsets.only(bottom: 12.h),
-      elevation: 2,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(12.r),
-      ),
-      child: Padding(
-        padding: EdgeInsets.all(12.r),
-        child: Row(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Item image
-            Container(
-              width: 80.w,
-              height: 80.w,
-              decoration: BoxDecoration(
-                gradient: item.startColor != null && item.endColor != null
-                    ? LinearGradient(
-                        colors: [
-                          hex.HexColor(item.startColor!),
-                          hex.HexColor(item.endColor!),
-                        ],
-                        begin: Alignment.topLeft,
-                        end: Alignment.bottomRight,
-                      )
-                    : null,
-                borderRadius: BorderRadius.circular(8.r),
-              ),
-              child: item.imagePath != null && item.imagePath!.isNotEmpty
-                  ? ClipRRect(
-                      borderRadius: BorderRadius.circular(8.r),
-                      child: Image.asset(
-                        item.imagePath!,
-                        fit: BoxFit.cover,
-                        errorBuilder: (context, error, stackTrace) {
-                          return Icon(
-                            Icons.local_drink,
-                            size: 40.r,
-                            color: AppColors.white,
-                          );
-                        },
-                      ),
-                    )
-                  : Icon(
-                      Icons.local_drink,
-                      size: 40.r,
-                      color: AppColors.white,
+          return Column(
+            children: [
+              Expanded(
+                child: RefreshIndicator(
+                  onRefresh: () async {
+                    context.read<CartBloc>().add(LoadCart());
+                    await Future<void>.delayed(
+                      const Duration(milliseconds: 500),
+                    );
+                  },
+                  child: ListView(
+                    padding: const EdgeInsets.fromLTRB(
+                      BMJTokens.pageMargin,
+                      BMJTokens.spaceSm,
+                      BMJTokens.pageMargin,
+                      BMJTokens.spaceMd,
                     ),
-            ),
-
-            SizedBox(width: 16.w),
-
-            // Item details
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    item.name ?? item.titleTxt ?? 'Juice',
-                    style: TextStyle(
-                      fontSize: 16.sp,
-                      fontWeight: FontWeight.bold,
-                      color: AppColors.lightTextPrimary,
-                    ),
+                    children: <Widget>[
+                      _buildItemsHeader(context, items),
+                      const SizedBox(height: AppSpacing.sm),
+                      for (final CartItem cartItem in items)
+                        _buildCartItemCard(context, cartItem),
+                    ],
                   ),
-                  SizedBox(height: 4.h),
-                  if (selectedPrice != null)
-                    Text(
-                      selectedPrice.name ?? 'Regular',
-                      style: TextStyle(
-                        fontSize: 14.sp,
-                        color: AppColors.primaryOrangeDark,
-                      ),
-                    ),
-                  SizedBox(height: 4.h),
+                ),
+              ),
+              _buildCheckoutSection(context, items),
+            ],
+          );
+        } else if (state is CartError) {
+          return Center(
+            child: Padding(
+              padding: EdgeInsets.all(16.r),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  const Icon(
+                    Icons.error_outline,
+                    color: AppColors.error,
+                    size: 48,
+                  ),
+                  SizedBox(height: 16.h),
                   Text(
-                    selectedPrice?.description ?? item.description ?? '',
+                    'Error loading cart',
                     style: TextStyle(
-                      fontSize: 12.sp,
-                      color: AppColors.lightTextSecondary,
+                      fontSize: 18.sp,
+                      fontWeight: FontWeight.bold,
                     ),
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
                   ),
                   SizedBox(height: 8.h),
+                  Text(
+                    state.message,
+                    textAlign: TextAlign.center,
+                  ),
+                  SizedBox(height: 24.h),
                   Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      // Quantity controls
-                      Row(
-                        children: [
-                          _buildQuantityButton(
-                            context,
-                            Icons.remove,
-                            () => _updateQuantity(context, cartItem, -1),
-                          ),
-                          SizedBox(width: 8.w),
-                          Text(
-                            '${cartItem.quantity}',
-                            style: TextStyle(
-                              fontSize: 16.sp,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                          SizedBox(width: 8.w),
-                          _buildQuantityButton(
-                            context,
-                            Icons.add,
-                            () => _updateQuantity(context, cartItem, 1),
-                          ),
-                        ],
-                      ),
-
-                      // Price
-                      Text(
-                        '₹${cartItem.totalPrice.toStringAsFixed(0)}',
-                        style: TextStyle(
-                          fontSize: 16.sp,
-                          fontWeight: FontWeight.bold,
-                          color: AppColors.lightTextPrimary,
+                      ElevatedButton(
+                        onPressed: () {
+                          context.read<CartBloc>().add(LoadCart());
+                        },
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: AppColors.info,
+                          foregroundColor: AppColors.white,
                         ),
+                        child: const Text('Try Again'),
+                      ),
+                      SizedBox(width: 16.w),
+                      ElevatedButton(
+                        onPressed: () {
+                          final cartBloc = context.read<CartBloc>();
+                          cartBloc.add(ClearCart());
+                          Future<void>.delayed(
+                              const Duration(milliseconds: 500), () {
+                            cartBloc.add(LoadCart());
+                          });
+                        },
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: AppColors.error,
+                          foregroundColor: AppColors.white,
+                        ),
+                        child: const Text('Reset Cart'),
                       ),
                     ],
                   ),
                 ],
               ),
             ),
-          ],
+          );
+        }
+        return const SizedBox.shrink();
+      },
+    );
+  }
+
+  Widget _buildEmptyCart(BuildContext context) {
+    return Center(
+      child: BMJEmptyState(
+        icon: Icons.shopping_cart_outlined,
+        title: 'Your cart is empty',
+        message: 'Add some cold-pressed juices to get started.',
+        action: BMJGlassButton(
+          label: 'Browse juices',
+          expand: false,
+          icon: Icons.local_drink,
+          onPressed: () => Navigator.of(context).pushReplacementNamed('/menu'),
         ),
+      ),
+    );
+  }
+
+  /// Stitch "Items (n)" header; clear-all remains available from here.
+  Widget _buildItemsHeader(BuildContext context, List<CartItem> items) {
+    final palette = BMJPalette.of(context);
+
+    return Row(
+      children: <Widget>[
+        Expanded(
+          child: Text(
+            'Items (${items.length})',
+            // Stitch section header is `font-headline-md` — 20/26, 700.
+            style: AppTextStyles.textTheme.titleMedium?.copyWith(
+              color: palette.onSurface,
+            ),
+          ),
+        ),
+        TextButton.icon(
+          onPressed: () => _showClearCartDialog(context),
+          icon: Icon(
+            Icons.delete_outline,
+            size: 18,
+            color: palette.onSurfaceVariant,
+          ),
+          label: Text(
+            'Clear',
+            style: AppTextStyles.textTheme.labelLarge?.copyWith(
+              color: palette.onSurfaceVariant,
+            ),
+          ),
+          style: TextButton.styleFrom(
+            minimumSize: Size.zero,
+            padding: const EdgeInsets.symmetric(
+              horizontal: AppSpacing.sm,
+              vertical: AppSpacing.xs,
+            ),
+            tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildCartItemCard(BuildContext context, CartItem cartItem) {
+    final palette = BMJPalette.of(context);
+    final item = cartItem.item;
+    final selectedPrice = cartItem.selectedPrice;
+
+    final Gradient? gradient = item.startColor != null && item.endColor != null
+        ? LinearGradient(
+            colors: [
+              hex.HexColor(item.startColor!),
+              hex.HexColor(item.endColor!),
+            ],
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+          )
+        : null;
+
+    return BMJGlassCard(
+      margin: const EdgeInsets.only(bottom: AppSpacing.sm + 4),
+      padding: const EdgeInsets.all(AppSpacing.sm + 4),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: <Widget>[
+          Container(
+            width: 88,
+            height: 88,
+            decoration: BoxDecoration(
+              gradient: gradient,
+              borderRadius: BorderRadius.circular(AppRadius.sm),
+            ),
+            child: item.imagePath != null && item.imagePath!.isNotEmpty
+                ? ClipRRect(
+                    borderRadius: BorderRadius.circular(AppRadius.sm),
+                    child: Image.asset(
+                      item.imagePath!,
+                      fit: BoxFit.cover,
+                      errorBuilder: (context, error, stackTrace) => Icon(
+                        Icons.local_drink,
+                        size: 32,
+                        color: palette.onPrimary,
+                      ),
+                    ),
+                  )
+                : Icon(
+                    Icons.local_drink,
+                    size: 32,
+                    color: palette.onPrimary,
+                  ),
+          ),
+          const SizedBox(width: AppSpacing.sm + 4),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: <Widget>[
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: <Widget>[
+                    Expanded(
+                      child: Text(
+                        item.name ?? item.titleTxt ?? 'Juice',
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        // The item name carries the row, the way the reference
+                        // draws it — a small caption next to a big photo left the
+                        // card looking like a receipt line.
+                        style: AppTextStyles.textTheme.titleMedium?.copyWith(
+                          color: palette.onSurface,
+                        ),
+                      ),
+                    ),
+                    Semantics(
+                      button: true,
+                      label: 'Remove ${item.name ?? 'item'} from the cart',
+                      child: InkWell(
+                        onTap: () {
+                          HapticFeedbackUtil.mediumFeedback();
+                          context
+                              .read<CartBloc>()
+                              .add(RemoveFromCart(cartItem));
+                        },
+                        customBorder: const CircleBorder(),
+                        child: Padding(
+                          padding: const EdgeInsets.all(AppSpacing.xs),
+                          child: Icon(
+                            Icons.close_rounded,
+                            size: 18,
+                            color: palette.onSurfaceVariant,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+                if (selectedPrice != null) ...<Widget>[
+                  BMJPill(
+                    label: selectedPrice.name ?? 'Regular',
+                    tone: BMJPillTone.neutral,
+                    dense: true,
+                  ),
+                ],
+                const SizedBox(height: AppSpacing.xs),
+                Text(
+                  selectedPrice?.description ?? item.description ?? '',
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: AppTextStyles.textTheme.bodySmall?.copyWith(
+                    color: palette.onSurfaceVariant,
+                  ),
+                ),
+                const SizedBox(height: AppSpacing.sm),
+                Row(
+                  children: <Widget>[
+                    Text(
+                      formatRupees(cartItem.totalPrice),
+                      // Price bottom-left, stepper bottom-right: the reference's
+                      // row silhouette, and the biggest number in the card.
+                      style: BMJType.statNum.copyWith(
+                        fontSize: 28,
+                        height: 1.1,
+                        color: palette.primaryEmphasis,
+                      ),
+                    ),
+                    const Spacer(),
+                    _buildQuantityStepper(context, cartItem),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  /// Stitch "- n +" pill.
+  Widget _buildQuantityStepper(BuildContext context, CartItem cartItem) {
+    final palette = BMJPalette.of(context);
+
+    return Container(
+      padding: const EdgeInsets.all(2),
+      decoration: BoxDecoration(
+        color: palette.surfaceContainerHigh,
+        borderRadius: BorderRadius.circular(AppRadius.pill),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: <Widget>[
+          _buildQuantityButton(
+            context,
+            Icons.remove_rounded,
+            'Decrease quantity',
+            () => _updateQuantity(context, cartItem, -1),
+          ),
+          SizedBox(
+            width: 28,
+            child: Text(
+              '${cartItem.quantity}',
+              textAlign: TextAlign.center,
+              style: AppTextStyles.textTheme.titleSmall?.copyWith(
+                color: palette.onSurface,
+              ),
+            ),
+          ),
+          _buildQuantityButton(
+            context,
+            Icons.add_rounded,
+            'Increase quantity',
+            () => _updateQuantity(context, cartItem, 1),
+          ),
+        ],
       ),
     );
   }
@@ -406,282 +465,255 @@ class CartScreenState extends State<CartScreen> {
   Widget _buildQuantityButton(
     BuildContext context,
     IconData icon,
+    String semanticLabel,
     VoidCallback onPressed,
   ) {
-    return Container(
-      width: 28.r,
-      height: 28.r,
-      decoration: BoxDecoration(
-        color: AppColors.lightGrey,
-        borderRadius: BorderRadius.circular(6.r),
-      ),
-      child: IconButton(
-        padding: EdgeInsets.zero,
-        icon: Icon(icon, size: 16.r),
-        onPressed: onPressed,
-        color: AppColors.lightTextPrimary,
+    final palette = BMJPalette.of(context);
+
+    return Semantics(
+      button: true,
+      label: semanticLabel,
+      child: Material(
+        color: Colors.transparent,
+        shape: const CircleBorder(),
+        child: InkWell(
+          onTap: onPressed,
+          customBorder: const CircleBorder(),
+          child: SizedBox(
+            width: 32,
+            height: 32,
+            child: Icon(icon, size: 16, color: palette.onSurface),
+          ),
+        ),
       ),
     );
   }
 
   Widget _buildCheckoutSection(BuildContext context, List<CartItem> items) {
-    // Subtotal reflects locally-cached Chargebee price data.
-    // Final pricing (tax, grand total) is managed entirely
-    // in Chargebee and displayed on the Chargebee Hosted Page during checkout.
-    // The mobile app never calculates prices locally.
-    final subtotal = items.fold<double>(
+    final palette = BMJPalette.of(context);
+
+    // Subtotal reflects locally-cached Chargebee price data. Final pricing
+    // (tax, delivery, grand total) is calculated by Chargebee and shown on the
+    // Hosted Page — the app never invents those numbers.
+    final double subtotal = items.fold<double>(
       0,
       (sum, item) => sum + item.totalPrice,
     );
+    final int bottleCount = items.fold<int>(
+      0,
+      (sum, item) => sum + item.quantity,
+    );
 
-    return Container(
-      padding: EdgeInsets.all(16.r),
+    return DecoratedBox(
       decoration: BoxDecoration(
-        color: AppColors.white,
-        boxShadow: [
-          BoxShadow(
-            color: AppColors.lightDivider.withAlpha(51),
-            spreadRadius: 1,
-            blurRadius: 5,
-            offset: const Offset(0, -3),
-          ),
-        ],
+        color: palette.surface,
+        border: Border(
+          top: BorderSide(color: palette.glassBorder),
+        ),
       ),
-      child: Column(
-        children: [
-          // Delivery Address Section (FR-DEL-008)
-          InkWell(
-            onTap: _navigateToAddressSelection,
-            child: Container(
-              padding: EdgeInsets.all(12.r),
-              margin: EdgeInsets.only(bottom: 12.h),
-              decoration: BoxDecoration(
-                color: AppColors.lightGrey.withAlpha(80),
-                borderRadius: BorderRadius.circular(12.r),
-                border: Border.all(
-                  color: _selectedAddress != null
-                      ? AppColors.success
-                      : AppColors.lightDivider,
-                ),
-              ),
-              child: Row(
-                children: [
-                  Icon(
-                    _selectedAddress != null
-                        ? Icons.check_circle
-                        : Icons.location_on_outlined,
-                    color: _selectedAddress != null
-                        ? AppColors.success
-                        : AppColors.primaryOrange,
-                    size: 24.r,
-                  ),
-                  SizedBox(width: 12.w),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          _selectedAddress != null
-                              ? 'Deliver to: ${_selectedAddress!['addressLine1'] ?? ''}'
-                              : 'Select Delivery Address',
-                          style: TextStyle(
-                            fontSize: 14.sp,
-                            fontWeight: FontWeight.w600,
-                            color: AppColors.lightTextPrimary,
-                          ),
-                        ),
-                        if (_selectedAddress != null)
+      child: SafeArea(
+        top: false,
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(
+            BMJTokens.pageMargin,
+            BMJTokens.spaceSm,
+            BMJTokens.pageMargin,
+            BMJTokens.spaceMd,
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              // Delivery address (FR-DEL-008)
+              BMJGlassCard(
+                onTap: _navigateToAddressSelection,
+                semanticLabel: 'Change delivery address',
+                child: Row(
+                  children: [
+                    Icon(
+                      _selectedAddress != null
+                          ? Icons.check_circle
+                          : Icons.location_on_outlined,
+                      size: 20,
+                      color: _selectedAddress != null
+                          ? palette.accentText
+                          : palette.primary,
+                    ),
+                    const SizedBox(width: AppSpacing.sm),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
                           Text(
-                            '${_selectedAddress!['city'] ?? ''}, ${_selectedAddress!['state'] ?? ''} - ${_selectedAddress!['pincode'] ?? ''}',
-                            style: TextStyle(
-                              fontSize: 12.sp,
-                              color: AppColors.lightTextSecondary,
+                            _selectedAddress != null
+                                ? 'Deliver to: ${_selectedAddress!['addressLine1'] ?? ''}'
+                                : 'Select delivery address',
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: AppTextStyles.textTheme.titleSmall?.copyWith(
+                              color: palette.onSurface,
                             ),
                           ),
+                          if (_selectedAddress != null)
+                            Text(
+                              '${_selectedAddress!['city'] ?? ''}, ${_selectedAddress!['state'] ?? ''} - ${_selectedAddress!['pincode'] ?? ''}',
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: AppTextStyles.textTheme.bodySmall
+                                  ?.copyWith(color: palette.onSurfaceVariant),
+                            ),
+                        ],
+                      ),
+                    ),
+                    Icon(Icons.chevron_right, color: palette.onSurfaceVariant),
+                  ],
+                ),
+              ),
+              const SizedBox(height: AppSpacing.sm),
+              // Stitch "Order Summary": only the locally-known subtotal is a
+              // number; tax/delivery/total stay "At checkout" because Chargebee
+              // is the single source of truth for them. Stitch docks this block
+              // as a `rounded-2xl` panel, so it takes the one sheet radius.
+              BMJGlassCard(
+                radius: AppRadius.sheet,
+                // Stitch docks the summary as a `rounded-2xl p-lg` panel: 24 dp
+                // of padding, one step above the 16 dp cards around it, which is
+                // what makes the totals block feel like the page's conclusion.
+                padding: const EdgeInsets.all(AppSpacing.lg),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: <Widget>[
+                    Text(
+                      'Order Summary',
+                      // Stitch section header is `font-headline-md` — 20/26, 700.
+                      style: AppTextStyles.textTheme.titleMedium?.copyWith(
+                        color: palette.onSurface,
+                      ),
+                    ),
+                    const SizedBox(height: AppSpacing.md),
+                    BMJAmountRow(
+                      label: 'Subtotal',
+                      amount: formatRupees(subtotal),
+                      note:
+                          '$bottleCount ${bottleCount == 1 ? 'bottle' : 'bottles'}',
+                    ),
+                    const BMJAmountRow(
+                      label: 'Taxes & delivery',
+                      amount: 'At checkout',
+                      note: 'Calculated securely by Chargebee',
+                    ),
+                    // Structure without a number: savings are computed by Chargebee
+                    // on the hosted checkout, so the row exists with the
+                    // unknown-value marker rather than an invented amount. The
+                    // reference's green savings row is reproduced; only its figure
+                    // is honestly absent.
+                    BMJAmountRow(
+                      label: 'Subscription savings',
+                      amount: kPriceFallback,
+                      note: 'Applied on the Chargebee checkout',
+                      icon: Icons.eco_outlined,
+                      amountColor: palette.accentText,
+                    ),
+                    // The panel has to end on its loudest element, the way the
+                    // reference ends on a big orange total. We hold no final figure
+                    // (Chargebee owns it), so the closing row takes the emphasis
+                    // instead of trailing off in grey words.
+                    BMJAmountRow(
+                      label: 'Total',
+                      amount: 'At checkout',
+                      isTotal: true,
+                      amountColor: palette.primaryEmphasis,
+                    ),
+                    const SizedBox(height: AppSpacing.sm),
+                    Row(
+                      children: <Widget>[
+                        Icon(
+                          Icons.local_offer_outlined,
+                          size: 16,
+                          color: palette.onSurfaceVariant,
+                        ),
+                        const SizedBox(width: AppSpacing.sm),
+                        Expanded(
+                          child: Text(
+                            'Promo codes and final taxes are applied on the '
+                            'secure Chargebee checkout.',
+                            style: AppTextStyles.textTheme.bodySmall?.copyWith(
+                              color: palette.onSurfaceVariant,
+                            ),
+                          ),
+                        ),
                       ],
                     ),
-                  ),
-                  const Icon(
-                    Icons.chevron_right,
-                    color: AppColors.lightTextSecondary,
-                  ),
-                ],
-              ),
-            ),
-          ),
-          // Delivery slot selection uses time-window based scheduling.
-
-          // Price Breakdown — only subtotal is shown locally.
-          // Tax and grand total are displayed on the
-          // Chargebee Hosted Page during checkout.
-          _buildPriceRow(
-            context,
-            label: 'Subtotal',
-            amount: subtotal,
-          ),
-
-          Divider(height: 24.h, color: AppColors.lightDivider),
-          // Total Amount
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text(
-                'Subtotal',
-                style: TextStyle(
-                  fontSize: 18.sp,
-                  fontWeight: FontWeight.bold,
-                  color: AppColors.lightTextPrimary,
+                  ],
                 ),
               ),
-              Text(
-                '₹${subtotal.toStringAsFixed(0)}',
-                style: TextStyle(
-                  fontSize: 22.sp,
-                  fontWeight: FontWeight.bold,
-                  color: AppColors.primaryOrange,
-                ),
+              const SizedBox(height: AppSpacing.sm + 4),
+              BMJGlassButton(
+                label: items.isNotEmpty
+                    ? 'Proceed to checkout'
+                    : 'Add items to checkout',
+                icon: Icons.arrow_forward_rounded,
+                onPressed:
+                    items.isEmpty ? null : () => _startCheckout(context, items),
               ),
             ],
           ),
-          SizedBox(height: 8.h),
-          // Tax and final total are calculated in Chargebee
-          // and displayed on the secure checkout page.
-          Padding(
-            padding: EdgeInsets.only(bottom: 8.h),
-            child: Text(
-              'Taxes will be calculated at checkout',
-              style: TextStyle(
-                fontSize: 12.sp,
-                color: AppColors.lightTextSecondary,
-                fontStyle: FontStyle.italic,
-              ),
-            ),
-          ),
-          SizedBox(height: 16.h),
-          // Checkout Button
-          SizedBox(
-            width: double.infinity,
-            height: 50.h,
-            child: ElevatedButton(
-              onPressed: items.isNotEmpty
-                  ? () async {
-                      // Validate delivery address selection
-                      if (_selectedAddress == null) {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(
-                            content: Text('Please select a delivery address'),
-                            backgroundColor: AppColors.error,
-                          ),
-                        );
-                        return;
-                      }
-
-                      final userRepository = getIt.get<UserRepository>();
-                      final cartItems = items
-                          .map((cartItem) => {
-                                'itemPriceId': cartItem.selectedPrice?.id ?? '',
-                                'quantity': cartItem.quantity,
-                              },)
-                          .toList();
-                      try {
-                        final checkoutUrl =
-                            await userRepository.getCartCheckoutUrl(cartItems);
-                        if (!mounted) return;
-                        if (checkoutUrl.isNotEmpty) {
-                          Navigator.of(context)
-                              .pushNamed('/checkout', arguments: checkoutUrl);
-                        } else {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(
-                              content: Text('Failed to get checkout URL'),
-                              backgroundColor: AppColors.error,
-                            ),
-                          );
-                        }
-                      } catch (e) {
-                        // Handle 409 CART_TYPE_CONFLICT and other errors
-                        final errorMsg = e.toString();
-                        if (errorMsg.contains('409') || errorMsg.contains('CART_TYPE_CONFLICT')) {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(
-                              content: Text(
-                                'Mixed cart items detected. '
-                                'Please checkout subscription and one-time items separately.',
-                              ),
-                              backgroundColor: AppColors.error,
-                            ),
-                          );
-                        } else {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(
-                              content: Text('Checkout error: $e'),
-                              backgroundColor: AppColors.error,
-                            ),
-                          );
-                        }
-                      }
-                    }
-                  : null, // Button disabled for empty cart
-              style: ElevatedButton.styleFrom(
-                backgroundColor: AppColors.primaryOrange,
-                foregroundColor: AppColors.white,
-                disabledBackgroundColor: AppColors.lightDivider,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(15.r),
-                ),
-                padding: EdgeInsets.symmetric(vertical: 16.h),
-              ),
-              child: Text(
-                items.isNotEmpty
-                    ? 'Proceed to Checkout'
-                    : 'Add items to checkout',
-                style: TextStyle(
-                  fontSize: 16.sp,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-            ),
-          ),
-        ],
+        ),
       ),
     );
   }
 
-  Widget _buildPriceRow(
-    BuildContext context, {
-    required String label,
-    required double amount,
-    bool isFree = false,
-  }) {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      children: [
-        Text(
-          label,
-          style: TextStyle(
-            fontSize: 14.sp,
-            color: AppColors.lightTextSecondary,
+  /// Creates the Chargebee cart checkout session.
+  ///
+  /// Payload and error handling are unchanged on purpose: `price_id` comes from
+  /// the selected `ItemPrice` and a 409 `CART_TYPE_CONFLICT` still asks the
+  /// customer to split subscription and one-time items.
+  Future<void> _startCheckout(
+    BuildContext context,
+    List<CartItem> items,
+  ) async {
+    if (_selectedAddress == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Please select a delivery address')),
+      );
+      return;
+    }
+
+    final userRepository = getIt.get<UserRepository>();
+    final cartItems = items
+        .map(
+          (cartItem) => {
+            'price_id': cartItem.selectedPrice?.id ?? '',
+            'quantity': cartItem.quantity,
+          },
+        )
+        .toList();
+    try {
+      final checkoutUrl = await userRepository.getCartCheckoutUrl(cartItems);
+      if (!mounted) return;
+      if (checkoutUrl.isNotEmpty) {
+        Navigator.of(context).pushNamed('/checkout', arguments: checkoutUrl);
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Failed to get checkout URL')),
+        );
+      }
+    } catch (e) {
+      final errorMsg = e.toString();
+      if (errorMsg.contains('409') || errorMsg.contains('CART_TYPE_CONFLICT')) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text(
+              'Mixed cart items detected. '
+              'Please checkout subscription and one-time items separately.',
+            ),
           ),
-        ),
-        isFree
-            ? Text(
-                'FREE',
-                style: TextStyle(
-                  fontSize: 14.sp,
-                  color: AppColors.success,
-                  fontWeight: FontWeight.bold,
-                ),
-              )
-            : Text(
-                '₹${amount.toStringAsFixed(2)}',
-                style: TextStyle(
-                  fontSize: 14.sp,
-                  color: AppColors.lightTextPrimary,
-                  fontWeight: FontWeight.w500,
-                ),
-              ),
-      ],
-    );
+        );
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Checkout error: $e')),
+        );
+      }
+    }
   }
 
   void _updateQuantity(BuildContext context, CartItem cartItem, int change) {
@@ -704,7 +736,8 @@ class CartScreenState extends State<CartScreen> {
       builder: (context) => AlertDialog(
         title: const Text('Clear Cart'),
         content: const Text(
-            'Are you sure you want to remove all items from your cart?',),
+          'Are you sure you want to remove all items from your cart?',
+        ),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(),

@@ -1,6 +1,4 @@
 export 'package:lush/views/screens/menu.dart';
-export 'package:lush/views/screens/otp_login_page.dart';
-export 'package:lush/views/screens/sign_up_screen.dart';
 export 'package:lush/views/screens/login_page.dart';
 // export 'package:lush/views/screens/payment_screen.dart';
 // export 'package:lush/views/screens/HomePage.dart';

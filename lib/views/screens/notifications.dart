@@ -52,7 +52,11 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
         shadowColor: AppColors.grey.withAlpha(50),
         title: Text(
           'Notifications',
-          style: TextStyle(fontSize: 20.sp, fontWeight: FontWeight.bold, color: AppColors.lightTextPrimary, fontFamily: 'Roboto'),
+          style: TextStyle(
+              fontSize: 20.sp,
+              fontWeight: FontWeight.bold,
+              color: AppColors.lightTextPrimary,
+              fontFamily: 'Roboto'),
         ),
         leading: IconButton(
           icon: Icon(
@@ -67,7 +71,11 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
             onPressed: _markAllAsRead,
             child: Text(
               'Mark all read',
-              style: TextStyle(fontSize: 14.sp, fontWeight: FontWeight.w600, color: AppColors.info, fontFamily: 'Roboto'),
+              style: TextStyle(
+                  fontSize: 14.sp,
+                  fontWeight: FontWeight.w600,
+                  color: AppColors.info,
+                  fontFamily: 'Roboto'),
             ),
           ),
         ],

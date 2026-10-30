@@ -7,6 +7,7 @@ import 'package:lush/bloc/AuthBloc/auth_events.dart';
 import 'package:lush/theme/app_colors.dart';
 import 'package:lush/views/models/user.dart';
 import 'package:lush/UserRepository/user_repository.dart';
+import 'package:lush/theme/bmj_tokens.dart';
 
 class AppDrawer extends StatelessWidget {
   final User user;
@@ -42,7 +43,7 @@ class AppDrawer extends StatelessWidget {
                 SizedBox(height: 40.h),
                 CircleAvatar(
                   radius: 40.r,
-                  backgroundColor: Colors.white,
+                  backgroundColor: BMJTokens.inkOnBrand,
                   child: Text(
                     user.firstName.isNotEmpty
                         ? user.firstName[0].toUpperCase()
@@ -60,7 +61,7 @@ class AppDrawer extends StatelessWidget {
                   style: TextStyle(
                     fontSize: 20.sp,
                     fontWeight: FontWeight.bold,
-                    color: Colors.white,
+                    color: BMJTokens.inkOnBrand,
                   ),
                 ),
                 SizedBox(height: 4.h),
@@ -84,25 +85,27 @@ class AppDrawer extends StatelessWidget {
                     );
                   },
                   child: Container(
-                    padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 6.h),
+                    padding:
+                        EdgeInsets.symmetric(horizontal: 12.w, vertical: 6.h),
                     decoration: BoxDecoration(
-                      color: Colors.white.withValues(alpha: 0.2),
+                      color: BMJTokens.inkOnBrand.withValues(alpha: 0.2),
                       borderRadius: BorderRadius.circular(20.r),
                       border: Border.all(
-                        color: Colors.white.withValues(alpha: 0.3),
+                        color: BMJTokens.inkOnBrand.withValues(alpha: 0.3),
                       ),
                     ),
                     child: Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        const Icon(Icons.card_giftcard, size: 14, color: Colors.white),
+                        const Icon(Icons.card_giftcard,
+                            size: 14, color: BMJTokens.inkOnBrand),
                         SizedBox(width: 4.w),
                         Text(
                           'BMJ123  📋',
                           style: TextStyle(
                             fontSize: 12.sp,
                             fontWeight: FontWeight.w600,
-                            color: Colors.white,
+                            color: BMJTokens.inkOnBrand,
                           ),
                         ),
                       ],
@@ -153,8 +156,11 @@ class AppDrawer extends StatelessWidget {
             icon: Icons.person_outline,
             title: 'Profile & Address',
             onTap: () {
-              Navigator.pushNamed(context, '/myaccount',
-                  arguments: 'profile',);
+              Navigator.pushNamed(
+                context,
+                '/myaccount',
+                arguments: 'profile',
+              );
             },
           ),
           _drawerItem(
@@ -186,7 +192,7 @@ class AppDrawer extends StatelessWidget {
                       },
                       style: ElevatedButton.styleFrom(
                         backgroundColor: Colors.red,
-                        foregroundColor: Colors.white,
+                        foregroundColor: BMJTokens.inkOnBrand,
                       ),
                       child: const Text('LOGOUT'),
                     ),
@@ -232,7 +238,8 @@ class AppDrawer extends StatelessWidget {
           color: textColor ?? AppColors.lightTextPrimary,
         ),
       ),
-      trailing: const Icon(Icons.chevron_right, size: 18, color: AppColors.lightTextSecondary),
+      trailing: const Icon(Icons.chevron_right,
+          size: 18, color: AppColors.lightTextSecondary),
       onTap: onTap,
     );
   }

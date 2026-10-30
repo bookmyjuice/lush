@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:lush/services/order_service.dart';
+import 'package:lush/utils/price_utils.dart';
 import 'package:shimmer/shimmer.dart';
 
 class OrderHistoryScreen extends StatefulWidget {
@@ -68,12 +69,14 @@ class _OrderHistoryScreenState extends State<OrderHistoryScreen> {
 
   String _formatCurrency(dynamic amount) {
     try {
-      if (amount == null) return r'$0.00';
-      final num value = amount is num ? amount : double.parse(amount.toString());
-      final double amountValue = value is int ? value / 100.0 : value.toDouble();
+      if (amount == null) return kPriceFallback;
+      final num value =
+          amount is num ? amount : double.parse(amount.toString());
+      final double amountValue =
+          value is int ? value / 100.0 : value.toDouble();
       return '\$${amountValue.toStringAsFixed(2)}';
     } catch (e) {
-      return r'$0.00';
+      return kPriceFallback;
     }
   }
 
@@ -105,8 +108,11 @@ class _OrderHistoryScreenState extends State<OrderHistoryScreen> {
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      Icon(Icons.error_outline,
-                          size: 64, color: Colors.red[300],),
+                      Icon(
+                        Icons.error_outline,
+                        size: 64,
+                        color: Colors.red[300],
+                      ),
                       const SizedBox(height: 16),
                       Text('Error: $_error'),
                       const SizedBox(height: 16),
@@ -122,8 +128,11 @@ class _OrderHistoryScreenState extends State<OrderHistoryScreen> {
                       child: Column(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          Icon(Icons.receipt_long,
-                              size: 64, color: Colors.grey[400],),
+                          Icon(
+                            Icons.receipt_long,
+                            size: 64,
+                            color: Colors.grey[400],
+                          ),
                           const SizedBox(height: 16),
                           const Text(
                             'No orders found',
@@ -148,7 +157,8 @@ class _OrderHistoryScreenState extends State<OrderHistoryScreen> {
 
   Widget _buildOrderCard(Map<String, dynamic> order) {
     final String orderId = (order['id'] ?? 'Unknown').toString();
-    final String status = order['status']?.toString().toUpperCase() ?? 'UNKNOWN';
+    final String status =
+        order['status']?.toString().toUpperCase() ?? 'UNKNOWN';
     final String total = _formatCurrency(order['total']);
     final String amountPaid = _formatCurrency(order['amountPaid']);
     final String createdAt = _formatDate(order['createdAt']);
@@ -295,63 +305,63 @@ class _OrderHistoryScreenState extends State<OrderHistoryScreen> {
 }
 
 Widget _buildShimmerOrderCard() {
-    return Shimmer.fromColors(
-      baseColor: Colors.grey[300]!,
-      highlightColor: Colors.grey[100]!,
-      child: Container(
-        margin: const EdgeInsets.only(bottom: 16),
-        padding: const EdgeInsets.all(16),
-        decoration: BoxDecoration(
-          color: Colors.grey[300],
-          borderRadius: BorderRadius.circular(12),
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Container(
-                  width: 100,
-                  height: 16,
-                  decoration: BoxDecoration(
-                    color: Colors.grey[300],
-                    borderRadius: BorderRadius.circular(4),
-                  ),
-                ),
-                Container(
-                  width: 60,
-                  height: 24,
-                  decoration: BoxDecoration(
-                    color: Colors.grey[300],
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 12),
-            Container(
-              width: double.infinity,
-              height: 12,
-              decoration: BoxDecoration(
-                color: Colors.grey[300],
-                borderRadius: BorderRadius.circular(4),
-              ),
-            ),
-            const SizedBox(height: 8),
-            Container(
-              width: 80,
-              height: 12,
-              decoration: BoxDecoration(
-                color: Colors.grey[300],
-                borderRadius: BorderRadius.circular(4),
-              ),
-            ),
-          ],
-        ),
+  return Shimmer.fromColors(
+    baseColor: Colors.grey[300]!,
+    highlightColor: Colors.grey[100]!,
+    child: Container(
+      margin: const EdgeInsets.only(bottom: 16),
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.grey[300],
+        borderRadius: BorderRadius.circular(12),
       ),
-    );
-  }
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Container(
+                width: 100,
+                height: 16,
+                decoration: BoxDecoration(
+                  color: Colors.grey[300],
+                  borderRadius: BorderRadius.circular(4),
+                ),
+              ),
+              Container(
+                width: 60,
+                height: 24,
+                decoration: BoxDecoration(
+                  color: Colors.grey[300],
+                  borderRadius: BorderRadius.circular(12),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          Container(
+            width: double.infinity,
+            height: 12,
+            decoration: BoxDecoration(
+              color: Colors.grey[300],
+              borderRadius: BorderRadius.circular(4),
+            ),
+          ),
+          const SizedBox(height: 8),
+          Container(
+            width: 80,
+            height: 12,
+            decoration: BoxDecoration(
+              color: Colors.grey[300],
+              borderRadius: BorderRadius.circular(4),
+            ),
+          ),
+        ],
+      ),
+    ),
+  );
+}
 
 class _OrderDetailsDialog extends StatelessWidget {
   final OrderService orderService;
@@ -404,18 +414,25 @@ class _OrderDetailsDialog extends StatelessWidget {
               children: [
                 _buildDetailRow('Status', order['status'].toString()),
                 _buildDetailRow(
-                    'Total', '\$${(((order['total'] as num?)?.toDouble() ?? 0.0) / 100).toStringAsFixed(2)}',),
-                _buildDetailRow('Amount Paid',
-                    '\$${(((order['amountPaid'] as num?)?.toDouble() ?? 0.0) / 100).toStringAsFixed(2)}',),
+                  'Total',
+                  '\$${(((order['total'] as num?)?.toDouble() ?? 0.0) / 100).toStringAsFixed(2)}',
+                ),
+                _buildDetailRow(
+                  'Amount Paid',
+                  '\$${(((order['amountPaid'] as num?)?.toDouble() ?? 0.0) / 100).toStringAsFixed(2)}',
+                ),
                 if (order['customerId'] != null)
                   _buildDetailRow(
-                      'Customer ID', order['customerId'].toString(),),
+                    'Customer ID',
+                    order['customerId'].toString(),
+                  ),
                 if (order['createdAt'] != null)
                   _buildDetailRow(
                     'Created',
                     DateFormat('MMM dd, yyyy HH:mm').format(
                       DateTime.fromMillisecondsSinceEpoch(
-                          (order['createdAt'] as num).toInt() * 1000,),
+                        (order['createdAt'] as num).toInt() * 1000,
+                      ),
                     ),
                   ),
               ],
@@ -452,6 +469,4 @@ class _OrderDetailsDialog extends StatelessWidget {
       ),
     );
   }
-
-  
 }

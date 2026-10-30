@@ -6,6 +6,7 @@ import 'package:lush/bloc/UserBloc/user_events.dart';
 import 'package:lush/bloc/UserBloc/user_state.dart';
 import 'package:lush/views/models/bottle_ledger.dart';
 import 'package:lush/theme/app_colors.dart';
+import 'package:lush/theme/bmj_tokens.dart';
 
 /// Screen showing the authenticated customer's bottle ledger and transactions.
 class MyBottlesScreen extends StatefulWidget {
@@ -104,7 +105,7 @@ class _MyBottlesScreenState extends State<MyBottlesScreen> {
           Container(
             padding: EdgeInsets.all(12.w),
             decoration: BoxDecoration(
-              color: Colors.white.withValues(alpha: 0.2),
+              color: BMJTokens.inkOnBrand.withValues(alpha: 0.2),
               borderRadius: BorderRadius.circular(12.r),
             ),
             child: Icon(
@@ -119,7 +120,7 @@ class _MyBottlesScreenState extends State<MyBottlesScreen> {
               'You have $bottleTypeCount bottle type(s) in your ledger. Track your reusable bottle deposits and returns.',
               style: TextStyle(
                 fontSize: 14.sp,
-                color: Colors.white.withValues(alpha: 0.9),
+                color: BMJTokens.inkOnBrand.withValues(alpha: 0.9),
               ),
             ),
           ),

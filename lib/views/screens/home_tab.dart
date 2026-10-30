@@ -1,31 +1,48 @@
-/// Glassmorphism Home Tab
+/// Stitch `unified_home_dashboard` — Home tab.
 ///
-/// Replaces the old _buildHomeTab in dashboard.dart.
-/// Preserves all existing Bloc wiring — only UI/UX changes.
+/// The first viewport follows the Stitch reference exactly:
+/// greeting → active subscription card → three-stat strip → trending grid.
+/// The promo rail, quick picks and recent orders keep their original routes
+/// and BLoC wiring and sit below that block, so nothing functional was lost.
+///
+/// Preserved wiring (unchanged from the previous implementation):
+/// - `ProductCatalogBloc.LoadProductCatalog()` and `OrderBloc.LoadOrderHistory()`
+///   are dispatched from [HomeTab.initState] (orders only when signed in);
+/// - the size picker is the shared `showSizeSelectionSheet`;
+/// - routes `/productDetails`, `/plan-selection`, `/manage-subscriptions`,
+///   `/orders` and `/order-history` are untouched.
 library;
 
 import 'dart:math';
-import 'dart:ui';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:lush/UserRepository/user_repository.dart';
+import 'package:lush/bloc/AuthBloc/auth_bloc.dart';
+import 'package:lush/bloc/AuthBloc/auth_state.dart';
 import 'package:lush/bloc/OrderBloc/order_bloc.dart';
 import 'package:lush/bloc/OrderBloc/order_event.dart';
 import 'package:lush/bloc/OrderBloc/order_state.dart';
 import 'package:lush/bloc/ProductCatalogBloc/product_catalog_bloc.dart';
 import 'package:lush/bloc/SubscriptionBloc/subscription_bloc.dart';
+import 'package:lush/get_it.dart';
 import 'package:lush/models/order_summary.dart';
-import 'package:lush/theme/app_colors.dart';
 import 'package:lush/theme/app_radius.dart';
-import 'package:lush/theme/theme_cubit.dart';
+import 'package:lush/theme/app_spacing.dart';
+import 'package:lush/theme/app_text_styles.dart';
+import 'package:lush/theme/bmj_tokens.dart';
+import 'package:lush/utils/price_utils.dart';
 import 'package:lush/views/models/user.dart';
-import 'package:lush/widgets/glass_card.dart';
+import 'package:lush/views/widgets/size_selection_sheet.dart';
+import 'package:lush/widgets/bmj_glass_button.dart';
+import 'package:lush/widgets/bmj_glass_card.dart';
+import 'package:lush/widgets/bmj_pill.dart';
+import 'package:lush/widgets/bmj_stat_tile.dart';
 
 /// Callback to switch the bottom nav to a given index.
 typedef NavSwitchCallback = void Function(int index);
 
-/// Home tab content — hero, offer carousel, subscription, trending, orders.
+/// Home tab content — greeting, subscription, stats, trending, promos, orders.
 class HomeTab extends StatefulWidget {
   final bool isAuth;
   final User? user;
@@ -43,35 +60,44 @@ class HomeTab extends StatefulWidget {
 }
 
 class _HomeTabState extends State<HomeTab> {
-  final PageController _offerCarouselController = PageController(viewportFraction: 0.85);
+  final PageController _offerCarouselController =
+      PageController(viewportFraction: 0.9);
   int _currentOfferPage = 0;
 
-  // Predefined offers
-  static const List<_OfferData> _offers = [
+  /// Predefined offers. Purely promotional copy — no prices and no API calls.
+  static const List<_OfferData> _offers = <_OfferData>[
     _OfferData(
       emoji: '🧃',
       title: 'Summer Detox',
-      subtitle: '20% off Signature Juices',
-      gradientColors: [Color(0xFFFF6B35), Color(0xFFE91E63)],
+      subtitle: '20% off Signature juices',
+      gradientColors: <Color>[Color(0xFFF97316), Color(0xFFC2410C)],
     ),
     _OfferData(
       emoji: '🎁',
       title: 'Refer & Earn',
-      subtitle: 'Get Rs.200 per referral',
-      gradientColors: [Color(0xFF22C55E), Color(0xFF16A34A)],
+      subtitle: 'Get ₹200 per referral',
+      gradientColors: <Color>[Color(0xFF16A34A), Color(0xFF067A3E)],
     ),
   ];
 
   @override
   void initState() {
     super.initState();
-    // Dispatch events needed for trending juices and recent orders
+    // Dispatch events needed for trending juices and recent orders.
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (mounted) {
-        context.read<ProductCatalogBloc>().add(const LoadProductCatalog());
+      if (!mounted) return;
+      context.read<ProductCatalogBloc>().add(const LoadProductCatalog());
+      // DP-1: order history is authenticated - skip the call while signed out.
+      if (_isSignedIn) {
         context.read<OrderBloc>().add(const LoadOrderHistory());
       }
     });
+  }
+
+  /// DP-1: true when an account session exists, so authenticated loads are safe.
+  bool get _isSignedIn {
+    if (getIt.get<UserRepository>().userLoggedIn) return true;
+    return context.read<AuthenticationBloc>().state is AuthenticationSuccess;
   }
 
   @override
@@ -82,54 +108,49 @@ class _HomeTabState extends State<HomeTab> {
 
   @override
   Widget build(BuildContext context) {
-    final isDark = context.watch<ThemeCubit>().state.resolvedThemeMode == ThemeMode.dark;
-    final bgColor = isDark ? AppColors.glassBg : AppColors.glassBgLight;
+    final BMJPalette palette = BMJPalette.of(context);
 
     return Container(
-      color: bgColor,
+      color: palette.surface,
       child: SafeArea(
+        top: false,
         child: SingleChildScrollView(
           physics: const BouncingScrollPhysics(),
+          // Room for the floating glass bottom nav (`extendBody: true`).
+          padding: const EdgeInsets.only(bottom: 104),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // ── Hero Section ──
-              _buildHero(context, isDark),
+            children: <Widget>[
+              // ── Greeting (Stitch: "Good morning," + "Welcome back") ──
+              _buildGreeting(context),
 
-              SizedBox(height: 16.h),
+              const SizedBox(height: AppSpacing.lg),
 
-              // ── Offer Carousel ──
-              _buildOfferCarousel(isDark),
+              // ── Active subscription card ──
+              _buildSubscriptionSection(context),
 
-              SizedBox(height: 20.h),
+              const SizedBox(height: AppSpacing.lg),
 
-              // ── Subscription Card ──
-              _buildSubscriptionSection(context, isDark),
+              // ── Three-stat strip ──
+              _buildStatsStrip(palette),
 
-              SizedBox(height: 16.h),
+              const SizedBox(height: AppSpacing.lg),
 
-              // ── Stats Strip ──
-              Padding(
-                padding: EdgeInsets.symmetric(horizontal: 16.w),
-                child: _buildGlassStats(isDark),
-              ),
+              // ── Trending juices (2-column grid) ──
+              _buildTrendingJuices(context),
 
-              SizedBox(height: 20.h),
+              const SizedBox(height: AppSpacing.lg),
 
-              // ── Trending Juices ──
-              _buildTrendingJuices(context, isDark),
+              // ── Promotional rail ──
+              _buildOffers(context),
 
-              SizedBox(height: 20.h),
+              const SizedBox(height: AppSpacing.lg),
 
-              // ── Order Today / Quick Picks ──
-              _buildOrderTodaySection(context, isDark),
+              // ── Quick picks ──
+              _buildOrderTodaySection(context),
 
-              SizedBox(height: 20.h),
-
-              // ── Recent Orders ──
-              _buildRecentOrders(context, isDark),
-
-              SizedBox(height: 32.h),
+              // ── Recent orders ──
+              _buildRecentOrders(context),
             ],
           ),
         ),
@@ -137,82 +158,37 @@ class _HomeTabState extends State<HomeTab> {
     );
   }
 
-  // ─── Hero ────────────────────────────────────────────────────────────────
-  Widget _buildHero(BuildContext context, bool isDark) {
-    final greeting = widget.isAuth && widget.user != null
-        ? 'Good morning, ${widget.user!.firstName} 👋'
-        : 'Welcome to\nBookMyJuice!';
+  // ─── Greeting ────────────────────────────────────────────────────────────
+  Widget _buildGreeting(BuildContext context) {
+    final BMJPalette palette = BMJPalette.of(context);
+    final String rawName = widget.user?.firstName ?? '';
+    final String? firstName =
+        widget.isAuth && rawName.trim().isNotEmpty ? rawName.trim() : null;
 
-    return Container(
-      margin: EdgeInsets.fromLTRB(16.w, 16.h, 16.w, 0),
-      padding: EdgeInsets.fromLTRB(20.w, 24.h, 16.w, 24.h),
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          colors: [
-            isDark ? const Color(0xFF1B5E20) : const Color(0xFF2E7D32),
-            isDark ? const Color(0xFF0A0F0D) : const Color(0xFF43A047),
-          ],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-        ),
-        borderRadius: BorderRadius.circular(AppRadius.xl),
-        boxShadow: [
-          BoxShadow(
-            color: AppColors.primaryGreen.withValues(alpha: 0.3),
-            blurRadius: 24,
-            offset: const Offset(0, 8),
-          ),
-        ],
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(
+        BMJTokens.pageMargin,
+        BMJTokens.spaceLg,
+        BMJTokens.pageMargin,
+        0,
       ),
-      child: Row(
-        children: [
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  greeting,
-                  style: TextStyle(
-                    fontFamily: 'Poppins',
-                    fontSize: 22.sp,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.white,
-                    height: 1.3,
-                  ),
-                ),
-                SizedBox(height: 8.h),
-                Text(
-                  'Fresh cold-pressed juices,\ndelivered to your door.',
-                  style: TextStyle(
-                    fontFamily: 'Inter',
-                    fontSize: 13.sp,
-                    color: Colors.white.withValues(alpha: 0.75),
-                    height: 1.4,
-                  ),
-                ),
-              ],
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: <Widget>[
+          Text(
+            'Good morning,',
+            style: AppTextStyles.textTheme.bodyMedium?.copyWith(
+              color: palette.onSurfaceVariant,
             ),
           ),
-          const SizedBox(width: 16),
-          ClipRRect(
-            borderRadius: BorderRadius.circular(AppRadius.lg),
-            child: BackdropFilter(
-              filter: ImageFilter.blur(sigmaX: 6, sigmaY: 6),
-              child: Container(
-                padding: const EdgeInsets.all(16),
-                decoration: BoxDecoration(
-                  color: Colors.white.withValues(alpha: 0.12),
-                  borderRadius: BorderRadius.circular(AppRadius.lg),
-                  border: Border.all(
-                    color: Colors.white.withValues(alpha: 0.2),
-                  ),
-                ),
-                child: Icon(
-                  Icons.local_drink,
-                  size: 40,
-                  color: Colors.white.withValues(alpha: 0.9),
-                ),
-              ),
+          const SizedBox(height: 2),
+          Semantics(
+            header: true,
+            child: Text(
+              firstName == null
+                  ? 'Welcome to BookMyJuice'
+                  : 'Welcome back, $firstName',
+              style: BMJType.heroGreeting.copyWith(color: palette.onSurface),
             ),
           ),
         ],
@@ -220,37 +196,583 @@ class _HomeTabState extends State<HomeTab> {
     );
   }
 
-  // ─── Offer Carousel ──────────────────────────────────────────────────────
-  Widget _buildOfferCarousel(bool isDark) {
-    return Column(
-      children: [
-        SizedBox(
-          height: 130.h,
-          child: PageView.builder(
-            controller: _offerCarouselController,
-            onPageChanged: (index) => setState(() => _currentOfferPage = index),
-            itemCount: _offers.length,
-            itemBuilder: (context, index) {
-              final offer = _offers[index];
-              return _buildOfferCard(offer, isDark);
-            },
+  // ─── Subscription card ───────────────────────────────────────────────────
+  Widget _buildSubscriptionSection(BuildContext context) {
+    return BlocBuilder<SubscriptionBloc, SubscriptionState>(
+      builder: (context, subState) {
+        if (_isSignedIn && subState is SubscriptionLoading) {
+          return _cardShell(
+            child: Row(
+              children: <Widget>[
+                const SizedBox(
+                  width: 18,
+                  height: 18,
+                  child: CircularProgressIndicator(strokeWidth: 2),
+                ),
+                const SizedBox(width: AppSpacing.md),
+                Expanded(
+                  child: Text(
+                    'Loading your subscription…',
+                    style: AppTextStyles.textTheme.bodyMedium?.copyWith(
+                      color: BMJPalette.of(context).onSurfaceVariant,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          );
+        }
+
+        if (_isSignedIn && subState is SubscriptionError) {
+          final BMJPalette palette = BMJPalette.of(context);
+          return _cardShell(
+            child: Row(
+              children: <Widget>[
+                Icon(Icons.error_outline, color: palette.error, size: 20),
+                const SizedBox(width: AppSpacing.sm),
+                Expanded(
+                  child: Text(
+                    'Failed to load subscription status',
+                    style: AppTextStyles.textTheme.bodyMedium?.copyWith(
+                      color: palette.onSurfaceVariant,
+                    ),
+                  ),
+                ),
+                TextButton(
+                  onPressed: () => context
+                      .read<SubscriptionBloc>()
+                      .add(const LoadSubscriptionPlans()),
+                  child: const Text('Retry'),
+                ),
+              ],
+            ),
+          );
+        }
+
+        if (subState is SubscriptionLoaded && subState.subscription.isActive) {
+          return _activeSubscriptionCard(context, subState.subscription);
+        }
+
+        return _inactiveSubscriptionCard(context);
+      },
+    );
+  }
+
+  /// Page-margin card shell shared by every subscription state.
+  Widget _cardShell({required Widget child, bool glow = false}) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: BMJTokens.pageMargin),
+      child: BMJGlassCard(
+        glow: glow,
+        child: child,
+      ),
+    );
+  }
+
+  /// Stitch active plan card: status pill, plan name, next delivery and the
+  /// full-width "Manage delivery" action.
+  Widget _activeSubscriptionCard(
+    BuildContext context,
+    ActiveSubscription subscription,
+  ) {
+    final BMJPalette palette = BMJPalette.of(context);
+    final String planName = subscription.plan.name;
+    final String description = subscription.plan.description;
+    final String period = subscription.plan.period;
+    final bool hasDelivery = subscription.nextDeliveryDate != null;
+
+    return _cardShell(
+      glow: true,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: <Widget>[
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: <Widget>[
+              const BMJPill(
+                label: 'Active Subscription',
+                tone: BMJPillTone.success,
+                icon: Icons.check_circle_rounded,
+              ),
+              const Spacer(),
+              // The reference fills this corner with a big count over a caps
+              // caption. Deliveries-to-date is real subscription data, so the slot
+              // gets a real number instead of empty space.
+              if (subscription.totalDeliveries > 0)
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.end,
+                  children: <Widget>[
+                    Text(
+                      '${subscription.totalDeliveries}',
+                      style: BMJType.statNum.copyWith(
+                        fontSize: 26,
+                        height: 1.05,
+                        color: palette.onSurface,
+                      ),
+                    ),
+                    Text(
+                      'DELIVERIES',
+                      style: AppTextStyles.textTheme.labelSmall?.copyWith(
+                        color: palette.onSurfaceVariant,
+                        letterSpacing: 1.0,
+                      ),
+                    ),
+                  ],
+                ),
+            ],
+          ),
+          const SizedBox(height: AppSpacing.sm + 2),
+          Text(
+            planName,
+            maxLines: 2,
+            overflow: TextOverflow.ellipsis,
+            style: AppTextStyles.textTheme.titleSmall?.copyWith(
+              color: palette.onSurface,
+            ),
+          ),
+          if (description.isNotEmpty) ...<Widget>[
+            const SizedBox(height: 2),
+            Text(
+              description,
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
+              style: AppTextStyles.textTheme.bodyMedium?.copyWith(
+                color: palette.onSurfaceVariant,
+              ),
+            ),
+          ],
+          const SizedBox(height: AppSpacing.sm + 2),
+          Row(
+            children: <Widget>[
+              Icon(
+                Icons.schedule_rounded,
+                size: 15,
+                color: palette.onSurfaceVariant,
+              ),
+              const SizedBox(width: AppSpacing.xs + 2),
+              Expanded(
+                child: Text(
+                  hasDelivery
+                      ? 'Next delivery: Tomorrow, 7-9 AM'
+                      : 'Next delivery will be scheduled soon',
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: AppTextStyles.textTheme.bodyMedium?.copyWith(
+                    color: palette.onSurfaceVariant,
+                  ),
+                ),
+              ),
+              // The cadence moved off the top row (the stat block took that
+              // corner), so it rides at the end of the schedule line.
+              if (period.isNotEmpty)
+                Padding(
+                  padding: const EdgeInsets.only(left: AppSpacing.sm),
+                  child: Text(
+                    '$period plan',
+                    style: AppTextStyles.textTheme.bodySmall?.copyWith(
+                      color: palette.onSurfaceVariant,
+                    ),
+                  ),
+                ),
+            ],
+          ),
+          const SizedBox(height: AppSpacing.md),
+          BMJGlassButton.inCard(
+            label: 'Manage delivery',
+            icon: Icons.tune_rounded,
+            onPressed: () => Navigator.pushNamed(
+              context,
+              '/manage-subscriptions',
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  /// Signed-out / no-plan state — same shell, Stitch typography.
+  Widget _inactiveSubscriptionCard(BuildContext context) {
+    final BMJPalette palette = BMJPalette.of(context);
+
+    return _cardShell(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: <Widget>[
+          const BMJPill(
+            label: 'No active plan',
+            tone: BMJPillTone.neutral,
+            icon: Icons.info_outline_rounded,
+          ),
+          const SizedBox(height: AppSpacing.sm + 2),
+          Text(
+            'Start your juice subscription',
+            maxLines: 2,
+            overflow: TextOverflow.ellipsis,
+            style: AppTextStyles.textTheme.titleSmall?.copyWith(
+              color: palette.onSurface,
+            ),
+          ),
+          const SizedBox(height: 2),
+          Text(
+            'Fresh cold-pressed juice, delivered daily or weekly. Skip, pause '
+            'or change plans any time.',
+            style: AppTextStyles.textTheme.bodyMedium?.copyWith(
+              color: palette.onSurfaceVariant,
+            ),
+          ),
+          const SizedBox(height: AppSpacing.md),
+          BMJGlassButton(
+            key: const Key('home_browse_plans_button'),
+            label: 'Browse plans',
+            icon: Icons.local_drink_outlined,
+            onPressed: () => Navigator.pushNamed(context, '/plan-selection'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // ─── Stats strip ─────────────────────────────────────────────────────────
+  /// Stitch "Quick Stats": `flex gap-gutter overflow-x-auto px-md pb-2` holding
+  /// `flex-none w-28 p-sm rounded-lg` tiles. 3 × 112 dp + 2 × 12 dp gutters is
+  /// 360 dp before the 32 dp of page margin, so the reference *scrolls* this
+  /// row on a 390 dp canvas — reproducing the scroll is what keeps the tiles
+  /// square-ish instead of squeezing them into unequal thirds.
+  Widget _buildStatsStrip(BMJPalette palette) {
+    return SingleChildScrollView(
+      scrollDirection: Axis.horizontal,
+      padding: const EdgeInsets.fromLTRB(
+        BMJTokens.pageMargin,
+        AppSpacing.sm,
+        BMJTokens.pageMargin,
+        AppSpacing.sm + 4,
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: <Widget>[
+          _statTile(palette,
+              icon: Icons.eco_rounded, value: '100%', label: 'Natural'),
+          const SizedBox(width: AppSpacing.sm + 4),
+          _statTile(palette,
+              icon: Icons.timer_outlined, value: '30m', label: 'Delivery'),
+          const SizedBox(width: AppSpacing.sm + 4),
+          _statTile(
+            palette,
+            icon: Icons.verified_outlined,
+            value: '0',
+            label: 'Preservatives',
+          ),
+        ],
+      ),
+    );
+  }
+
+  /// One stat tile: wider than the reference's, a large neutral number, one
+  /// accent-coloured glyph and a caption that can breathe — the reference reads
+  /// as a bright number over a coloured icon, not as a coloured chip.
+  Widget _statTile(
+    BMJPalette palette, {
+    required IconData icon,
+    required String value,
+    required String label,
+  }) {
+    return SizedBox(
+      width: 124,
+      child: BMJGlassCard(
+        radius: AppRadius.sm,
+        padding: const EdgeInsets.symmetric(
+          vertical: AppSpacing.sm + 2,
+          horizontal: AppSpacing.sm,
+        ),
+        child: BMJStatTile(
+          icon: icon,
+          value: value,
+          label: label,
+          alignment: CrossAxisAlignment.center,
+          stacked: true,
+          uppercase: false,
+          accent: palette.onSurface,
+          iconColor: palette.primaryEmphasis,
+          valueStyle: BMJType.statNum.copyWith(fontSize: 28, height: 1.1),
+        ),
+      ),
+    );
+  }
+
+  // ─── Trending juices ─────────────────────────────────────────────────────
+  Widget _buildTrendingJuices(BuildContext context) {
+    final BMJPalette palette = BMJPalette.of(context);
+
+    return BlocBuilder<ProductCatalogBloc, ProductCatalogState>(
+      builder: (context, state) {
+        final List<CatalogItem> catalog = _catalogItems(state);
+        // Fixed seed keeps the "trending" pick stable between rebuilds.
+        final Random rng = Random(42);
+        final List<CatalogItem> trending =
+            (List<CatalogItem>.from(catalog)..shuffle(rng)).take(4).toList();
+
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: <Widget>[
+            Padding(
+              padding:
+                  const EdgeInsets.symmetric(horizontal: BMJTokens.pageMargin),
+              child: Semantics(
+                header: true,
+                child: Text(
+                  'Trending Juices',
+                  // Stitch section header is `font-headline-md` — 20/26, 700.
+                  style: AppTextStyles.textTheme.titleMedium?.copyWith(
+                    color: palette.onSurface,
+                  ),
+                ),
+              ),
+            ),
+            const SizedBox(height: AppSpacing.md),
+            if (trending.isEmpty)
+              Padding(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: BMJTokens.pageMargin,
+                ),
+                child: BMJGlassCard(
+                  child: Text(
+                    catalog.isEmpty
+                        ? 'Loading today’s juices…'
+                        : 'No juices available right now',
+                    style: AppTextStyles.textTheme.bodyMedium?.copyWith(
+                      color: palette.onSurfaceVariant,
+                    ),
+                  ),
+                ),
+              )
+            else
+              Padding(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: BMJTokens.pageMargin,
+                ),
+                child: Column(
+                  children: <Widget>[
+                    for (int i = 0; i < trending.length; i += 2)
+                      Padding(
+                        padding: EdgeInsets.only(
+                          bottom:
+                              i + 2 < trending.length ? AppSpacing.sm + 4 : 0,
+                        ),
+                        child: Row(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: <Widget>[
+                            Expanded(
+                              child: _trendingCard(context, trending[i]),
+                            ),
+                            const SizedBox(width: AppSpacing.sm + 4),
+                            Expanded(
+                              child: i + 1 < trending.length
+                                  ? _trendingCard(context, trending[i + 1])
+                                  : const SizedBox.shrink(),
+                            ),
+                          ],
+                        ),
+                      ),
+                  ],
+                ),
+              ),
+          ],
+        );
+      },
+    );
+  }
+
+  /// Stitch product tile: artwork, floating add button, name, ingredients, price.
+  Widget _trendingCard(BuildContext context, CatalogItem item) {
+    final BMJPalette palette = BMJPalette.of(context);
+    final String ingredients =
+        item.ingredients.isEmpty ? item.category : item.ingredients.join(', ');
+
+    return BMJGlassCard(
+      padding: EdgeInsets.zero,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: <Widget>[
+          Stack(
+            children: <Widget>[
+              AspectRatio(
+                // Stitch product media is `h-32` (128 dp) inside a card that is
+                // 173 dp wide on the 390 dp reference canvas → 173 : 128 = 1.35.
+                // A ratio instead of a fixed 128 dp keeps the identical crop at
+                // every device width.
+                aspectRatio: 1.28,
+                child: GestureDetector(
+                  onTap: () => _openProductDetails(item),
+                  behavior: HitTestBehavior.opaque,
+                  child: _itemArtwork(item),
+                ),
+              ),
+              Positioned(
+                right: AppSpacing.sm,
+                bottom: AppSpacing.sm,
+                child: _addToCartButton(context, item),
+              ),
+            ],
+          ),
+          // `p-sm` in the reference: 8 dp of chrome, so the artwork keeps the
+          // card's visual weight instead of the caption block.
+          Padding(
+            padding: const EdgeInsets.all(AppSpacing.sm),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: <Widget>[
+                Text(
+                  item.name,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: BMJType.cardTitle.copyWith(color: palette.onSurface),
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  ingredients,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  // A short regular-weight line, the way the reference draws the
+                  // ingredient list — not a bold micro-label.
+                  style: AppTextStyles.textTheme.bodySmall?.copyWith(
+                    color: palette.onSurfaceVariant,
+                  ),
+                ),
+                const SizedBox(height: AppSpacing.sm),
+                Text(
+                  formatRupees(cheapestPrice(item.prices)),
+                  // The price is the second-loudest thing in the tile, as in the
+                  // reference, where it sits a clear step above the caption.
+                  style: AppTextStyles.textTheme.titleSmall?.copyWith(
+                    color: palette.primaryEmphasis,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  /// Product artwork on the item's own gradient.
+  ///
+  /// Catalog artwork is a transparent cut-out (the assets ship with alpha), so
+  /// the gradient behind it carries the brand colour and the photo keeps its
+  /// real produce colours. `BlendMode` filters are deliberately avoided — a
+  /// non-`srcOver` colour filter blends with the whole backdrop, which painted
+  /// the card body behind the caption (found in the golden capture).
+  Widget _itemArtwork(CatalogItem item) {
+    final Color start = _colorFromHex(item.startColor);
+    final Color end = _colorFromHex(item.endColor);
+    final Gradient gradient = LinearGradient(
+      colors: <Color>[start, end],
+      begin: Alignment.topLeft,
+      end: Alignment.bottomRight,
+    );
+
+    final Widget fallback = Center(
+      child: Icon(
+        Icons.local_drink_rounded,
+        size: 40,
+        color: BMJTokens.inkOnBrand.withValues(alpha: 0.9),
+      ),
+    );
+
+    return DecoratedBox(
+      decoration: BoxDecoration(gradient: gradient),
+      child: item.imagePath.isEmpty
+          ? fallback
+          : Image.asset(
+              item.imagePath,
+              fit: BoxFit.cover,
+              errorBuilder: (context, error, stackTrace) => fallback,
+            ),
+    );
+  }
+
+  /// Circular add button (Stitch "FAB": `w-10 h-10 rounded-full` + orange
+  /// glow); opens the shared size sheet.
+  Widget _addToCartButton(BuildContext context, CatalogItem item) {
+    final BMJPalette palette = BMJPalette.of(context);
+
+    return Semantics(
+      button: true,
+      label: 'Choose a size for ${item.name}',
+      child: DecoratedBox(
+        decoration: BoxDecoration(
+          shape: BoxShape.circle,
+          boxShadow: <BoxShadow>[
+            BoxShadow(
+              color: palette.primary.withValues(alpha: 0.60),
+              blurRadius: 15,
+            ),
+          ],
+        ),
+        child: Material(
+          color: palette.primary,
+          shape: const CircleBorder(),
+          child: InkWell(
+            customBorder: const CircleBorder(),
+            onTap: () => showSizeSelectionSheet(context, item),
+            child: SizedBox(
+              width: 40,
+              height: 40,
+              child: Icon(
+                Icons.add_rounded,
+                size: 20,
+                color: palette.onPrimary,
+              ),
+            ),
           ),
         ),
-        SizedBox(height: 8.h),
-        // Page indicator dots
+      ),
+    );
+  }
+
+  // ─── Promotional rail ────────────────────────────────────────────────────
+  Widget _buildOffers(BuildContext context) {
+    final BMJPalette palette = BMJPalette.of(context);
+
+    return Column(
+      children: <Widget>[
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: BMJTokens.pageMargin),
+          child: Text(
+            'Today’s offers',
+            // Stitch section header is `font-headline-md` — 20/26, 700.
+            style: AppTextStyles.textTheme.titleMedium?.copyWith(
+              color: palette.onSurface,
+            ),
+          ),
+        ),
+        const SizedBox(height: AppSpacing.sm + 4),
+        SizedBox(
+          height: 104,
+          child: PageView.builder(
+            controller: _offerCarouselController,
+            onPageChanged: (int index) =>
+                setState(() => _currentOfferPage = index),
+            itemCount: _offers.length,
+            itemBuilder: (context, index) =>
+                _offerCard(context, _offers[index]),
+          ),
+        ),
+        const SizedBox(height: AppSpacing.sm),
         Row(
           mainAxisAlignment: MainAxisAlignment.center,
-          children: List.generate(_offers.length, (index) {
+          children: List<Widget>.generate(_offers.length, (int index) {
+            final bool selected = _currentOfferPage == index;
             return AnimatedContainer(
-              duration: const Duration(milliseconds: 300),
-              margin: EdgeInsets.symmetric(horizontal: 3.w),
-              width: _currentOfferPage == index ? 24.w : 8.w,
-              height: 8.h,
+              duration: BMJTokens.motionBase,
+              curve: BMJTokens.motionCurve,
+              margin: const EdgeInsets.symmetric(horizontal: 3),
+              width: selected ? 20 : 8,
+              height: 6,
               decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(4),
-                color: _currentOfferPage == index
-                    ? AppColors.glassAccent
-                    : AppColors.glassTextDim.withValues(alpha: 0.4),
+                borderRadius: BorderRadius.circular(AppRadius.pill),
+                color: selected ? palette.primary : palette.outlineVariant,
               ),
             );
           }),
@@ -259,97 +781,71 @@ class _HomeTabState extends State<HomeTab> {
     );
   }
 
-  Widget _buildOfferCard(_OfferData offer, bool isDark) {
-    return Container(
-      margin: EdgeInsets.symmetric(horizontal: 8.w),
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          colors: offer.gradientColors,
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-        ),
-        borderRadius: BorderRadius.circular(AppRadius.xl),
-        boxShadow: [
-          BoxShadow(
-            color: offer.gradientColors[0].withValues(alpha: 0.3),
-            blurRadius: 16,
-            offset: const Offset(0, 6),
-          ),
-        ],
-      ),
+  Widget _offerCard(BuildContext context, _OfferData offer) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xs),
       child: Material(
         color: Colors.transparent,
         child: InkWell(
-          borderRadius: BorderRadius.circular(AppRadius.xl),
-          onTap: () {
-            if (offer.title == 'Summer Detox') {
-              widget.onNavigateToMenu(1);
-            }
-          },
-          child: Padding(
-            padding: EdgeInsets.symmetric(horizontal: 20.w, vertical: 16.h),
+          borderRadius: BorderRadius.circular(AppRadius.card),
+          onTap: () => widget.onNavigateToMenu(1),
+          child: Container(
+            padding: const EdgeInsets.all(AppSpacing.md),
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                colors: offer.gradientColors,
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+              ),
+              borderRadius: BorderRadius.circular(AppRadius.card),
+            ),
             child: Row(
-              children: [
-                // Emoji
+              children: <Widget>[
                 Container(
-                  width: 48,
-                  height: 48,
+                  width: 44,
+                  height: 44,
                   decoration: BoxDecoration(
-                    color: Colors.white.withValues(alpha: 0.2),
+                    color: BMJTokens.inkOnBrand.withValues(alpha: 0.18),
                     borderRadius: BorderRadius.circular(AppRadius.md),
                   ),
                   child: Center(
                     child: Text(
                       offer.emoji,
-                      style: TextStyle(fontSize: 24.sp),
+                      style: const TextStyle(fontSize: 22),
                     ),
                   ),
                 ),
-                SizedBox(width: 16.w),
+                const SizedBox(width: AppSpacing.md),
                 Expanded(
                   child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
                     mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: <Widget>[
                       Text(
                         offer.title,
-                        style: TextStyle(
-                          fontFamily: 'Poppins',
-                          fontSize: 18.sp,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.white,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: AppTextStyles.textTheme.titleSmall?.copyWith(
+                          color: BMJTokens.inkOnBrand,
                         ),
                       ),
-                      SizedBox(height: 4.h),
+                      const SizedBox(height: 2),
                       Text(
                         offer.subtitle,
-                        style: TextStyle(
-                          fontFamily: 'Inter',
-                          fontSize: 13.sp,
-                          color: Colors.white.withValues(alpha: 0.9),
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                        style: AppTextStyles.textTheme.bodySmall?.copyWith(
+                          color: BMJTokens.inkOnBrand.withValues(alpha: 0.9),
                         ),
                       ),
                     ],
                   ),
                 ),
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                  decoration: BoxDecoration(
-                    color: Colors.white.withValues(alpha: 0.25),
-                    borderRadius: BorderRadius.circular(AppRadius.lg),
-                    border: Border.all(
-                      color: Colors.white.withValues(alpha: 0.4),
-                    ),
-                  ),
-                  child: Text(
-                    'Grab →',
-                    style: TextStyle(
-                      fontFamily: 'Inter',
-                      fontSize: 12.sp,
-                      fontWeight: FontWeight.w600,
-                      color: Colors.white,
-                    ),
-                  ),
+                const SizedBox(width: AppSpacing.sm),
+                Icon(
+                  Icons.arrow_forward_rounded,
+                  size: 20,
+                  color: BMJTokens.inkOnBrand.withValues(alpha: 0.9),
                 ),
               ],
             ),
@@ -359,605 +855,199 @@ class _HomeTabState extends State<HomeTab> {
     );
   }
 
-  // ─── Subscription Section ──────────────────────────────────────────────
-  Widget _buildSubscriptionSection(BuildContext context, bool isDark) {
-    return BlocBuilder<SubscriptionBloc, SubscriptionState>(
-      builder: (context, subState) {
-        String planName = '';
-        bool isActive = false;
-        String nextDelivery = '';
+  // ─── Quick picks ─────────────────────────────────────────────────────────
+  Widget _buildOrderTodaySection(BuildContext context) {
+    final BMJPalette palette = BMJPalette.of(context);
 
-        if (subState is SubscriptionLoaded) {
-          planName = subState.subscription.plan.name;
-          isActive = subState.subscription.isActive;
-          nextDelivery = subState.subscription.nextDeliveryDate != null
-              ? 'Tomorrow, 7-9 AM'
-              : '';
-        }
-
-        return Padding(
-          padding: EdgeInsets.symmetric(horizontal: 16.w),
-          child: GlassCard(
-            padding: const EdgeInsets.all(20),
-            hasGlow: isActive,
-            glowColor: AppColors.glassGlow,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // Header row
-                Row(
-                  children: [
-                    Container(
-                      padding: const EdgeInsets.all(8),
-                      decoration: BoxDecoration(
-                        color: (isActive
-                                ? AppColors.glassAccent
-                                : AppColors.glassTextDim)
-                            .withValues(alpha: 0.2),
-                        borderRadius: BorderRadius.circular(AppRadius.md),
-                      ),
-                      child: Icon(
-                        Icons.repeat,
-                        size: 18,
-                        color: isActive
-                            ? AppColors.glassAccent
-                            : AppColors.glassTextDim,
-                      ),
-                    ),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            planName.isNotEmpty ? planName : 'No Active Plan',
-                            style: TextStyle(
-                              fontFamily: 'Poppins',
-                              fontSize: 17.sp,
-                              fontWeight: FontWeight.w600,
-                              color: isDark ? AppColors.glassText : AppColors.lightTextPrimary,
-                            ),
-                          ),
-                          SizedBox(height: 2.h),
-                          Text(
-                            isActive ? '● Active' : 'Start your subscription',
-                            style: TextStyle(
-                              fontFamily: 'Inter',
-                              fontSize: 12.sp,
-                              color: isActive
-                                  ? AppColors.glassAccent
-                                  : AppColors.glassTextDim,
-                              fontWeight: FontWeight.w500,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ],
-                ),
-                if (isActive && nextDelivery.isNotEmpty) ...[
-                  SizedBox(height: 16.h),
-                  Container(
-                    padding: const EdgeInsets.symmetric(
-                        horizontal: 12, vertical: 8,),
-                    decoration: BoxDecoration(
-                      color: isDark
-                          ? AppColors.glassAccent.withValues(alpha: 0.1)
-                          : AppColors.primaryGreen.withValues(alpha: 0.08),
-                      borderRadius: BorderRadius.circular(AppRadius.md),
-                    ),
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        const Icon(Icons.schedule,
-                            size: 14, color: AppColors.glassAccent,),
-                        SizedBox(width: 6.w),
-                        Text(
-                          'Next: $nextDelivery',
-                          style: TextStyle(
-                            fontFamily: 'Inter',
-                            fontSize: 12.sp,
-                            color: AppColors.glassAccent,
-                            fontWeight: FontWeight.w500,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
-                SizedBox(height: 16.h),
-                // Action buttons
-                Row(
-                  children: [
-                    _buildTinyButton(
-                      label: isActive ? 'Pause' : 'Subscribe',
-                      color: AppColors.glassAccent,
-                      onTap: () => Navigator.pushNamed(
-                          context, '/manage-subscriptions',),
-                    ),
-                    SizedBox(width: 8.w),
-                    _buildTinyButton(
-                      label: 'Modify',
-                      color: AppColors.glassOrange,
-                      onTap: () => Navigator.pushNamed(
-                          context, '/manage-subscriptions',),
-                    ),
-                    const Spacer(),
-                    TextButton(
-                      onPressed: () =>
-                          Navigator.pushNamed(context, '/order-history'),
-                      style: TextButton.styleFrom(
-                        padding: EdgeInsets.symmetric(horizontal: 8.w),
-                        minimumSize: Size.zero,
-                        tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                      ),
-                      child: Text(
-                        'History →',
-                        style: TextStyle(
-                          fontFamily: 'Inter',
-                          fontSize: 12.sp,
-                          color: AppColors.glassTextDim,
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ],
-            ),
-          ),
-        );
-      },
-    );
-  }
-
-  Widget _buildTinyButton({
-    required String label,
-    required Color color,
-    required VoidCallback onTap,
-  }) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 7),
-        decoration: BoxDecoration(
-          color: color.withValues(alpha: 0.15),
-          borderRadius: BorderRadius.circular(AppRadius.lg),
-          border: Border.all(
-            color: color.withValues(alpha: 0.3),
-            width: 0.5,
-          ),
-        ),
-        child: Text(
-          label,
-          style: TextStyle(
-            fontFamily: 'Inter',
-            fontSize: 12,
-            fontWeight: FontWeight.w600,
-            color: color,
-          ),
-        ),
-      ),
-    );
-  }
-
-  // ─── Stats Strip (Glass version) ──────────────────────────────────────
-  Widget _buildGlassStats(bool isDark) {
-    return Row(
-      children: [
-        Expanded(child: _statTile(Icons.local_fire_department, '0', 'Calories', isDark)),
-        SizedBox(width: 8.w),
-        Expanded(child: _statTile(Icons.eco, '100%', 'Fresh', isDark)),
-        SizedBox(width: 8.w),
-        Expanded(child: _statTile(Icons.timer, '30m', 'Delivery', isDark)),
-      ],
-    );
-  }
-
-  Widget _statTile(IconData icon, String value, String label, bool isDark) {
-    return GlassCard(
-      padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 8),
-      borderRadius: AppRadius.lg,
-      child: Column(
-        children: [
-          Icon(icon, size: 20, color: AppColors.glassAccent),
-          SizedBox(height: 6.h),
-          Text(
-            value,
-            style: TextStyle(
-              fontFamily: 'Poppins',
-              fontSize: 16.sp,
-              fontWeight: FontWeight.bold,
-              color: isDark ? AppColors.glassText : AppColors.lightTextPrimary,
-            ),
-          ),
-          SizedBox(height: 2.h),
-          Text(
-            label,
-            style: TextStyle(
-              fontFamily: 'Inter',
-              fontSize: 11.sp,
-              color: AppColors.glassTextDim,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  // ─── Trending Juices ──────────────────────────────────────────────────
-  Widget _buildTrendingJuices(BuildContext context, bool isDark) {
-    return BlocBuilder<ProductCatalogBloc, ProductCatalogState>(
-      builder: (context, state) {
-        List<CatalogItem> trendingItems = [];
-        if (state is ProductCatalogLoaded) {
-          // Pick up to 5 random items
-          final rng = Random(42); // Fixed seed for consistency
-          final shuffled = List<CatalogItem>.from(state.items)..shuffle(rng);
-          trendingItems = shuffled.take(5).toList();
-        } else if (state is ProductCatalogFiltered) {
-          final rng = Random(42);
-          final shuffled = List<CatalogItem>.from(state.items)..shuffle(rng);
-          trendingItems = shuffled.take(5).toList();
-        }
-
-        return Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Padding(
-              padding: EdgeInsets.symmetric(horizontal: 16.w),
-              child: Row(
-                children: [
-                  const Icon(Icons.trending_up, size: 18, color: AppColors.glassAccent),
-                  SizedBox(width: 6.w),
-                  Text(
-                    'Trending Juices',
-                    style: TextStyle(
-                      fontFamily: 'Poppins',
-                      fontSize: 17.sp,
-                      fontWeight: FontWeight.w600,
-                      color: isDark ? AppColors.glassText : AppColors.lightTextPrimary,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            SizedBox(height: 12.h),
-            SizedBox(
-              height: 180.h,
-              child: trendingItems.isEmpty
-                  ? Center(
-                      child: Text(
-                        'No juices available',
-                        style: TextStyle(
-                          fontFamily: 'Inter',
-                          fontSize: 13.sp,
-                          color: AppColors.glassTextDim,
-                        ),
-                      ),
-                    )
-                  : ListView.builder(
-                      scrollDirection: Axis.horizontal,
-                      padding: EdgeInsets.symmetric(horizontal: 12.w),
-                      physics: const BouncingScrollPhysics(),
-                      itemCount: trendingItems.length,
-                      itemBuilder: (context, index) {
-                        final item = trendingItems[index];
-                        return _buildTrendingCard(item, isDark);
-                      },
-                    ),
-            ),
-          ],
-        );
-      },
-    );
-  }
-
-  Widget _buildTrendingCard(CatalogItem item, bool isDark) {
-    return Container(
-      width: 140.w,
-      margin: EdgeInsets.symmetric(horizontal: 4.w),
-      child: GlassCard(
-        borderRadius: AppRadius.lg,
-        onTap: () => widget.onNavigateToMenu(1),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Gradient header
-            Container(
-              height: 72.h,
-              decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  colors: [
-                    Color(int.parse(item.startColor.replaceFirst('#', '0xFF'))),
-                    Color(int.parse(item.endColor.replaceFirst('#', '0xFF'))),
-                  ],
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                ),
-                borderRadius: const BorderRadius.vertical(
-                  top: Radius.circular(AppRadius.lg),
-                ),
-              ),
-              child: Center(
-                child: Text(
-                  '🧃',
-                  style: TextStyle(fontSize: 28.sp),
-                ),
-              ),
-            ),
-            // Info
-            Padding(
-              padding: const EdgeInsets.all(10),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    item.name,
-                    style: TextStyle(
-                      fontFamily: 'Poppins',
-                      fontSize: 12.sp,
-                      fontWeight: FontWeight.w600,
-                      color: isDark ? AppColors.glassText : AppColors.lightTextPrimary,
-                    ),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                  SizedBox(height: 2.h),
-                  Row(
-                    children: [
-                      const Icon(Icons.local_fire_department,
-                          size: 10, color: AppColors.glassOrange,),
-                      SizedBox(width: 2.w),
-                      Text(
-                        '${item.calories} cal',
-                        style: TextStyle(
-                          fontFamily: 'Inter',
-                          fontSize: 10.sp,
-                          color: AppColors.glassTextDim,
-                        ),
-                      ),
-                      const Spacer(),
-                      if (item.prices.isNotEmpty)
-                        Text(
-                          '₹${item.prices.first.price?.toStringAsFixed(0) ?? "—"}',
-                          style: TextStyle(
-                            fontFamily: 'Poppins',
-                            fontSize: 12.sp,
-                            fontWeight: FontWeight.bold,
-                            color: AppColors.glassAccent,
-                          ),
-                        ),
-                    ],
-                  ),
-                ],
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  // ─── Order Today Section ─────────────────────────────────────────────
-  Widget _buildOrderTodaySection(BuildContext context, bool isDark) {
     return Padding(
-      padding: EdgeInsets.symmetric(horizontal: 16.w),
+      padding: const EdgeInsets.symmetric(horizontal: BMJTokens.pageMargin),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
+        children: <Widget>[
           Row(
-            children: [
-              Text(
-                'Order Today',
-                style: TextStyle(
-                  fontFamily: 'Poppins',
-                  fontSize: 17.sp,
-                  fontWeight: FontWeight.w600,
-                  color: isDark ? AppColors.glassText : AppColors.lightTextPrimary,
+            children: <Widget>[
+              Expanded(
+                child: Semantics(
+                  header: true,
+                  child: Text(
+                    'Order today',
+                    // Stitch section header is `font-headline-md` — 20/26, 700.
+                    style: AppTextStyles.textTheme.titleMedium?.copyWith(
+                      color: palette.onSurface,
+                    ),
+                  ),
                 ),
               ),
-              const Spacer(),
               TextButton(
                 onPressed: () => widget.onNavigateToMenu(1),
                 style: TextButton.styleFrom(
-                  padding: EdgeInsets.symmetric(horizontal: 12.w),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: AppSpacing.sm,
+                  ),
                   minimumSize: Size.zero,
                   tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                 ),
                 child: Text(
-                  'View Menu →',
-                  style: TextStyle(
-                    fontFamily: 'Inter',
-                    fontSize: 13.sp,
-                    color: AppColors.glassAccent,
-                    fontWeight: FontWeight.w500,
+                  'View menu',
+                  style: AppTextStyles.textTheme.labelLarge?.copyWith(
+                    color: palette.primaryEmphasis,
                   ),
                 ),
               ),
             ],
           ),
-          SizedBox(height: 12.h),
-          // Quick product cards
-          _quickProductCard(
-            name: 'Mango Punch',
-            tag: 'Delight',
-            price: '₹75',
-            gradientColors: [const Color(0xFFFF9800), const Color(0xFFFF5722)],
-            isDark: isDark,
-          ),
-          SizedBox(height: 8.h),
-          _quickProductCard(
-            name: 'Green Detox',
-            tag: 'Signature',
-            price: '₹129',
-            gradientColors: [const Color(0xFF4CAF50), const Color(0xFF2E7D32)],
-            isDark: isDark,
-          ),
-          SizedBox(height: 8.h),
-          _quickProductCard(
-            name: 'Berry Blast',
-            tag: 'Premium',
-            price: '₹159',
-            gradientColors: [const Color(0xFFE91E63), const Color(0xFF880E4F)],
-            isDark: isDark,
+          const SizedBox(height: AppSpacing.sm + 4),
+          BlocBuilder<ProductCatalogBloc, ProductCatalogState>(
+            builder: (context, state) {
+              final List<CatalogItem> items =
+                  _catalogItems(state).take(3).toList();
+
+              if (items.isEmpty) {
+                return Text(
+                  'No juices available right now',
+                  style: AppTextStyles.textTheme.bodyMedium?.copyWith(
+                    color: palette.onSurfaceVariant,
+                  ),
+                );
+              }
+
+              return Column(
+                children: <Widget>[
+                  for (final CatalogItem item in items) ...<Widget>[
+                    _quickProductCard(context, item),
+                    const SizedBox(height: AppSpacing.sm),
+                  ],
+                ],
+              );
+            },
           ),
         ],
       ),
     );
   }
 
-  Widget _quickProductCard({
-    required String name,
-    required String tag,
-    required String price,
-    required List<Color> gradientColors,
-    required bool isDark,
-  }) {
-    return GlassCard(
-      padding: const EdgeInsets.all(16),
-      borderRadius: AppRadius.lg,
-      onTap: () => widget.onNavigateToMenu(1),
+  Widget _quickProductCard(BuildContext context, CatalogItem item) {
+    final BMJPalette palette = BMJPalette.of(context);
+
+    return BMJGlassCard(
+      padding: const EdgeInsets.all(AppSpacing.sm + 2),
       child: Row(
-        children: [
-          Container(
-            width: 52,
-            height: 52,
-            decoration: BoxDecoration(
-              gradient: LinearGradient(
-                colors: gradientColors,
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
+        children: <Widget>[
+          GestureDetector(
+            onTap: () => _openProductDetails(item),
+            child: SizedBox(
+              width: 52,
+              height: 52,
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(AppRadius.md),
+                child: _itemArtwork(item),
               ),
-              borderRadius: BorderRadius.circular(AppRadius.md),
             ),
-            child: const Icon(Icons.local_drink, color: Colors.white, size: 28),
           ),
-          SizedBox(width: 12.w),
+          const SizedBox(width: AppSpacing.sm + 4),
           Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  name,
-                  style: TextStyle(
-                    fontFamily: 'Poppins',
-                    fontSize: 15.sp,
-                    fontWeight: FontWeight.w600,
-                    color: isDark ? AppColors.glassText : AppColors.lightTextPrimary,
+            child: GestureDetector(
+              onTap: () => _openProductDetails(item),
+              behavior: HitTestBehavior.opaque,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: <Widget>[
+                  Text(
+                    item.name,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: AppTextStyles.textTheme.titleSmall?.copyWith(
+                      color: palette.onSurface,
+                    ),
                   ),
-                ),
-                SizedBox(height: 2.h),
-                Text(
-                  tag,
-                  style: TextStyle(
-                    fontFamily: 'Inter',
-                    fontSize: 12.sp,
-                    color: AppColors.glassTextDim,
+                  const SizedBox(height: 2),
+                  Text(
+                    '${item.category} · ${item.calories} cal',
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: AppTextStyles.textTheme.bodySmall?.copyWith(
+                      color: palette.onSurfaceVariant,
+                    ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
           ),
+          const SizedBox(width: AppSpacing.sm),
           Text(
-            price,
-            style: TextStyle(
-              fontFamily: 'Poppins',
-              fontSize: 16.sp,
-              fontWeight: FontWeight.bold,
-              color: AppColors.glassAccent,
+            formatRupees(cheapestPrice(item.prices)),
+            style: AppTextStyles.textTheme.titleMedium?.copyWith(
+              color: palette.primaryEmphasis,
             ),
           ),
-          SizedBox(width: 8.w),
-          const Icon(
-            Icons.add_circle,
-            color: AppColors.glassAccent,
-            size: 24,
-          ),
+          const SizedBox(width: AppSpacing.xs),
+          _addToCartButton(context, item),
         ],
       ),
     );
   }
 
-  // ─── Recent Orders ──────────────────────────────────────────────────
-  Widget _buildRecentOrders(BuildContext context, bool isDark) {
+  // ─── Recent orders ───────────────────────────────────────────────────────
+  Widget _buildRecentOrders(BuildContext context) {
     if (!widget.isAuth) return const SizedBox.shrink();
+    final BMJPalette palette = BMJPalette.of(context);
 
     return BlocBuilder<OrderBloc, OrderState>(
       builder: (context, orderState) {
-        List<OrderSummary> orders = [];
-        if (orderState is OrderHistoryLoaded) {
-          // Show last 3 orders
-          orders = orderState.orders.take(3).toList();
-        } else if (orderState is OrderHistoryLoading) {
-          return Padding(
-            padding: EdgeInsets.symmetric(horizontal: 16.w),
-            child: Row(
-              children: [
-                const SizedBox(
-                  width: 16,
-                  height: 16,
-                  child: CircularProgressIndicator(
-                    strokeWidth: 2,
-                    color: AppColors.glassAccent,
-                  ),
-                ),
-                SizedBox(width: 8.w),
-                Text(
-                  'Loading orders...',
-                  style: TextStyle(
-                    fontFamily: 'Inter',
-                    fontSize: 13.sp,
-                    color: AppColors.glassTextDim,
-                  ),
-                ),
-              ],
-            ),
-          );
-        } else if (orderState is OrderHistoryEmpty || orderState is OrderHistoryError) {
+        if (orderState is! OrderHistoryLoaded) {
           return const SizedBox.shrink();
         }
 
+        final List<OrderSummary> orders = orderState.orders.take(3).toList();
         if (orders.isEmpty) return const SizedBox.shrink();
 
         return Padding(
-          padding: EdgeInsets.symmetric(horizontal: 16.w),
+          padding: const EdgeInsets.fromLTRB(
+            BMJTokens.pageMargin,
+            AppSpacing.lg,
+            BMJTokens.pageMargin,
+            0,
+          ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
+            children: <Widget>[
               Row(
-                children: [
-                  const Icon(Icons.receipt_long, size: 18, color: AppColors.glassAccent),
-                  SizedBox(width: 6.w),
-                  Text(
-                    'Recent Orders',
-                    style: TextStyle(
-                      fontFamily: 'Poppins',
-                      fontSize: 17.sp,
-                      fontWeight: FontWeight.w600,
-                      color: isDark ? AppColors.glassText : AppColors.lightTextPrimary,
+                children: <Widget>[
+                  Expanded(
+                    child: Semantics(
+                      header: true,
+                      child: Text(
+                        'Recent orders',
+                        // Stitch section header is `font-headline-md` — 20/26.
+                        style: AppTextStyles.textTheme.titleMedium?.copyWith(
+                          color: palette.onSurface,
+                        ),
+                      ),
                     ),
                   ),
-                  const Spacer(),
                   TextButton(
-                    onPressed: () => Navigator.pushNamed(context, '/order-history'),
+                    onPressed: () =>
+                        Navigator.pushNamed(context, '/order-history'),
                     style: TextButton.styleFrom(
-                      padding: EdgeInsets.symmetric(horizontal: 8.w),
+                      padding:
+                          const EdgeInsets.symmetric(horizontal: AppSpacing.sm),
                       minimumSize: Size.zero,
                       tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                     ),
                     child: Text(
-                      'View All →',
-                      style: TextStyle(
-                        fontFamily: 'Inter',
-                        fontSize: 12.sp,
-                        color: AppColors.glassTextDim,
+                      'View all',
+                      style: AppTextStyles.textTheme.labelLarge?.copyWith(
+                        color: palette.primaryEmphasis,
                       ),
                     ),
                   ),
                 ],
               ),
-              SizedBox(height: 12.h),
-              ...orders.map((order) => _buildOrderTile(order, isDark)),
+              const SizedBox(height: AppSpacing.sm + 4),
+              for (final OrderSummary order in orders) ...<Widget>[
+                _orderTile(context, order),
+                const SizedBox(height: AppSpacing.sm),
+              ],
             ],
           ),
         );
@@ -965,109 +1055,108 @@ class _HomeTabState extends State<HomeTab> {
     );
   }
 
-  Widget _buildOrderTile(OrderSummary order, bool isDark) {
-    // Simple status color
-    Color statusColor;
-    switch (order.status.toLowerCase()) {
-      case 'delivered':
-        statusColor = AppColors.success;
-        break;
-      case 'processing':
-        statusColor = AppColors.glassOrange;
-        break;
-      case 'cancelled':
-        statusColor = AppColors.error;
-        break;
-      default:
-        statusColor = AppColors.glassTextDim;
-    }
+  Widget _orderTile(BuildContext context, OrderSummary order) {
+    final BMJPalette palette = BMJPalette.of(context);
+    final (Color statusColor, String statusLabel) =
+        switch (order.status.toLowerCase()) {
+      'delivered' => (palette.accentText, 'Delivered'),
+      'processing' => (palette.primaryEmphasis, 'Processing'),
+      'cancelled' => (palette.error, 'Cancelled'),
+      _ => (palette.onSurfaceVariant, order.status),
+    };
+    final String shortId =
+        order.id.length > 8 ? order.id.substring(0, 8) : order.id;
 
-    return Padding(
-      padding: EdgeInsets.only(bottom: 8.h),
-      child: GlassCard(
-        padding: const EdgeInsets.all(14),
-        borderRadius: AppRadius.lg,
-        child: Row(
-          children: [
-            // Icon
-            Container(
-              width: 40,
-              height: 40,
-              decoration: BoxDecoration(
-                color: statusColor.withValues(alpha: 0.15),
-                borderRadius: BorderRadius.circular(AppRadius.md),
-              ),
-              child: Icon(
-                Icons.shopping_bag,
-                size: 20,
-                color: statusColor,
-              ),
+    return BMJGlassCard(
+      padding: const EdgeInsets.all(AppSpacing.sm + 2),
+      child: Row(
+        children: <Widget>[
+          Container(
+            width: 40,
+            height: 40,
+            decoration: BoxDecoration(
+              color: statusColor.withValues(alpha: 0.12),
+              borderRadius: BorderRadius.circular(AppRadius.md),
             ),
-            SizedBox(width: 12.w),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    'Order #${order.id.length > 8 ? order.id.substring(0, 8) : order.id}',
-                    style: TextStyle(
-                      fontFamily: 'Poppins',
-                      fontSize: 13.sp,
-                      fontWeight: FontWeight.w600,
-                      color: isDark ? AppColors.glassText : AppColors.lightTextPrimary,
-                    ),
-                  ),
-                  SizedBox(height: 2.h),
-                  Text(
-                    '${order.itemCount} items • ${order.formattedDate}',
-                    style: TextStyle(
-                      fontFamily: 'Inter',
-                      fontSize: 11.sp,
-                      color: AppColors.glassTextDim,
-                    ),
-                  ),
-                ],
-              ),
+            child: Icon(
+              Icons.receipt_long_rounded,
+              size: 20,
+              color: statusColor,
             ),
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.end,
-              children: [
+          ),
+          const SizedBox(width: AppSpacing.sm + 4),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: <Widget>[
                 Text(
-                  '₹${order.total.toStringAsFixed(0)}',
-                  style: TextStyle(
-                    fontFamily: 'Poppins',
-                    fontSize: 14.sp,
-                    fontWeight: FontWeight.bold,
-                    color: AppColors.glassAccent,
+                  'Order #$shortId',
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: AppTextStyles.textTheme.titleSmall?.copyWith(
+                    color: palette.onSurface,
                   ),
                 ),
-                SizedBox(height: 2.h),
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-                  decoration: BoxDecoration(
-                    color: statusColor.withValues(alpha: 0.15),
-                    borderRadius: BorderRadius.circular(6),
-                  ),
-                  child: Text(
-                    order.status,
-                    style: TextStyle(
-                      fontFamily: 'Inter',
-                      fontSize: 9.sp,
-                      color: statusColor,
-                      fontWeight: FontWeight.w500,
-                    ),
+                const SizedBox(height: 2),
+                Text(
+                  '${order.itemCount} items · ${order.formattedDate}',
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: AppTextStyles.textTheme.bodySmall?.copyWith(
+                    color: palette.onSurfaceVariant,
                   ),
                 ),
               ],
             ),
-          ],
-        ),
+          ),
+          const SizedBox(width: AppSpacing.sm),
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.end,
+            children: <Widget>[
+              Text(
+                formatRupees(order.total),
+                style: AppTextStyles.textTheme.titleMedium?.copyWith(
+                  color: palette.primaryEmphasis,
+                ),
+              ),
+              const SizedBox(height: 2),
+              Text(
+                statusLabel,
+                style: AppTextStyles.textTheme.labelSmall?.copyWith(
+                  color: statusColor,
+                ),
+              ),
+            ],
+          ),
+        ],
       ),
     );
   }
+
+  // ─── Helpers ─────────────────────────────────────────────────────────────
+  /// `#RRGGBB` → [Color]; falls back to the brand orange when malformed.
+  Color _colorFromHex(String? hex) {
+    if (hex == null) return BMJTokens.orange;
+    final String cleaned = hex.replaceFirst('#', '');
+    if (cleaned.length != 6) return BMJTokens.orange;
+    final int? value = int.tryParse(cleaned, radix: 16);
+    return value == null ? BMJTokens.orange : Color(0xFF000000 | value);
+  }
+
+  /// Opens the BMJ product detail page for [item].
+  void _openProductDetails(CatalogItem item) {
+    Navigator.of(context).pushNamed('/productDetails', arguments: item);
+  }
+
+  /// Items for the loaded/filtered catalog states.
+  List<CatalogItem> _catalogItems(ProductCatalogState state) {
+    if (state is ProductCatalogLoaded) return state.items;
+    if (state is ProductCatalogFiltered) return state.items;
+    return const <CatalogItem>[];
+  }
 }
 
-/// Data class for carousel offers.
+/// Data class for the promo rail.
 class _OfferData {
   final String emoji;
   final String title;

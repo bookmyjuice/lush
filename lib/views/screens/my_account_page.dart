@@ -92,8 +92,9 @@ class MyAccountPageState extends State<MyAccountPage> {
         child: Column(
           children: [
             Expanded(
-                // height: MediaQuery.of(context).size.height - 136,
-                child: WebViewWidget(controller: _controller),),
+              // height: MediaQuery.of(context).size.height - 136,
+              child: WebViewWidget(controller: _controller),
+            ),
           ],
         ),
       ),

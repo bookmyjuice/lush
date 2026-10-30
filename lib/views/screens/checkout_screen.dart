@@ -44,7 +44,6 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
   }
 
   @override
-
   Widget build(BuildContext context) {
     return PopScope(
       canPop: false,
@@ -53,7 +52,8 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
         final shouldPop = await BackButtonHandler.confirmExit(
           context,
           title: 'Leave Checkout?',
-          message: 'You have an active checkout in progress. Are you sure you want to leave?',
+          message:
+              'You have an active checkout in progress. Are you sure you want to leave?',
         );
         if (shouldPop && context.mounted) {
           Navigator.of(context).pop();

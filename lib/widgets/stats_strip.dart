@@ -33,7 +33,8 @@ class StatsStrip extends StatelessWidget {
     return Expanded(
       child: Card(
         elevation: 4,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12.r)),
+        shape:
+            RoundedRectangleBorder(borderRadius: BorderRadius.circular(12.r)),
         child: Padding(
           padding: EdgeInsets.symmetric(vertical: 12.h, horizontal: 8.w),
           child: Column(

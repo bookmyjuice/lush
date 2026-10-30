@@ -5,21 +5,23 @@
 /// Subscribe: three-way category toggle + Weekly/Monthly cards with size options → Chargebee checkout
 library;
 
+import 'dart:async';
+import 'dart:ui';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:lush/bloc/CartBloc/cart_bloc.dart';
-import 'package:lush/bloc/CartBloc/cart_event.dart';
-import 'package:lush/bloc/ProductCatalogBloc/product_catalog_bloc.dart' hide AddToCart;
+import 'package:lush/bloc/ProductCatalogBloc/product_catalog_bloc.dart'
+    hide AddToCart;
 import 'package:lush/bloc/SubscriptionBloc/subscription_bloc.dart';
 import 'package:lush/services/subscription_service.dart';
 import 'package:lush/theme/app_colors.dart';
 import 'package:lush/theme/app_radius.dart';
+import 'package:lush/theme/bmj_tokens.dart';
 import 'package:lush/theme/theme_cubit.dart';
-import 'package:lush/views/models/cart_item.dart';
-import 'package:lush/views/models/item.dart';
+import 'package:lush/utils/price_utils.dart';
+import 'package:lush/views/widgets/size_selection_sheet.dart';
 import 'package:lush/widgets/glass_card.dart';
-import 'dart:ui';
 
 /// Menu tab with One-Time / Subscribe segment toggle.
 class MenuTab extends StatefulWidget {
@@ -32,12 +34,17 @@ class MenuTab extends StatefulWidget {
 class MenuTabState extends State<MenuTab> {
   int _segmentIndex = 0;
   String? _selectedCategory; // delight, signature, premium (for one-time)
-  String? _selectedSubCategory; // delight, signature, premium (for subscription)
+  String?
+      _selectedSubCategory; // delight, signature, premium (for subscription)
   String _searchQuery = '';
   final TextEditingController _searchController = TextEditingController();
-  List<String> _cachedOneTimeCategories = [];
+  StreamSubscription<ProductCatalogState>? _catalogSubscription;
 
-  static const List<String> _allCategories = ['delight', 'signature', 'premium'];
+  static const List<String> _allCategories = [
+    'delight',
+    'signature',
+    'premium'
+  ];
 
   @override
   void initState() {
@@ -46,14 +53,16 @@ class MenuTabState extends State<MenuTab> {
     _selectedSubCategory = 'delight';
     context.read<ProductCatalogBloc>().add(const LoadProductCatalog());
     context.read<SubscriptionBloc>().add(const LoadSubscriptionPlans());
-    // Auto-filter only after catalog data is loaded
-    context.read<ProductCatalogBloc>().stream.listen((state) {
+    // Auto-filter only after catalog data is loaded.
+    _catalogSubscription =
+        context.read<ProductCatalogBloc>().stream.listen((state) {
+      if (!mounted) return;
       if (state is ProductCatalogLoaded && state.categories.isNotEmpty) {
-        if (_selectedCategory != null && mounted) {
-          _cachedOneTimeCategories = List<String>.from(state.categories);
+        final String? category = _selectedCategory;
+        if (category != null) {
           context.read<ProductCatalogBloc>().add(
-            FilterByCategory(category: _selectedCategory!),
-          );
+                FilterByCategory(category: category),
+              );
         }
       }
     });
@@ -61,13 +70,15 @@ class MenuTabState extends State<MenuTab> {
 
   @override
   void dispose() {
+    _catalogSubscription?.cancel();
     _searchController.dispose();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
-    final isDark = context.watch<ThemeCubit>().state.resolvedThemeMode == ThemeMode.dark;
+    final isDark =
+        context.watch<ThemeCubit>().state.resolvedThemeMode == ThemeMode.dark;
     final bgColor = isDark ? AppColors.glassBg : AppColors.glassBgLight;
 
     return Container(
@@ -114,15 +125,22 @@ class MenuTabState extends State<MenuTab> {
         controller: _searchController,
         decoration: InputDecoration(
           hintText: 'Search juices...',
-          hintStyle: TextStyle(fontFamily: 'Inter', fontSize: 14.sp, color: AppColors.glassTextDim),
-          prefixIcon: const Icon(Icons.search, color: AppColors.glassTextDim, size: 20),
+          hintStyle: TextStyle(
+              fontFamily: 'Inter',
+              fontSize: 14.sp,
+              color: AppColors.glassTextDim),
+          prefixIcon:
+              const Icon(Icons.search, color: AppColors.glassTextDim, size: 20),
           suffixIcon: _searchQuery.isNotEmpty
               ? IconButton(
-                  icon: const Icon(Icons.clear, size: 18, color: AppColors.glassTextDim),
+                  icon: const Icon(Icons.clear,
+                      size: 18, color: AppColors.glassTextDim),
                   onPressed: () {
                     _searchController.clear();
                     setState(() => _searchQuery = '');
-                    context.read<ProductCatalogBloc>().add(const SearchProducts(query: ''));
+                    context
+                        .read<ProductCatalogBloc>()
+                        .add(const SearchProducts(query: ''));
                   },
                 )
               : null,
@@ -164,16 +182,24 @@ class MenuTabState extends State<MenuTab> {
                   duration: const Duration(milliseconds: 200),
                   padding: EdgeInsets.symmetric(vertical: 12.h),
                   decoration: BoxDecoration(
-                    color: isSel ? color.withValues(alpha: 0.2) : Colors.transparent,
+                    color: isSel
+                        ? color.withValues(alpha: 0.2)
+                        : Colors.transparent,
                     borderRadius: BorderRadius.circular(AppRadius.md),
                     border: Border.all(
-                      color: isSel ? color : (isDark ? AppColors.glassBorderSubtle : AppColors.glassBorderLight),
+                      color: isSel
+                          ? color
+                          : (isDark
+                              ? AppColors.glassBorderSubtle
+                              : AppColors.glassBorderLight),
                       width: isSel ? 1.5 : 0.5,
                     ),
                   ),
                   child: Column(
                     children: [
-                      Icon(_categoryIcon(cat), size: 18, color: isSel ? color : AppColors.glassTextDim),
+                      Icon(_categoryIcon(cat),
+                          size: 18,
+                          color: isSel ? color : AppColors.glassTextDim),
                       SizedBox(height: 4.h),
                       Text(
                         _categoryDisplay(cat),
@@ -203,7 +229,6 @@ class MenuTabState extends State<MenuTab> {
 
         if (state is ProductCatalogLoaded) {
           items = state.items;
-          _cachedOneTimeCategories = state.categories;
         } else if (state is ProductCatalogFiltered) {
           items = state.items;
         } else if (state is ProductCatalogLoading) {
@@ -213,9 +238,12 @@ class MenuTabState extends State<MenuTab> {
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                const Icon(Icons.inventory_2_outlined, size: 64, color: AppColors.glassTextDim),
+                const Icon(Icons.inventory_2_outlined,
+                    size: 64, color: AppColors.glassTextDim),
                 SizedBox(height: 16.h),
-                Text('No products found', style: TextStyle(fontSize: 16.sp, color: AppColors.glassTextDim)),
+                Text('No products found',
+                    style: TextStyle(
+                        fontSize: 16.sp, color: AppColors.glassTextDim)),
               ],
             ),
           );
@@ -224,12 +252,16 @@ class MenuTabState extends State<MenuTab> {
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                const Icon(Icons.error_outline, size: 64, color: AppColors.glassTextDim),
+                const Icon(Icons.error_outline,
+                    size: 64, color: AppColors.glassTextDim),
                 SizedBox(height: 16.h),
-                Text(state.message, style: const TextStyle(color: AppColors.glassTextDim)),
+                Text(state.message,
+                    style: const TextStyle(color: AppColors.glassTextDim)),
                 SizedBox(height: 16.h),
                 GestureDetector(
-                  onTap: () => context.read<ProductCatalogBloc>().add(const LoadProductCatalog()),
+                  onTap: () => context
+                      .read<ProductCatalogBloc>()
+                      .add(const LoadProductCatalog()),
                   child: const GlassCard(
                     padding: EdgeInsets.symmetric(horizontal: 24, vertical: 12),
                     borderRadius: AppRadius.lg,
@@ -241,10 +273,24 @@ class MenuTabState extends State<MenuTab> {
           );
         }
 
+        // Filter for One-Time items (items with one-time or null period unit)
+        items = items
+            .where((item) =>
+                item.prices.isEmpty ||
+                item.prices.any((p) =>
+                    p.periodUnit == null ||
+                    p.periodUnit == 'ONE_TIME' ||
+                    p.periodUnit == 'one_time' ||
+                    p.periodUnit == ''))
+            .toList();
+
         // Filter by selected category
         if (_selectedCategory != null) {
-          items = items.where((item) =>
-              item.category.toLowerCase() == _selectedCategory!.toLowerCase()).toList();
+          items = items
+              .where((item) =>
+                  item.category.toLowerCase() ==
+                  _selectedCategory!.toLowerCase())
+              .toList();
         }
 
         return Column(
@@ -254,7 +300,9 @@ class MenuTabState extends State<MenuTab> {
               selected: _selectedCategory,
               onChanged: (cat) {
                 setState(() => _selectedCategory = cat);
-                context.read<ProductCatalogBloc>().add(FilterByCategory(category: cat));
+                context
+                    .read<ProductCatalogBloc>()
+                    .add(FilterByCategory(category: cat));
               },
               isDark: isDark,
             ),
@@ -262,7 +310,9 @@ class MenuTabState extends State<MenuTab> {
             // Product grid
             Expanded(
               child: items.isEmpty
-                  ? Center(child: Text('No items in $_selectedCategory', style: TextStyle(color: AppColors.glassTextDim)))
+                  ? Center(
+                      child: Text('No items in $_selectedCategory',
+                          style: TextStyle(color: AppColors.glassTextDim)))
                   : GridView.builder(
                       physics: const BouncingScrollPhysics(),
                       padding: EdgeInsets.symmetric(horizontal: 16.w),
@@ -273,7 +323,8 @@ class MenuTabState extends State<MenuTab> {
                         mainAxisSpacing: 12.h,
                       ),
                       itemCount: items.length,
-                      itemBuilder: (context, index) => _buildProductCard(items[index], isDark),
+                      itemBuilder: (context, index) =>
+                          _buildProductCard(items[index], isDark),
                     ),
             ),
           ],
@@ -282,19 +333,12 @@ class MenuTabState extends State<MenuTab> {
     );
   }
 
-  /// Product card showing minimum available price
+  /// Product card showing the cheapest *real* price.
   Widget _buildProductCard(CatalogItem item, bool isDark) {
-    // Find the cheapest price (smallest size)
-    ItemPrice? cheapest;
-    if (item.prices.isNotEmpty) {
-      cheapest = item.prices.reduce((a, b) =>
-          (a.price ?? double.infinity) < (b.price ?? double.infinity) ? a : b);
-    }
-
     return GlassCard(
       padding: EdgeInsets.zero,
       borderRadius: AppRadius.lg,
-      onTap: () => _showSizeSelectionDialog(item),
+      onTap: () => _openProductDetails(item),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -304,14 +348,20 @@ class MenuTabState extends State<MenuTab> {
               width: double.infinity,
               decoration: BoxDecoration(
                 gradient: LinearGradient(
-                  colors: [_hexToColor(item.startColor), _hexToColor(item.endColor)],
+                  colors: [
+                    _hexToColor(item.startColor),
+                    _hexToColor(item.endColor)
+                  ],
                   begin: Alignment.topLeft,
                   end: Alignment.bottomRight,
                 ),
-                borderRadius: const BorderRadius.vertical(top: Radius.circular(AppRadius.lg)),
+                borderRadius: const BorderRadius.vertical(
+                    top: Radius.circular(AppRadius.lg)),
               ),
               child: Center(
-                child: Icon(Icons.local_drink, size: 48, color: Colors.white.withValues(alpha: 0.6)),
+                child: Icon(Icons.local_drink,
+                    size: 48,
+                    color: BMJTokens.inkOnBrand.withValues(alpha: 0.6)),
               ),
             ),
           ),
@@ -325,44 +375,72 @@ class MenuTabState extends State<MenuTab> {
                 Container(
                   padding: EdgeInsets.symmetric(horizontal: 8.w, vertical: 3.h),
                   decoration: BoxDecoration(
-                    color: _categoryColor(item.category).withValues(alpha: 0.15),
+                    color:
+                        _categoryColor(item.category).withValues(alpha: 0.15),
                     borderRadius: BorderRadius.circular(AppRadius.md),
                   ),
                   child: Text(
                     item.category,
-                    style: TextStyle(fontSize: 10.sp, fontWeight: FontWeight.w600, color: _categoryColor(item.category)),
+                    style: TextStyle(
+                        fontSize: 10.sp,
+                        fontWeight: FontWeight.w600,
+                        color: _categoryColor(item.category)),
                   ),
                 ),
                 SizedBox(height: 8.h),
                 Text(
                   item.name,
                   style: TextStyle(
-                    fontFamily: 'Poppins', fontSize: 14.sp, fontWeight: FontWeight.w600,
-                    color: isDark ? AppColors.glassText : AppColors.lightTextPrimary,
+                    fontFamily: 'Poppins',
+                    fontSize: 14.sp,
+                    fontWeight: FontWeight.w600,
+                    color: isDark
+                        ? AppColors.glassText
+                        : AppColors.lightTextPrimary,
                   ),
-                  maxLines: 1, overflow: TextOverflow.ellipsis,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
                 ),
                 SizedBox(height: 4.h),
                 Text('${item.calories} cal',
-                    style: TextStyle(fontFamily: 'Inter', fontSize: 11.sp, color: AppColors.glassTextDim)),
+                    style: TextStyle(
+                        fontFamily: 'Inter',
+                        fontSize: 11.sp,
+                        color: AppColors.glassTextDim)),
                 SizedBox(height: 8.h),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     Text(
-                      cheapest != null ? 'From ₹${cheapest.price?.toStringAsFixed(0) ?? '0'}' : 'From ₹75',
+                      fromPriceLabel(item.prices),
                       style: TextStyle(
-                        fontFamily: 'Poppins', fontSize: 16.sp, fontWeight: FontWeight.bold, color: AppColors.glassAccent,
+                        fontFamily: 'Poppins',
+                        fontSize: 16.sp,
+                        fontWeight: FontWeight.bold,
+                        color: AppColors.glassAccent,
                       ),
                     ),
-                    Container(
-                      padding: const EdgeInsets.all(6),
-                      decoration: BoxDecoration(
-                        color: AppColors.glassAccent.withValues(alpha: 0.15),
-                        borderRadius: BorderRadius.circular(AppRadius.md),
-                        border: Border.all(color: AppColors.glassAccent.withValues(alpha: 0.3), width: 0.5),
+                    Semantics(
+                      button: true,
+                      label: 'Choose a size for ${item.name}',
+                      child: GestureDetector(
+                        onTap: () => _showSizeSelectionDialog(item),
+                        behavior: HitTestBehavior.opaque,
+                        child: Container(
+                          padding: const EdgeInsets.all(6),
+                          decoration: BoxDecoration(
+                            color:
+                                AppColors.glassAccent.withValues(alpha: 0.15),
+                            borderRadius: BorderRadius.circular(AppRadius.md),
+                            border: Border.all(
+                                color: AppColors.glassAccent
+                                    .withValues(alpha: 0.3),
+                                width: 0.5),
+                          ),
+                          child: const Icon(Icons.add,
+                              size: 18, color: AppColors.glassAccent),
+                        ),
                       ),
-                      child: const Icon(Icons.add, size: 18, color: AppColors.glassAccent),
                     ),
                   ],
                 ),
@@ -375,11 +453,12 @@ class MenuTabState extends State<MenuTab> {
   }
 
   void _showSizeSelectionDialog(CatalogItem item) {
-    showModalBottomSheet(
-      context: context,
-      backgroundColor: Colors.transparent,
-      builder: (ctx) => _SizeSelectionSheet(item: item),
-    );
+    showSizeSelectionSheet(context, item);
+  }
+
+  /// Opens the BMJ product detail page for [item].
+  void _openProductDetails(CatalogItem item) {
+    Navigator.of(context).pushNamed('/productDetails', arguments: item);
   }
 
   // ═══ SUBSCRIBE CONTENT ═════════════════════════════════════════════════
@@ -390,43 +469,77 @@ class MenuTabState extends State<MenuTab> {
           return const Center(child: CircularProgressIndicator());
         }
 
+        if (state is SubscriptionError) {
+          return Center(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                const Icon(Icons.error_outline,
+                    size: 64, color: AppColors.glassTextDim),
+                SizedBox(height: 16.h),
+                Text(state.message,
+                    style: TextStyle(
+                        fontSize: 14.sp, color: AppColors.glassTextDim)),
+                SizedBox(height: 16.h),
+                GestureDetector(
+                  onTap: () => context
+                      .read<SubscriptionBloc>()
+                      .add(const LoadSubscriptionPlans()),
+                  child: const GlassCard(
+                    padding: EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                    borderRadius: AppRadius.lg,
+                    child: Text('Retry'),
+                  ),
+                ),
+              ],
+            ),
+          );
+        }
+
         List<SubscriptionPlan> allPlans = [];
         if (state is SubscriptionPlansLoaded) {
           allPlans = state.plans;
         }
 
-    if (allPlans.isEmpty) {
-      return Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            const Icon(Icons.subscriptions_outlined, size: 64, color: AppColors.glassTextDim),
-            SizedBox(height: 16.h),
-            Text(
-              state is SubscriptionError ? 'Loading plans...' : 'No subscription plans available',
-              style: TextStyle(fontSize: 16.sp, color: AppColors.glassTextDim)),
-            SizedBox(height: 16.h),
-            GestureDetector(
-              onTap: () => context.read<SubscriptionBloc>().add(const LoadSubscriptionPlans()),
-              child: const GlassCard(
-                padding: EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-                borderRadius: AppRadius.lg,
-                child: Text('Retry'),
-              ),
+        if (allPlans.isEmpty) {
+          return Center(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                const Icon(Icons.subscriptions_outlined,
+                    size: 64, color: AppColors.glassTextDim),
+                SizedBox(height: 16.h),
+                Text('No subscription plans available',
+                    style: TextStyle(
+                        fontSize: 16.sp, color: AppColors.glassTextDim)),
+                SizedBox(height: 16.h),
+                GestureDetector(
+                  onTap: () => context
+                      .read<SubscriptionBloc>()
+                      .add(const LoadSubscriptionPlans()),
+                  child: const GlassCard(
+                    padding: EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                    borderRadius: AppRadius.lg,
+                    child: Text('Retry'),
+                  ),
+                ),
+              ],
             ),
-          ],
-        ),
-      );
-    }
+          );
+        }
 
         // Filter by selected category
         final filtered = allPlans
-            .where((p) => p.category == _selectedSubCategory)
+            .where((p) =>
+                p.category.toLowerCase() ==
+                (_selectedSubCategory ?? 'delight').toLowerCase())
             .toList();
 
         // Separate weekly and monthly plans
-        final weeklyPlans = filtered.where((p) => p.period == 'Weekly').toList();
-        final monthlyPlans = filtered.where((p) => p.period == 'Monthly').toList();
+        final weeklyPlans =
+            filtered.where((p) => p.period.toLowerCase() == 'weekly').toList();
+        final monthlyPlans =
+            filtered.where((p) => p.period.toLowerCase() == 'monthly').toList();
 
         return Column(
           children: [
@@ -451,7 +564,8 @@ class MenuTabState extends State<MenuTab> {
                       title: 'Weekly',
                       icon: Icons.calendar_view_week,
                       plans: weeklyPlans,
-                      catColor: _categoryColor(_selectedSubCategory ?? 'delight'),
+                      catColor:
+                          _categoryColor(_selectedSubCategory ?? 'delight'),
                       isDark: isDark,
                     ),
                   SizedBox(height: 12.h),
@@ -461,7 +575,8 @@ class MenuTabState extends State<MenuTab> {
                       title: 'Monthly',
                       icon: Icons.calendar_month,
                       plans: monthlyPlans,
-                      catColor: _categoryColor(_selectedSubCategory ?? 'delight'),
+                      catColor:
+                          _categoryColor(_selectedSubCategory ?? 'delight'),
                       isDark: isDark,
                     ),
                   SizedBox(height: 24.h),
@@ -485,7 +600,8 @@ class MenuTabState extends State<MenuTab> {
     if (plans.isEmpty) return const SizedBox.shrink();
 
     // Sort by size
-    plans.sort((a, b) => int.parse(a.sizeLabel).compareTo(int.parse(b.sizeLabel)));
+    plans.sort(
+        (a, b) => int.parse(a.sizeLabel).compareTo(int.parse(b.sizeLabel)));
 
     return GlassCard(
       padding: const EdgeInsets.all(16),
@@ -504,7 +620,7 @@ class MenuTabState extends State<MenuTab> {
                   ),
                   borderRadius: BorderRadius.circular(AppRadius.md),
                 ),
-                child: Icon(icon, color: Colors.white, size: 20),
+                child: Icon(icon, color: BMJTokens.inkOnBrand, size: 20),
               ),
               SizedBox(width: 10.w),
               Text(
@@ -513,7 +629,8 @@ class MenuTabState extends State<MenuTab> {
                   fontFamily: 'Poppins',
                   fontSize: 16.sp,
                   fontWeight: FontWeight.w600,
-                  color: isDark ? AppColors.glassText : AppColors.lightTextPrimary,
+                  color:
+                      isDark ? AppColors.glassText : AppColors.lightTextPrimary,
                 ),
               ),
             ],
@@ -521,9 +638,7 @@ class MenuTabState extends State<MenuTab> {
           SizedBox(height: 14.h),
           // Size options as clickable tiles
           ...plans.map((plan) {
-            final priceStr = plan.price != null
-                ? '₹${(plan.price is int ? (plan.price as int) / 100 : plan.price).toStringAsFixed(0)}'
-                : 'N/A';
+            final priceStr = _planPriceLabel(plan.price);
 
             return GestureDetector(
               onTap: () => _createSubscriptionAndNavigate(context, plan.id),
@@ -541,7 +656,8 @@ class MenuTabState extends State<MenuTab> {
                     Row(
                       children: [
                         Container(
-                          padding: EdgeInsets.symmetric(horizontal: 8.w, vertical: 4.h),
+                          padding: EdgeInsets.symmetric(
+                              horizontal: 8.w, vertical: 4.h),
                           decoration: BoxDecoration(
                             color: catColor.withValues(alpha: 0.15),
                             borderRadius: BorderRadius.circular(AppRadius.sm),
@@ -557,13 +673,41 @@ class MenuTabState extends State<MenuTab> {
                           ),
                         ),
                         SizedBox(width: 10.w),
-                        Text(
-                          plan.name,
-                          style: TextStyle(
-                            fontFamily: 'Inter',
-                            fontSize: 13.sp,
-                            color: isDark ? AppColors.glassTextDim : AppColors.lightTextSecondary,
-                          ),
+                        Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              plan.name,
+                              style: TextStyle(
+                                fontFamily: 'Inter',
+                                fontSize: 13.sp,
+                                color: isDark
+                                    ? AppColors.glassTextDim
+                                    : AppColors.lightTextSecondary,
+                              ),
+                            ),
+                            if (plan.category.toLowerCase() == 'premium') ...[
+                              SizedBox(height: 2.h),
+                              Container(
+                                padding: EdgeInsets.symmetric(
+                                    horizontal: 6.w, vertical: 2.h),
+                                decoration: BoxDecoration(
+                                  color: AppColors.primaryOrange
+                                      .withValues(alpha: 0.2),
+                                  borderRadius:
+                                      BorderRadius.circular(AppRadius.sm),
+                                ),
+                                child: Text(
+                                  '🔥 Most Popular',
+                                  style: TextStyle(
+                                    fontSize: 10.sp,
+                                    fontWeight: FontWeight.bold,
+                                    color: AppColors.primaryOrange,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ],
                         ),
                       ],
                     ),
@@ -575,11 +719,14 @@ class MenuTabState extends State<MenuTab> {
                             fontFamily: 'Poppins',
                             fontSize: 14.sp,
                             fontWeight: FontWeight.bold,
-                            color: isDark ? AppColors.glassAccent : AppColors.primaryGreen,
+                            color: isDark
+                                ? AppColors.glassAccent
+                                : AppColors.primaryGreen,
                           ),
                         ),
                         SizedBox(width: 6.w),
-                        Icon(Icons.arrow_forward_ios, size: 14, color: catColor),
+                        Icon(Icons.arrow_forward_ios,
+                            size: 14, color: catColor),
                       ],
                     ),
                   ],
@@ -593,7 +740,8 @@ class MenuTabState extends State<MenuTab> {
   }
 
   /// Create subscription and navigate to Chargebee hosted checkout
-  Future<void> _createSubscriptionAndNavigate(BuildContext context, String planId) async {
+  Future<void> _createSubscriptionAndNavigate(
+      BuildContext context, String planId) async {
     // Show loading
     showDialog(
       context: context,
@@ -613,7 +761,9 @@ class MenuTabState extends State<MenuTab> {
       } else {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('Failed to get checkout: ${result['message'] ?? 'Unknown error'}')),
+            SnackBar(
+                content: Text(
+                    'Failed to get checkout: ${result['message'] ?? 'Unknown error'}')),
           );
         }
       }
@@ -630,28 +780,40 @@ class MenuTabState extends State<MenuTab> {
   // ─── Category Helpers ───────────────────────────────────────────────────
   String _categoryDisplay(String cat) {
     switch (cat) {
-      case 'delight': return 'Delight';
-      case 'signature': return 'Signature';
-      case 'premium': return 'Premium';
-      default: return cat;
+      case 'delight':
+        return '😊 Delight';
+      case 'signature':
+        return '💎 Signature';
+      case 'premium':
+        return '⭐ Premium';
+      default:
+        return cat;
     }
   }
 
   Color _categoryColor(String cat) {
     switch (cat) {
-      case 'delight': return AppColors.success;
-      case 'signature': return AppColors.info;
-      case 'premium': return AppColors.primaryOrangeDark;
-      default: return AppColors.glassAccent;
+      case 'delight':
+        return AppColors.success;
+      case 'signature':
+        return AppColors.info;
+      case 'premium':
+        return AppColors.primaryOrangeDark;
+      default:
+        return AppColors.glassAccent;
     }
   }
 
   IconData _categoryIcon(String cat) {
     switch (cat) {
-      case 'delight': return Icons.eco;
-      case 'signature': return Icons.auto_awesome;
-      case 'premium': return Icons.star;
-      default: return Icons.category;
+      case 'delight':
+        return Icons.eco;
+      case 'signature':
+        return Icons.diamond;
+      case 'premium':
+        return Icons.star;
+      default:
+        return Icons.category;
     }
   }
 
@@ -659,6 +821,22 @@ class MenuTabState extends State<MenuTab> {
     hex = hex.replaceAll('#', '');
     if (hex.length == 6) return Color(int.parse('FF$hex', radix: 16));
     return AppColors.glassAccent;
+  }
+
+  /// Formats a plan price the backend may send as paise (`int`), rupees
+  /// (`double`) or a `String`.
+  ///
+  /// The previous `(plan.price as int) / 100` + `toStringAsFixed` branch threw
+  /// at runtime whenever the API returned a string price, taking the whole
+  /// Subscribe tab down.
+  String _planPriceLabel(Object? raw) {
+    final double? rupees = switch (raw) {
+      null => null,
+      final int value => value / 100,
+      final num value => value.toDouble(),
+      _ => double.tryParse(raw.toString()),
+    };
+    return formatRupees(rupees, fallback: 'N/A');
   }
 }
 
@@ -685,9 +863,14 @@ class _GlassSegmentToggle extends StatelessWidget {
         child: Container(
           padding: const EdgeInsets.all(4),
           decoration: BoxDecoration(
-            color: isDark ? AppColors.glassSurface.withValues(alpha: 0.8) : AppColors.glassSurfaceLight.withValues(alpha: 0.8),
+            color: isDark
+                ? AppColors.glassSurface.withValues(alpha: 0.8)
+                : AppColors.glassSurfaceLight.withValues(alpha: 0.8),
             borderRadius: BorderRadius.circular(AppRadius.lg),
-            border: Border.all(color: isDark ? AppColors.glassBorderSubtle : AppColors.glassBorderLight),
+            border: Border.all(
+                color: isDark
+                    ? AppColors.glassBorderSubtle
+                    : AppColors.glassBorderLight),
           ),
           child: Row(
             children: List.generate(segments.length, (index) {
@@ -699,7 +882,9 @@ class _GlassSegmentToggle extends StatelessWidget {
                     duration: const Duration(milliseconds: 200),
                     padding: const EdgeInsets.symmetric(vertical: 12),
                     decoration: BoxDecoration(
-                      color: isSelected ? AppColors.glassAccent.withValues(alpha: 0.25) : Colors.transparent,
+                      color: isSelected
+                          ? AppColors.glassAccent.withValues(alpha: 0.25)
+                          : Colors.transparent,
                       borderRadius: BorderRadius.circular(AppRadius.md),
                     ),
                     child: Text(
@@ -708,8 +893,13 @@ class _GlassSegmentToggle extends StatelessWidget {
                       style: TextStyle(
                         fontFamily: 'Inter',
                         fontSize: 14.sp,
-                        fontWeight: isSelected ? FontWeight.w600 : FontWeight.w400,
-                        color: isSelected ? AppColors.glassAccent : (isDark ? AppColors.glassTextDim : AppColors.lightTextSecondary),
+                        fontWeight:
+                            isSelected ? FontWeight.w600 : FontWeight.w400,
+                        color: isSelected
+                            ? AppColors.glassAccent
+                            : (isDark
+                                ? AppColors.glassTextDim
+                                : AppColors.lightTextSecondary),
                       ),
                     ),
                   ),
@@ -720,126 +910,5 @@ class _GlassSegmentToggle extends StatelessWidget {
         ),
       ),
     );
-  }
-}
-
-// ═══ Size Selection Bottom Sheet ════════════════════════════════════════
-class _SizeSelectionSheet extends StatefulWidget {
-  final CatalogItem item;
-  const _SizeSelectionSheet({required this.item});
-
-  @override
-  State<_SizeSelectionSheet> createState() => _SizeSelectionSheetState();
-}
-
-class _SizeSelectionSheetState extends State<_SizeSelectionSheet> {
-  ItemPrice? _selectedPrice;
-
-  @override
-  Widget build(BuildContext context) {
-    final isDark = context.watch<ThemeCubit>().state.resolvedThemeMode == ThemeMode.dark;
-
-    return Container(
-      margin: EdgeInsets.all(16.w),
-      padding: EdgeInsets.all(24.w),
-      decoration: BoxDecoration(
-        color: isDark ? AppColors.glassElevated : AppColors.glassElevatedLight,
-        borderRadius: BorderRadius.circular(AppRadius.xl),
-        border: Border.all(color: isDark ? AppColors.glassBorder : AppColors.glassBorderLight),
-      ),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              Container(
-                width: 48, height: 48,
-                decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    colors: [_hexToColor(widget.item.startColor), _hexToColor(widget.item.endColor)],
-                  ),
-                  borderRadius: BorderRadius.circular(AppRadius.md),
-                ),
-                child: const Icon(Icons.local_drink, color: Colors.white, size: 28),
-              ),
-              SizedBox(width: 12.w),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(widget.item.name, style: TextStyle(fontFamily: 'Poppins', fontSize: 18.sp, fontWeight: FontWeight.w600, color: isDark ? AppColors.glassText : AppColors.lightTextPrimary)),
-                    Text('Select size', style: TextStyle(fontFamily: 'Inter', fontSize: 13.sp, color: AppColors.glassTextDim)),
-                  ],
-                ),
-              ),
-              GestureDetector(
-                onTap: () => Navigator.pop(context),
-                child: Container(
-                  padding: const EdgeInsets.all(4),
-                  decoration: BoxDecoration(
-                    color: isDark ? AppColors.glassSurface.withValues(alpha: 0.6) : AppColors.glassSurfaceLight.withValues(alpha: 0.6),
-                    shape: BoxShape.circle,
-                  ),
-                  child: const Icon(Icons.close, size: 18, color: AppColors.glassTextDim),
-                ),
-              ),
-            ],
-          ),
-          SizedBox(height: 24.h),
-          ...widget.item.prices.map((price) {
-            final isSelected = _selectedPrice == price;
-            return GestureDetector(
-              onTap: () => setState(() => _selectedPrice = price),
-              child: Container(
-                margin: EdgeInsets.only(bottom: 8.h),
-                padding: const EdgeInsets.all(16),
-                decoration: BoxDecoration(
-                  color: isSelected ? AppColors.glassAccent.withValues(alpha: 0.1) : (isDark ? AppColors.glassSurface : AppColors.glassSurfaceLight),
-                  borderRadius: BorderRadius.circular(AppRadius.md),
-                  border: Border.all(
-                    color: isSelected ? AppColors.glassAccent.withValues(alpha: 0.5) : (isDark ? AppColors.glassBorderSubtle : AppColors.glassBorderLight),
-                    width: isSelected ? 1 : 0.5,
-                  ),
-                ),
-                child: Row(
-                  children: [
-                    Expanded(child: Text(price.name ?? 'Standard', style: TextStyle(fontFamily: 'Inter', fontSize: 14.sp, fontWeight: isSelected ? FontWeight.w600 : FontWeight.w400, color: isDark ? AppColors.glassText : AppColors.lightTextPrimary))),
-                    Text('₹${price.price?.toStringAsFixed(0) ?? '0'}', style: TextStyle(fontFamily: 'Poppins', fontSize: 16.sp, fontWeight: FontWeight.bold, color: isSelected ? AppColors.glassAccent : AppColors.glassTextDim)),
-                  ],
-                ),
-              ),
-            );
-          }),
-          SizedBox(height: 16.h),
-          GestureDetector(
-            onTap: _selectedPrice != null
-                ? () {
-                    context.read<CartBloc>().add(AddToCart(CartItem(item: widget.item.item, selectedPrice: _selectedPrice)));
-                    Navigator.pop(context);
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(content: Text('${widget.item.name} (${_selectedPrice!.name}) added to cart'), behavior: SnackBarBehavior.floating, backgroundColor: AppColors.glassAccent),
-                    );
-                  }
-                : null,
-            child: Container(
-              width: double.infinity,
-              padding: const EdgeInsets.symmetric(vertical: 16),
-              decoration: BoxDecoration(
-                color: _selectedPrice != null ? AppColors.glassAccent : AppColors.glassTextDim.withValues(alpha: 0.3),
-                borderRadius: BorderRadius.circular(AppRadius.md),
-              ),
-              child: Text('Add to Cart', textAlign: TextAlign.center, style: TextStyle(fontFamily: 'Inter', fontSize: 15.sp, fontWeight: FontWeight.w600, color: _selectedPrice != null ? Colors.black : AppColors.glassTextDim)),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Color _hexToColor(String hex) {
-    hex = hex.replaceAll('#', '');
-    if (hex.length == 6) return Color(int.parse('FF$hex', radix: 16));
-    return AppColors.glassAccent;
   }
 }

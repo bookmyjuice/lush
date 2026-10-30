@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:lush/theme/app_colors.dart';
 import '../models/item.dart';
+import 'package:lush/theme/bmj_tokens.dart';
 
 class SizeSelectionModal extends StatefulWidget {
   final Item item;
@@ -32,18 +33,16 @@ class _SizeSelectionModalState extends State<SizeSelectionModal> {
   @override
   Widget build(BuildContext context) {
     final prices = widget.item.itemPrices ?? [];
+    final palette = BMJPalette.of(context);
 
     return DecoratedBox(
       decoration: BoxDecoration(
-        color: Colors.white,
+        // Raw white + black shadow was the light-theme bug.
+        color: palette.surfaceContainerHigh,
         borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.1),
-            blurRadius: 10,
-            spreadRadius: 1,
-          ),
-        ],
+        border: Border(
+          top: BorderSide(color: palette.glassBorder, width: BMJTokens.hairline),
+        ),
       ),
       child: SafeArea(
         child: Column(
@@ -223,7 +222,7 @@ class _SizeSelectionModalState extends State<SizeSelectionModal> {
                                   fontWeight: FontWeight.bold,
                                   fontSize: 14,
                                   color: isSelected
-                                      ? Colors.white
+                                      ? BMJTokens.inkOnBrand
                                       : AppColors.lightTextPrimary,
                                 ),
                               ),
@@ -240,7 +239,7 @@ class _SizeSelectionModalState extends State<SizeSelectionModal> {
             Container(
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
-                color: Colors.white,
+                color: BMJTokens.inkOnBrand,
                 boxShadow: [
                   BoxShadow(
                     color: Colors.black.withValues(alpha: 0.05),
@@ -297,7 +296,7 @@ class _SizeSelectionModalState extends State<SizeSelectionModal> {
                                     content: Text(
                                       '${widget.item.name} (${selectedPrice!.name}) added to cart!',
                                       style:
-                                          const TextStyle(color: Colors.white),
+                                          const TextStyle(color: BMJTokens.inkOnBrand),
                                     ),
                                     backgroundColor: Colors.green,
                                     duration: const Duration(seconds: 2),
@@ -307,7 +306,7 @@ class _SizeSelectionModalState extends State<SizeSelectionModal> {
                                     ),
                                     action: SnackBarAction(
                                       label: 'VIEW CART',
-                                      textColor: Colors.white,
+                                      textColor: BMJTokens.inkOnBrand,
                                       onPressed: () {
                                         // Use a delayed future to ensure we're not using a disposed context
                                         Future<void>.delayed(Duration.zero, () {
@@ -330,7 +329,7 @@ class _SizeSelectionModalState extends State<SizeSelectionModal> {
                                     content: Text(
                                       'Error adding to cart: $e',
                                       style:
-                                          const TextStyle(color: Colors.white),
+                                          const TextStyle(color: BMJTokens.inkOnBrand),
                                     ),
                                     backgroundColor: Colors.red,
                                     duration: const Duration(seconds: 2),
@@ -346,7 +345,7 @@ class _SizeSelectionModalState extends State<SizeSelectionModal> {
                         backgroundColor: selectedPrice != null
                             ? Colors.orange
                             : Colors.grey[300],
-                        foregroundColor: Colors.white,
+                        foregroundColor: BMJTokens.inkOnBrand,
                         elevation: 2,
                         padding: const EdgeInsets.symmetric(vertical: 12),
                         shape: RoundedRectangleBorder(
@@ -366,7 +365,7 @@ class _SizeSelectionModalState extends State<SizeSelectionModal> {
                                     : 'Select an option',
                             style: TextStyle(
                               color: selectedPrice != null
-                                  ? Colors.white
+                                  ? BMJTokens.inkOnBrand
                                   : Colors.grey[600],
                               fontSize: 16,
                               fontWeight: FontWeight.w600,

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:lush/services/invoice_service.dart';
+import 'package:lush/utils/price_utils.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 class InvoiceViewScreen extends StatefulWidget {
@@ -131,12 +132,12 @@ class _InvoiceViewScreenState extends State<InvoiceViewScreen> {
 
   String _formatCurrency(dynamic amount) {
     try {
-      if (amount == null) return r'$0.00';
+      if (amount == null) return kPriceFallback;
       final value =
           amount is int ? amount / 100 : double.parse(amount.toString());
       return '\$${value.toStringAsFixed(2)}';
     } catch (e) {
-      return r'$0.00';
+      return kPriceFallback;
     }
   }
 
@@ -162,8 +163,11 @@ class _InvoiceViewScreenState extends State<InvoiceViewScreen> {
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      Icon(Icons.error_outline,
-                          size: 64, color: Colors.red[300],),
+                      Icon(
+                        Icons.error_outline,
+                        size: 64,
+                        color: Colors.red[300],
+                      ),
                       const SizedBox(height: 16),
                       Text('Error: $_error'),
                       const SizedBox(height: 16),
@@ -179,8 +183,11 @@ class _InvoiceViewScreenState extends State<InvoiceViewScreen> {
                       child: Column(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          Icon(Icons.receipt,
-                              size: 64, color: Colors.grey[400],),
+                          Icon(
+                            Icons.receipt,
+                            size: 64,
+                            color: Colors.grey[400],
+                          ),
                           const SizedBox(height: 16),
                           const Text(
                             'No invoices found',
@@ -437,21 +444,30 @@ class _InvoiceDetailsDialog extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 _buildDetailRow('Status', invoice['status'].toString()),
-                _buildDetailRow('Total',
-                    '\$${(invoice['total'] / 100).toStringAsFixed(2)}',),
-                _buildDetailRow('Amount Due',
-                    '\$${(invoice['amountDue'] / 100).toStringAsFixed(2)}',),
-                _buildDetailRow('Amount Paid',
-                    '\$${(invoice['amountPaid'] / 100).toStringAsFixed(2)}',),
+                _buildDetailRow(
+                  'Total',
+                  '\$${(invoice['total'] / 100).toStringAsFixed(2)}',
+                ),
+                _buildDetailRow(
+                  'Amount Due',
+                  '\$${(invoice['amountDue'] / 100).toStringAsFixed(2)}',
+                ),
+                _buildDetailRow(
+                  'Amount Paid',
+                  '\$${(invoice['amountPaid'] / 100).toStringAsFixed(2)}',
+                ),
                 if (invoice['customerId'] != null)
                   _buildDetailRow(
-                      'Customer ID', invoice['customerId'].toString(),),
+                    'Customer ID',
+                    invoice['customerId'].toString(),
+                  ),
                 if (invoice['date'] != null)
                   _buildDetailRow(
                     'Date',
                     DateFormat('MMM dd, yyyy').format(
                       DateTime.fromMillisecondsSinceEpoch(
-                          (invoice['date'] as int) * 1000,),
+                        (invoice['date'] as int) * 1000,
+                      ),
                     ),
                   ),
                 if (invoice['dueDate'] != null)
@@ -459,7 +475,8 @@ class _InvoiceDetailsDialog extends StatelessWidget {
                     'Due Date',
                     DateFormat('MMM dd, yyyy').format(
                       DateTime.fromMillisecondsSinceEpoch(
-                          (invoice['dueDate'] as int) * 1000,),
+                        (invoice['dueDate'] as int) * 1000,
+                      ),
                     ),
                   ),
               ],

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:lush/theme/app_colors.dart';
 import 'package:lush/theme/app_text_styles.dart';
+import 'package:lush/theme/bmj_tokens.dart';
 
 class FilterOptions extends StatelessWidget {
   final String selectedCategory;
@@ -24,10 +25,14 @@ class FilterOptions extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final palette = BMJPalette.of(context);
     return Container(
       padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 12.h),
       decoration: BoxDecoration(
-        color: Colors.white,
+        // Token surface instead of raw white; a hairline replaces the
+        // grey drop shadow.
+        color: palette.surfaceContainer,
+        border: Border.all(color: palette.glassBorder, width: BMJTokens.hairline),
         borderRadius: BorderRadius.circular(16.r),
         boxShadow: [
           BoxShadow(
@@ -73,14 +78,14 @@ class FilterOptions extends StatelessWidget {
                 icon: Icon(
                   Icons.filter_list,
                   size: 16.sp,
-                  color: Colors.white,
+                  color: BMJTokens.inkOnBrand,
                 ),
                 label: Text(
                   'All Filters',
                   style: TextStyle(
                     fontSize: 12.sp,
                     fontWeight: FontWeight.w500,
-                    color: Colors.white,
+                    color: BMJTokens.inkOnBrand,
                   ),
                 ),
                 style: ElevatedButton.styleFrom(
@@ -322,7 +327,7 @@ class FilterOptions extends StatelessWidget {
               },
               style: ElevatedButton.styleFrom(
                 backgroundColor: AppColors.info,
-                foregroundColor: Colors.white,
+                foregroundColor: BMJTokens.inkOnBrand,
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(8.r),
                 ),

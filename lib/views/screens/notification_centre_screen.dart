@@ -139,7 +139,9 @@ class _NotificationCentreScreenState extends State<NotificationCentreScreen> {
   }
 
   Widget _buildNotificationItem(
-      NotificationItem notification, NotificationLoaded state,) {
+    NotificationItem notification,
+    NotificationLoaded state,
+  ) {
     return GestureDetector(
       onTap: () {
         context.read<NotificationBloc>().add(MarkAsRead(id: notification.id));

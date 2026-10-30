@@ -76,7 +76,8 @@ class DeliverySlotSelectionScreenState
       final data = result['data'];
       if (data is Map<String, dynamic>) {
         setState(() {
-          _isServiceable = data['serviced'] == true || data['isServiced'] == true;
+          _isServiceable =
+              data['serviced'] == true || data['isServiced'] == true;
           _serviceAreaId = data['id'] as int?;
           _areaName = (data['areaName'] ?? data['city'] ?? '') as String?;
         });
@@ -97,7 +98,8 @@ class DeliverySlotSelectionScreenState
         if (result['serviced'] == false) {
           _pincodeError = 'This pincode is not serviceable';
         } else {
-          _pincodeError = result['message'] as String? ?? 'Could not check pincode';
+          _pincodeError =
+              result['message'] as String? ?? 'Could not check pincode';
         }
       });
     }
@@ -198,7 +200,8 @@ class DeliverySlotSelectionScreenState
                   style: ElevatedButton.styleFrom(
                     backgroundColor: AppColors.primaryOrange,
                     foregroundColor: AppColors.white,
-                    padding: EdgeInsets.symmetric(horizontal: 20.w, vertical: 16.h),
+                    padding:
+                        EdgeInsets.symmetric(horizontal: 20.w, vertical: 16.h),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(12.r),
                     ),
@@ -262,11 +265,14 @@ class DeliverySlotSelectionScreenState
                 Row(
                   children: [
                     IconButton(
-                      onPressed:
-                          _selectedDate.subtract(const Duration(days: 1)).isBefore(
-                                  DateTime.now().subtract(const Duration(days: 1)),)
-                              ? null
-                              : () => _changeDate(-1),
+                      onPressed: _selectedDate
+                              .subtract(const Duration(days: 1))
+                              .isBefore(
+                                DateTime.now()
+                                    .subtract(const Duration(days: 1)),
+                              )
+                          ? null
+                          : () => _changeDate(-1),
                       icon: const Icon(Icons.chevron_left),
                     ),
                     Expanded(
@@ -329,14 +335,18 @@ class DeliverySlotSelectionScreenState
 
                     return Card(
                       margin: EdgeInsets.only(bottom: 8.h),
-                      color: available ? null : AppColors.lightDivider.withAlpha(100),
+                      color: available
+                          ? null
+                          : AppColors.lightDivider.withAlpha(100),
                       child: ListTile(
                         leading: CircleAvatar(
                           backgroundColor: available
                               ? AppColors.primaryOrange
                               : AppColors.grey,
-                          child: const Icon(Icons.access_time,
-                              color: AppColors.white,),
+                          child: const Icon(
+                            Icons.access_time,
+                            color: AppColors.white,
+                          ),
                         ),
                         title: Text(
                           '$startTime - $endTime',
@@ -350,14 +360,15 @@ class DeliverySlotSelectionScreenState
                               ? '$remaining slots remaining'
                               : 'Fully booked',
                           style: TextStyle(
-                            color: available
-                                ? AppColors.success
-                                : AppColors.error,
+                            color:
+                                available ? AppColors.success : AppColors.error,
                           ),
                         ),
                         trailing: available
-                            ? const Icon(Icons.check_circle_outline,
-                                color: AppColors.success,)
+                            ? const Icon(
+                                Icons.check_circle_outline,
+                                color: AppColors.success,
+                              )
                             : const Icon(Icons.cancel, color: AppColors.error),
                         enabled: available,
                         onTap: available ? () => _selectSlot(slot) : null,
