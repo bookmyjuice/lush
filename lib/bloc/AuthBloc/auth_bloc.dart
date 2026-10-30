@@ -4,7 +4,6 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:lush/get_it.dart';
-import 'package:lush/views/models/firebase_phone_auth.dart';
 
 import '../../CartRepository/cart_repository.dart';
 import '../../UserRepository/user_repository.dart';
@@ -17,6 +16,10 @@ class AuthenticationBloc extends Bloc<AuthenticationEvent, AuthenticationState> 
   final CartRepository? cartRepository;
   // Signup flow state storage
   String _signupEmail = '';
+
+  /// Signed proof that [_signupEmail] passed the email OTP check. Required by
+  /// `/auth/phone-signup` (email is mandatory at signup).
+  String _signupEmailVerificationToken = '';
   String _signupPhone = '';
   String _signupFirstName = '';
   String _signupLastName = '';
@@ -116,11 +119,18 @@ class AuthenticationBloc extends Bloc<AuthenticationEvent, AuthenticationState> 
       }
       // BR-001: Call backend to verify email code
       try {
-        final response = await userRepository.verifyEmailCode(event.email, event.verificationCode);
-        if (response.contains('Success') || response.contains('verified')) {
+        final result = await userRepository.verifyEmailCode(
+          event.email,
+          event.verificationCode,
+        );
+        if (result['status'] == 'success') {
+          _signupEmailVerificationToken =
+              result['emailVerificationToken'] as String? ?? '';
           emit(EmailVerified(email: _signupEmail));
         } else {
-          emit(EmailVerificationFailed(error: response));
+          emit(EmailVerificationFailed(
+            error: result['error'] as String? ?? 'Verification failed',
+          ));
         }
       } catch (e) {
         emit(EmailVerificationFailed(error: 'Verification failed: $e'));
@@ -492,7 +502,15 @@ class AuthenticationBloc extends Bloc<AuthenticationEvent, AuthenticationState> 
           }
         }
         // User not found in backend — start signup flow for new user
-        emit(SignUpStarted(user: userRepository.user));
+emit(
+          GoogleLinkRequired(
+            googleEmail: userRepository.user.getEmail,
+            googleFirstName: userRepository.user.getFirstName,
+            googleLastName: userRepository.user.getLastName,
+            googleId: (res['googleId'] as String?) ?? '',
+            photoUrl: res['photoUrl'] as String?,
+          ),
+        );
       } else {
         // Error case
         emit(SignUpFailed(error: res.toString(), errorHeading: 'Google Sign-In Failed!'));
@@ -536,68 +554,68 @@ class AuthenticationBloc extends Bloc<AuthenticationEvent, AuthenticationState> 
 
     // ============================================================
 
-    // Firebase Phone Auth Handlers (alternative to backend OTP)
+    // A-1: passwordless signup completion (phone-first)
 
     // ============================================================
 
-    // Initiate Firebase Phone Auth verification
+    on<PhoneSignupRequested>((event, emit) async {
+      emit(AuthenticationInProgress());
 
-    on<FirebasePhoneSignIn>((event, emit) async {
-      final phone = event.phoneNumber.trim();
+      final result = await userRepository.completePhoneSignup(
+        signupToken: event.signupToken,
+        firstName: event.firstName,
+        lastName: event.lastName,
+        email: event.email,
+        emailVerificationToken: event.emailVerificationToken.isNotEmpty
+            ? event.emailVerificationToken
+            : _signupEmailVerificationToken,
+        address: event.address,
+        extendedAddr: event.extendedAddr,
+        extendedAddr2: event.extendedAddr2,
+        city: event.city,
+        state: event.state,
+        zip: event.zip,
+        country: event.country,
+      );
 
-      _signupPhone = phone;
-
-      emit(PhoneEntered(phone: phone));
-
-      emit(FirebasePhoneAuthInProgress(phone: phone));
-
-      try {
-        await FirebasePhoneAuth.instance.initiatePhoneVerification(
-          phone: phone,
-          onCodeSent: (verificationId) {
-            // Dispatch event to update state
-
-            add(FirebasePhoneOtpSent(verificationId: verificationId));
-          },
-          onError: (error) {
-            add(FirebasePhoneAuthError(error: error));
-          },
-          onTimeout: () {
-            add(const FirebasePhoneAuthError(error: 'SMS delivery timed out'));
-          },
-        );
-      } catch (e) {
-        emit(FirebasePhoneVerificationFailed(error: 'Firebase Phone Auth failed: $e'));
-      }
-    });
-
-    // Firebase has sent the SMS code
-
-    on<FirebasePhoneOtpSent>((event, emit) {
-      emit(FirebasePhoneOtpSentState(
-        phone: _signupPhone,
-        verificationId: event.verificationId,
-      ));
-    });
-
-    // Verify Firebase OTP code
-
-    on<VerifyFirebaseOtp>((event, emit) async {
-      final success = await FirebasePhoneAuth.instance.verifyPhoneOtp(event.smsCode);
-
-      if (success) {
-        emit(FirebasePhoneVerified(phone: _signupPhone));
-
-        emit(PhoneVerified(phone: _signupPhone));
+      if (result['type'] == 'login_success') {
+        emit(AuthenticationSuccess(userRepository.user));
+        _syncCartAfterAuth();
       } else {
-        emit(const FirebasePhoneVerificationFailed(error: 'Invalid or expired verification code'));
+        emit(AuthError(
+          error: result['error'] as String? ?? 'Could not create your account',
+        ));
       }
     });
 
-    // Firebase Phone Auth error
+    // ============================================================
 
-    on<FirebasePhoneAuthError>((event, emit) {
-      emit(FirebasePhoneVerificationFailed(error: event.error));
+    // A-1: passwordless signup completion (Google-first)
+
+    // ============================================================
+
+    on<GoogleSignupRequested>((event, emit) async {
+      emit(AuthenticationInProgress());
+
+      final result = await userRepository.completeGoogleSignup(
+        signupToken: event.signupToken,
+        address: event.address,
+        extendedAddr: event.extendedAddr,
+        extendedAddr2: event.extendedAddr2,
+        city: event.city,
+        state: event.state,
+        zip: event.zip,
+        country: event.country,
+      );
+
+      if (result['type'] == 'login_success') {
+        emit(AuthenticationSuccess(userRepository.user));
+        _syncCartAfterAuth();
+      } else {
+        emit(AuthError(
+          error: result['error'] as String? ?? 'Could not create your account',
+        ));
+      }
     });
 
     // FIX: FLAG-004 — Phone OTP Login handler (backend OTP flow, BR-011)
@@ -611,8 +629,20 @@ class AuthenticationBloc extends Bloc<AuthenticationEvent, AuthenticationState> 
           emit(AuthenticationSuccess(userRepository.user));
           _syncCartAfterAuth();
         } else if (result['type'] == 'signup_required') {
-          // User doesn't exist — route to signup
-          emit(SignUpStarted(user: userRepository.user));
+          // User doesn't exist - carry the short-lived proof to the address step
+          final signupToken = result['signupToken'] as String? ?? '';
+          if (signupToken.isEmpty) {
+            emit(
+              const AuthError(
+                error:
+                    'Phone verification expired. Please verify your number again.',
+              ),
+            );
+          } else {
+            emit(
+              PhoneSignupRequired(phone: event.phone, signupToken: signupToken),
+            );
+          }
         } else if (result['type'] == 'network_error') {
           emit(AuthError(error: result['error'] as String? ?? 'Cannot connect to server'));
         } else {
@@ -663,6 +693,8 @@ class AuthenticationBloc extends Bloc<AuthenticationEvent, AuthenticationState> 
 
   void _resetSignupState() {
     _signupEmail = '';
+
+    _signupEmailVerificationToken = '';
 
     _signupPhone = '';
 

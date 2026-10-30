@@ -15,8 +15,11 @@ import 'package:toastification/toastification.dart';
 ///
 /// Two prominent tabs at the top: [Sign In] | [Sign Up]
 ///
-/// **Sign In tab:** Email + Password (primary), Google & Phone OTP (secondary)
-/// **Sign Up tab:** Three method cards → Email, Phone, Google signup flows
+/// **Sign In tab:** Google Sign-In and Phone OTP only (no passwords)
+/// **Sign Up tab:** Two method cards → Phone (OTP) and Google signup flows
+///
+/// V1 launch: email/password signup and sign-in were removed from the tree
+/// (`AUTH_SIMPLIFICATION_PLAN.md` A2). Onboarding is Phone (OTP) or Google.
 ///
 /// Design System: Uses AppColors.primaryOrange (#FF8C42) as primary brand color.
 class LoginPage extends StatefulWidget {
@@ -40,11 +43,6 @@ class LoginPageState extends State<LoginPage>
   int _currentTabIndex = 0;
 
   // ── Sign In Form ──
-  final _signInFormKey = GlobalKey<FormState>();
-  final _emailController = TextEditingController();
-  final _passwordController = TextEditingController();
-  bool _obscurePassword = true;
-  bool _isSignInLoading = false;
   bool _dialogShown = false;
 
   // ── Sign Up State ──
@@ -78,13 +76,7 @@ class LoginPageState extends State<LoginPage>
   @override
   void dispose() {
     _tabController.dispose();
-    _emailController.dispose();
-    _passwordController.dispose();
     super.dispose();
-  }
-
-  bool isValidEmail(String value) {
-    return RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$').hasMatch(value);
   }
 
   // ═══════════════════════════════════════════════════════
@@ -110,7 +102,6 @@ class LoginPageState extends State<LoginPage>
           }
           if ((state is LogInFailed) && !_dialogShown) {
             _dialogShown = true;
-            setState(() => _isSignInLoading = false);
             toastification.show(
               title: const Text('Login Failed'),
               description:
@@ -120,7 +111,6 @@ class LoginPageState extends State<LoginPage>
           }
           if (state is SignUpFailed) {
             _dialogShown = true;
-            setState(() => _isSignInLoading = false);
             toastification.show(
               title: Text(state.errorHeading),
               description: Text(state.error),
@@ -129,7 +119,6 @@ class LoginPageState extends State<LoginPage>
           }
           if (state is AutoLoginFailed) {
             _dialogShown = true;
-            setState(() => _isSignInLoading = false);
             toastification.show(
               title: const Text('Session Expired'),
               description: const Text('Please sign in to continue.'),
@@ -160,7 +149,9 @@ class LoginPageState extends State<LoginPage>
                 const SizedBox(height: AppSpacing.xs),
                 const Text(
                   'Fresh Juices, Delivered Daily',
-                  style: TextStyle(fontSize: 14, color: AppColors.white70,
+                  style: TextStyle(
+                    fontSize: 14,
+                    color: AppColors.white70,
                     fontWeight: FontWeight.w500,
                   ),
                 ),
@@ -186,7 +177,8 @@ class LoginPageState extends State<LoginPage>
                       fontWeight: FontWeight.w700,
                       color: AppColors.primaryOrange,
                     ),
-                    unselectedLabelStyle: AppTextStyles.textTheme.labelLarge?.copyWith(
+                    unselectedLabelStyle:
+                        AppTextStyles.textTheme.labelLarge?.copyWith(
                       fontWeight: FontWeight.w600,
                       color: AppColors.white,
                     ),
@@ -225,210 +217,110 @@ class LoginPageState extends State<LoginPage>
 
   Widget _buildSignInTab() {
     return SingleChildScrollView(
-      padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg, vertical: AppSpacing.sm),
-      child: Form(
-        key: _signInFormKey,
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            // ── Heading ──
-            Semantics(
-              label: 'Welcome Back!',
-              child: const Text(
-                'Welcome Back!',
-                style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: AppColors.white),
-                textAlign: TextAlign.center,
+      padding: const EdgeInsets.symmetric(
+        horizontal: AppSpacing.lg,
+        vertical: AppSpacing.sm,
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          const Text(
+            'Welcome Back!',
+            style: TextStyle(
+              fontSize: 24,
+              fontWeight: FontWeight.bold,
+              color: AppColors.white,
+            ),
+            textAlign: TextAlign.center,
+          ),
+          const SizedBox(height: AppSpacing.xs),
+          const Text(
+            'Sign in with Google or your phone number',
+            style: TextStyle(
+              fontSize: 14,
+              color: AppColors.white70,
+              fontWeight: FontWeight.w500,
+            ),
+            textAlign: TextAlign.center,
+          ),
+          const SizedBox(height: AppSpacing.xl),
+          KeyedSubtree(
+            key: const Key('login_google_button'),
+            child: Semantics(
+              label: 'Continue with Google',
+              child: _buildAltLoginButton(
+                icon: FontAwesomeIcons.google,
+                label: 'Continue with Google',
+                color: AppColors.white,
+                iconColor: AppColors.error,
+                onTap: _isGoogleLoading ? () {} : _handleGoogleSignIn,
               ),
             ),
-            const SizedBox(height: AppSpacing.xs),
-            const Text(
-              'Sign in to your account',
-              style: TextStyle(fontSize: 14, color: AppColors.white70,
-                fontWeight: FontWeight.w500,
-              ),
-              textAlign: TextAlign.center,
-            ),
-            const SizedBox(height: AppSpacing.lg),
-
-            // ── Email Field ──
-            Semantics(
-              label: 'Email address',
-              child: _buildWhiteTextField(
-                key: const Key('login_email_field'),
-                controller: _emailController,
-                hintText: 'Email address',
-                prefixIcon: Icons.email_outlined,
-                keyboardType: TextInputType.emailAddress,
-                validator: (value) {
-                  if (value == null || value.trim().isEmpty) {
-                    return 'Please enter your email';
-                  }
-                  if (!isValidEmail(value.trim())) {
-                    return 'Please enter a valid email';
-                  }
-                  return null;
+          ),
+          const SizedBox(height: AppSpacing.md),
+          KeyedSubtree(
+            key: const Key('login_phone_button'),
+            child: Semantics(
+              label: 'Continue with Phone',
+              child: _buildAltLoginButton(
+                icon: FontAwesomeIcons.mobileScreenButton,
+                label: 'Continue with Phone',
+                color: AppColors.white,
+                iconColor: AppColors.secondaryTeal,
+                onTap: () {
+                  Navigator.of(context).pushNamed('/phone-entry');
                 },
               ),
             ),
-            const SizedBox(height: AppSpacing.md),
-
-            // ── Password Field ──
-            Semantics(
-              label: 'Password',
-              child: _buildWhiteTextField(
-                key: const Key('login_password_field'),
-                controller: _passwordController,
-                hintText: 'Password',
-                prefixIcon: Icons.lock_outlined,
-                obscureText: _obscurePassword,
-                suffixIcon: IconButton(
-                  icon: Icon(
-                    _obscurePassword
-                        ? Icons.visibility_off_outlined
-                        : Icons.visibility_outlined,
-                    color: AppColors.darkGrey,
-                    size: 20,
-                  ),
-                  onPressed: () {
-                    setState(() => _obscurePassword = !_obscurePassword);
-                  },
+          ),
+          const SizedBox(height: AppSpacing.lg),
+          Text(
+            'No password needed - we text you a 6-digit code.',
+            style: TextStyle(
+              fontSize: 12,
+              color: AppColors.white.withValues(alpha: 0.8),
+            ),
+            textAlign: TextAlign.center,
+          ),
+          const SizedBox(height: AppSpacing.lg),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Text(
+                "Don't have an account? ",
+                style: TextStyle(
+                  fontSize: 14,
+                  color: AppColors.white.withValues(alpha: 0.8),
                 ),
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return 'Please enter your password';
-                  }
-                  return null;
+              ),
+              GestureDetector(
+                onTap: () {
+                  _tabController.animateTo(1);
                 },
-              ),
-            ),
-            const SizedBox(height: AppSpacing.xs),
-
-            // ── Forgot Password ──
-            Semantics(
-              label: 'Forgot Password',
-              child: Align(
-                alignment: Alignment.centerRight,
-                child: TextButton(
-                  key: const Key('login_forgot_password'),
-                  onPressed: () {
-                    Navigator.of(context).pushNamed('/forgot-password');
-                  },
-                  child: Text(
-                    'Forgot Password?',
-                    style: AppTextStyles.textTheme.labelLarge?.copyWith(
-                      fontWeight: FontWeight.w600,
-                      color: AppColors.white,
-                    ),
+                child: Text(
+                  'Sign Up',
+                  style: AppTextStyles.textTheme.labelLarge?.copyWith(
+                    fontWeight: FontWeight.w700,
+                    color: AppColors.white,
                   ),
                 ),
               ),
-            ),
-            const SizedBox(height: AppSpacing.sm),
-
-            // ── Sign In Button ──
-            Semantics(
-              label: 'Sign In',
-              child: _buildSignInButton(),
-            ),
-            const SizedBox(height: AppSpacing.lg),
-
-            // ── Divider ──
-            Row(
-              children: [
-                const Expanded(
-                  child: Divider(color: AppColors.white54, thickness: 1),
-                ),
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: AppSpacing.sm),
-                  child: Text(
-                    'OR',
-                    style: AppTextStyles.textTheme.labelLarge?.copyWith(
-                      fontWeight: FontWeight.w600,
-                      color: AppColors.white70,
-                    ),
-                  ),
-                ),
-                const Expanded(
-                  child: Divider(color: AppColors.white54, thickness: 1),
-                ),
-              ],
-            ),
-            const SizedBox(height: AppSpacing.lg),
-
-            // ── Social / Alt Login Row ──
-            Row(
-              children: [
-                // Google Login Button
-                Expanded(
-                  child: Semantics(
-                    label: 'Google',
-                    child: _buildAltLoginButton(
-                      icon: FontAwesomeIcons.google,
-                      label: 'Google',
-                      color: AppColors.white,
-                      iconColor: AppColors.error,
-                      onTap: _handleGoogleSignIn,
-                    ),
-                  ),
-                ),
-                const SizedBox(width: AppSpacing.sm),
-                // Phone OTP Login Button
-                Expanded(
-                  child: Semantics(
-                    label: 'Phone OTP',
-                    child: _buildAltLoginButton(
-                      icon: FontAwesomeIcons.mobileScreenButton,
-                      label: 'Phone OTP',
-                      color: AppColors.white,
-                      iconColor: AppColors.secondaryTeal,
-                      onTap: () {
-                        Navigator.of(context).pushNamed('/phone-login');
-                      },
-                    ),
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: AppSpacing.lg),
-
-            // ── Switch to Sign Up ──
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Text(
-                  "Don't have an account? ",
-                  style: TextStyle(fontSize: 14, color: AppColors.white.withValues(alpha: 0.8),
-                  ),
-                ),
-                GestureDetector(
-                  onTap: () {
-                    _tabController.animateTo(1);
-                  },
-                  child: Text(
-                    'Sign Up',
-                    style: AppTextStyles.textTheme.labelLarge?.copyWith(
-                      fontWeight: FontWeight.w700,
-                      color: AppColors.white,
-                    ),
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: AppSpacing.md),
-          ],
-        ),
+            ],
+          ),
+          const SizedBox(height: AppSpacing.md),
+        ],
       ),
     );
   }
 
-  // ═══════════════════════════════════════════════════════
+  // ============================================================
   // SIGN UP TAB
-  // ═══════════════════════════════════════════════════════
+  // ============================================================
 
   Widget _buildSignUpTab() {
     return SingleChildScrollView(
-      padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg, vertical: AppSpacing.sm),
+      padding: const EdgeInsets.symmetric(
+          horizontal: AppSpacing.lg, vertical: AppSpacing.sm),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
@@ -443,29 +335,16 @@ class LoginPageState extends State<LoginPage>
           const SizedBox(height: AppSpacing.xs),
           Text(
             'Choose your preferred signup method',
-            style: TextStyle(fontSize: 14, color: AppColors.white.withValues(alpha: 0.8),
+            style: TextStyle(
+              fontSize: 14,
+              color: AppColors.white.withValues(alpha: 0.8),
             ),
             textAlign: TextAlign.center,
           ),
           const SizedBox(height: AppSpacing.lg + AppSpacing.xs),
 
-          // ── Sign up with Email ──
-          Semantics(
-            label: 'Sign up with Email',
-            child: _buildSignupMethodCard(
-              icon: Icons.email_outlined,
-              iconColor: AppColors.info,
-              title: 'Sign up with Email',
-              subtitle: 'Enter your email address',
-              onTap: () {
-                BlocProvider.of<AuthenticationBloc>(context).add(
-                  const ChooseSignupMethod(method: 'email'),
-                );
-                Navigator.pushNamed(context, '/email-signup');
-              },
-            ),
-          ),
-          const SizedBox(height: AppSpacing.sm),
+          // V1 onboarding is Phone (OTP) or Google. The email/password signup
+          // screens no longer exist; retired routes redirect to this surface.
 
           // ── Sign up with Phone ──
           Semantics(
@@ -476,10 +355,7 @@ class LoginPageState extends State<LoginPage>
               title: 'Sign up with Phone',
               subtitle: 'Enter your mobile number',
               onTap: () {
-                BlocProvider.of<AuthenticationBloc>(context).add(
-                  const ChooseSignupMethod(method: 'phone'),
-                );
-                Navigator.pushNamed(context, '/phone-signup');
+                Navigator.pushNamed(context, '/phone-entry');
               },
             ),
           ),
@@ -528,7 +404,9 @@ class LoginPageState extends State<LoginPage>
             children: [
               Text(
                 'Already have an account? ',
-                style: TextStyle(fontSize: 14, color: AppColors.white.withValues(alpha: 0.8),
+                style: TextStyle(
+                  fontSize: 14,
+                  color: AppColors.white.withValues(alpha: 0.8),
                 ),
               ),
               GestureDetector(
@@ -553,62 +431,6 @@ class LoginPageState extends State<LoginPage>
 
   // ═══════════════════════════════════════════════════════
   // SIGN IN ACTIONS
-  // ═══════════════════════════════════════════════════════
-
-  Widget _buildSignInButton() {
-    return SizedBox(
-      width: double.infinity,
-      height: 50,
-      child: ElevatedButton(
-        key: const Key('login_signin_button'),
-        onPressed: _isSignInLoading ? null : _handleSignIn,
-        style: ElevatedButton.styleFrom(
-          backgroundColor: AppColors.white,
-          foregroundColor: AppColors.primaryOrange,
-          elevation: 2,
-          disabledBackgroundColor: AppColors.white.withValues(alpha: 0.5),
-          disabledForegroundColor: AppColors.primaryOrange.withValues(alpha: 0.5),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(AppRadius.lg + 2),
-          ),
-        ),
-        child: _isSignInLoading
-            ? const SizedBox(
-                width: 22,
-                height: 22,
-                child: CircularProgressIndicator(
-                  strokeWidth: 2.5,
-                  valueColor: AlwaysStoppedAnimation<Color>(
-                    AppColors.primaryOrange,
-                  ),
-                ),
-              )
-            : Text(
-                'Sign In',
-                style: AppTextStyles.textTheme.titleMedium?.copyWith(
-                  fontWeight: FontWeight.w700,
-                  color: AppColors.primaryOrange,
-                ),
-              ),
-      ),
-    );
-  }
-
-  void _handleSignIn() {
-    if (!_signInFormKey.currentState!.validate()) return;
-
-    setState(() => _isSignInLoading = true);
-
-    final email = _emailController.text.trim().toLowerCase();
-    final password = _passwordController.text;
-
-    BlocProvider.of<AuthenticationBloc>(context).add(
-      LogIn(email, password, false),
-    );
-  }
-
-  // ═══════════════════════════════════════════════════════
-  // SIGN UP ACTIONS
   // ═══════════════════════════════════════════════════════
 
   Future<void> _handleGoogleSignUp() async {
@@ -657,17 +479,16 @@ class LoginPageState extends State<LoginPage>
   Future<void> _handleGoogleSignIn() async {
     // The Google Sign-In account picker is shown inside googleSignIn_() in the BLoC handler,
     // so we dispatch the event directly to avoid showing the picker twice.
-    setState(() => _isSignInLoading = true);
+    setState(() => _isGoogleLoading = true);
     try {
       if (!mounted) return;
-      BlocProvider.of<AuthenticationBloc>(context)
-          .add(const GoogleSignIn());
+      BlocProvider.of<AuthenticationBloc>(context).add(const GoogleSignIn());
     } catch (e) {
       debugPrint('❌ Google Sign-In from login page failed: $e');
     } finally {
       await Future<void>.delayed(const Duration(milliseconds: 500));
       if (mounted) {
-        setState(() => _isSignInLoading = false);
+        setState(() => _isGoogleLoading = false);
       }
     }
   }
@@ -675,50 +496,6 @@ class LoginPageState extends State<LoginPage>
   // ═══════════════════════════════════════════════════════
   // COMMON WIDGET BUILDERS
   // ═══════════════════════════════════════════════════════
-
-  /// White-background text field for Sign In form
-  /// FIX: BUG-AUTH-001 — Remove inner Semantics to avoid duplicate accessibility labels.
-  /// The call sites (lines 254, 276) already wrap with Semantics(label: hintText).
-  /// Nested Semantics with the same label creates malformed UIAutomator nodes.
-  Widget _buildWhiteTextField({
-    required TextEditingController controller,
-    required String hintText,
-    required IconData prefixIcon,
-    TextInputType? keyboardType,
-    bool obscureText = false,
-    Widget? suffixIcon,
-    String? Function(String?)? validator,
-    Key? key,
-  }) {
-    return DecoratedBox(
-      decoration: BoxDecoration(
-        color: AppColors.white,
-        borderRadius: BorderRadius.circular(AppRadius.lg + 2),
-        border: Border.all(color: AppColors.white.withValues(alpha: 0.3)),
-      ),
-      child: TextFormField(
-        key: key,
-        controller: controller,
-        keyboardType: keyboardType,
-        obscureText: obscureText,
-        validator: validator,
-        style: AppTextStyles.textTheme.bodyLarge?.copyWith(
-          color: AppColors.lightTextPrimary,
-        ),
-        decoration: InputDecoration(
-          hintText: hintText,
-          hintStyle: AppTextStyles.textTheme.bodyLarge?.copyWith(
-            color: AppColors.darkGrey,
-          ),
-          prefixIcon: Icon(prefixIcon, color: AppColors.darkGrey, size: 22),
-          suffixIcon: suffixIcon,
-          border: InputBorder.none,
-          contentPadding:
-              const EdgeInsets.symmetric(horizontal: AppSpacing.md, vertical: AppSpacing.md),
-        ),
-      ),
-    );
-  }
 
   /// Social / Alternative login button (Google, Phone OTP)
   Widget _buildAltLoginButton({
@@ -810,7 +587,9 @@ class LoginPageState extends State<LoginPage>
                   const SizedBox(height: 2),
                   Text(
                     subtitle,
-                    style: TextStyle(fontSize: 13, color: AppColors.white.withValues(alpha: 0.7),
+                    style: TextStyle(
+                      fontSize: 13,
+                      color: AppColors.white.withValues(alpha: 0.7),
                     ),
                   ),
                 ],

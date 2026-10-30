@@ -11,8 +11,11 @@ import 'package:lush/theme/app_theme.dart';
 import 'package:lush/widgets/app_text_field.dart';
 import 'package:toastification/toastification.dart';
 
-/// Google Signup Screen - Pre-fills email/name/photo from Google (READ-ONLY)
-/// User enters phone, address, password (EDITABLE)
+/// Google signup, step 1 of 2: collect the delivery phone number.
+///
+/// The Google identity (email, name, id, photo) is carried to the OTP screen
+/// and then to the address screen, which creates the account with
+/// `/auth/google-signup`. There is no password and no address field here.
 class GoogleSignupScreen extends StatefulWidget {
   static const routeName = '/google-signup';
 
@@ -24,565 +27,218 @@ class GoogleSignupScreen extends StatefulWidget {
 
 class GoogleSignupScreenState extends State<GoogleSignupScreen> {
   final _formKey = GlobalKey<FormState>();
-
-  // Google-fetched data (READ-ONLY)
-  final _emailController = TextEditingController();
-  final _firstNameController = TextEditingController();
-  final _lastNameController = TextEditingController();
-  String? _photoUrl;
-  String? _googleId;
-
-  // User-entered data (EDITABLE)
   final _phoneController = TextEditingController();
-  final _addressController = TextEditingController();
-  final _extendedAddrController = TextEditingController();
-  final _extendedAddr2Controller = TextEditingController();
-  final _cityController = TextEditingController();
-  final _stateController = TextEditingController();
-  final _zipController = TextEditingController();
-  final _passwordController = TextEditingController();
-  final _confirmPasswordController = TextEditingController();
 
-  bool _isLoading = false;
-  bool _obscurePassword = true;
-  bool _obscureConfirmPassword = true;
-  bool _isPasswordValid = false;
-
-  @override
-  void initState() {
-    super.initState();
-    // We get data from Navigator arguments in didChangeDependencies
-    // so we don't trigger a login here.
-  }
+  String _email = '';
+  String _firstName = '';
+  String _lastName = '';
+  String? _googleId;
+  String? _photoUrl;
+  bool _awaitingOtp = false;
 
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-    
-    // Get the Google user passed from the previous screen
-    final googleUser = ModalRoute.of(context)?.settings.arguments as GoogleSignInAccount?;
 
-    if (googleUser == null) {
-      // If no user data, go back to selection screen
+    final args = ModalRoute.of(context)?.settings.arguments;
+    if (args is GoogleSignInAccount) {
+      final displayName = args.displayName ?? '';
+      final parts = displayName.contains(' ') ? displayName.split(' ') : null;
+      _email = args.email;
+      _firstName = parts != null ? parts.first : displayName;
+      _lastName =
+          parts != null && parts.length > 1 ? parts.sublist(1).join(' ') : '';
+      _googleId = args.id;
+      _photoUrl = args.photoUrl;
+    } else if (args is Map) {
+      _email = args['googleEmail'] as String? ?? '';
+      _firstName = args['firstName'] as String? ?? '';
+      _lastName = args['lastName'] as String? ?? '';
+      _googleId = args['googleId'] as String?;
+      _photoUrl = args['photoUrl'] as String?;
+    } else {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (mounted) Navigator.pop(context);
       });
-      return;
     }
-
-    // Populate fields with Google data (BUG FIX: Try to extract lastName from displayName)
-    final displayName = googleUser.displayName ?? '';
-    final nameParts = displayName.contains(' ') ? displayName.split(' ') : null;
-
-    setState(() {
-      _emailController.text = googleUser.email;
-      _firstNameController.text = nameParts != null ? nameParts[0] : displayName;
-      // BUG FIX: Try to extract lastName from displayName instead of leaving empty
-      _lastNameController.text = nameParts != null && nameParts.length > 1
-          ? nameParts.sublist(1).join(' ')
-          : '';
-      _photoUrl = googleUser.photoUrl;
-      _googleId = googleUser.id;
-    });
   }
 
   @override
   void dispose() {
-    _emailController.dispose();
-    _firstNameController.dispose();
-    _lastNameController.dispose();
     _phoneController.dispose();
-    _addressController.dispose();
-    _extendedAddrController.dispose();
-    _extendedAddr2Controller.dispose();
-    _cityController.dispose();
-    _stateController.dispose();
-    _zipController.dispose();
-    _passwordController.dispose();
-    _confirmPasswordController.dispose();
     super.dispose();
   }
 
-  void _handleSignup() {
-    if (!_formKey.currentState!.validate()) {
-      toastification.show(
-        title: const Text('Validation Error'),
-        description: const Text('Please fill all required fields correctly'),
-        type: ToastificationType.error,
-      );
-      return;
-    }
+  void _sendOtp() {
+    if (!_formKey.currentState!.validate()) return;
 
-    if (_passwordController.text != _confirmPasswordController.text) {
-      toastification.show(
-        title: const Text('Password Mismatch'),
-        description: const Text('Passwords do not match'),
-        type: ToastificationType.error,
-      );
-      return;
-    }
-
-    if (!_isPasswordValid) {
-      toastification.show(
-        title: const Text('Weak Password'),
-        description: const Text('Password does not meet security requirements'),
-        type: ToastificationType.warning,
-      );
-      return;
-    }
-
-    setState(() => _isLoading = true);
-
-    // Dispatch signup event to AuthBloc with all fields
+    setState(() => _awaitingOtp = true);
     context.read<AuthenticationBloc>().add(
-      GoogleSignUpEnterPhone(
-        phone: _phoneController.text.trim(),
-        email: _emailController.text.trim(),
-        firstName: _firstNameController.text.trim(),
-        lastName: _lastNameController.text.trim(),
-        // Additional fields for complete signup
-        address: _addressController.text.trim(),
-        extendedAddr: _extendedAddrController.text.trim(),
-        extendedAddr2: _extendedAddr2Controller.text.trim(),
-        city: _cityController.text.trim(),
-        state: _stateController.text.trim(),
-        zip: _zipController.text.trim(),
-        country: 'IN', // Default to India
-        password: _passwordController.text,
-        confirmPassword: _confirmPasswordController.text,
-        googleId: _googleId,
-        photoUrl: _photoUrl,
-      ),
-    );
+          SendOTP(phoneNumber: _phoneController.text.trim()),
+        );
+  }
 
-    // BUG FIX: Don't reset loading immediately - let BlocBuilder handle it
-    // The loading will be shown until the BLoC emits a terminal state
+  void _onAuthState(AuthenticationState state) {
+    if (!_awaitingOtp) return;
+
+    if (state is OTPSent) {
+      setState(() => _awaitingOtp = false);
+      Navigator.pushNamed(
+        context,
+        '/phone-otp-verification',
+        arguments: <String, dynamic>{
+          'phone': state.phoneNumber,
+          'isGoogleSignup': true,
+          'googleEmail': _email,
+          'firstName': _firstName,
+          'lastName': _lastName,
+          if (_googleId != null) 'googleId': _googleId,
+          if (_photoUrl != null) 'photoUrl': _photoUrl,
+        },
+      );
+      return;
+    }
+
+    if (state is OTPSendFailed) {
+      setState(() => _awaitingOtp = false);
+      toastification.show(
+        title: const Text('Could not send OTP'),
+        description: Text(state.error),
+        type: ToastificationType.error,
+      );
+    }
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Complete Your Profile'),
+        title: const Text('Sign up with Google'),
         backgroundColor: AppColors.primaryOrange,
         centerTitle: true,
       ),
-      body: BlocConsumer<AuthenticationBloc, AuthenticationState>(
-        listener: (context, state) {
-          if (state is SignUpSuccessful) {
-            // BUG FIX: Reset loading state before navigating
-            setState(() => _isLoading = false);
-            toastification.show(
-              title: const Text('Account Created!'),
-              description: const Text('Welcome to BookMyJuice'),
-              type: ToastificationType.success,
-              autoCloseDuration: const Duration(seconds: 3),
-            );
-            Navigator.pushReplacementNamed(context, '/dashboard');
-          } else if (state is SignUpFailed) {
-            // BUG FIX: Reset loading state on failure
-            setState(() => _isLoading = false);
-            toastification.show(
-              title: Text(state.errorHeading),
-              description: Text(state.error),
-              type: ToastificationType.error,
-              autoCloseDuration: const Duration(seconds: 5),
-            );
-          } else if (state is AuthenticationSuccess) {
-            setState(() => _isLoading = false);
-            Navigator.pushReplacementNamed(context, '/dashboard');
-          }
-        },
-        builder: (context, state) {
-          if (_isLoading || state is AuthenticationInProgress) {
-            return const Center(child: CircularProgressIndicator());
-          }
-
-          return SafeArea(
-            child: SingleChildScrollView(
-              padding: const EdgeInsets.all(AppSpacing.md),
-              child: Form(
-                key: _formKey,
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    // Header
-                    const Text(
-                      'Google Account',
-                      style: TextStyle(
-                        fontSize: 20,
-                        fontWeight: FontWeight.bold,
-                      ),
+      body: BlocListener<AuthenticationBloc, AuthenticationState>(
+        listenWhen: (previous, current) =>
+            current is OTPSent || current is OTPSendFailed,
+        listener: (context, state) => _onAuthState(state),
+        child: SafeArea(
+          child: Form(
+            key: _formKey,
+            child: ListView(
+              padding: const EdgeInsets.all(AppSpacing.lg),
+              children: [
+                const SizedBox(height: AppSpacing.md),
+                const Text(
+                  'Almost there',
+                  style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+                ),
+                const SizedBox(height: AppSpacing.xs),
+                const Text(
+                  'We use your phone number to deliver orders and to let you '
+                  'sign in next time. We will text a 6-digit code.',
+                  style: TextStyle(fontSize: 14, color: AppColors.darkGrey),
+                ),
+                const SizedBox(height: AppSpacing.lg),
+                if (_email.isNotEmpty)
+                  Container(
+                    padding: const EdgeInsets.all(AppSpacing.md),
+                    decoration: BoxDecoration(
+                      color: AppColors.white,
+                      border: Border.all(color: AppColors.lightDivider),
+                      borderRadius: BorderRadius.circular(AppRadius.md),
                     ),
-                    const SizedBox(height: AppSpacing.md),
-                    
-                    // Google Profile Photo (if available)
-                    if (_photoUrl != null && _photoUrl!.isNotEmpty)
-                      Center(
-                        child: CircleAvatar(
-                          radius: 50,
-                          backgroundImage: NetworkImage(_photoUrl!),
-                          backgroundColor: AppColors.lightGrey,
-                        ),
-                      ),
-                    const SizedBox(height: AppSpacing.md),
-                    
-                    // READ-ONLY: Email (from Google)
-                    AppTextField(
-                      label: 'Email (from Google)',
-                      controller: _emailController,
-                      readOnly: true,
-                      prefixIcon: Icons.email_outlined,
-                      suffixIcon: Icons.lock_outlined,
-                    ),
-                    const SizedBox(height: AppSpacing.md),
-                    
-                    // READ-ONLY: First Name (from Google)
-                    AppTextField(
-                      label: 'First Name (from Google)',
-                      controller: _firstNameController,
-                      readOnly: true,
-                      prefixIcon: Icons.person_outline,
-                      suffixIcon: Icons.lock_outlined,
-                    ),
-                    const SizedBox(height: AppSpacing.md),
-                    
-                    // READ-ONLY: Last Name (from Google)
-                    AppTextField(
-                      label: 'Last Name (from Google)',
-                      controller: _lastNameController,
-                      // readOnly: false,
-                      prefixIcon: Icons.person_outline,
-                      suffixIcon: Icons.lock_outlined,
-                    ),
-                    const SizedBox(height: AppSpacing.lg),
-                    
-                    // Divider
-                    const Divider(),
-                    const SizedBox(height: AppSpacing.lg),
-                    
-                    // EDITABLE: User-entered fields
-                    const Text(
-                      'Additional Information',
-                      style: TextStyle(
-                        fontSize: 20,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                    const SizedBox(height: AppSpacing.md),
-                    
-                    // EDITABLE: Phone Number
-                    AppTextField(
-                      label: 'Phone Number *',
-                      hint: 'Enter 10-digit mobile number',
-                      controller: _phoneController,
-                      keyboardType: TextInputType.phone,
-                      maxLength: 10,
-                      inputFormatters: [
-                        LengthLimitingTextInputFormatter(10),
-                        FilteringTextInputFormatter.digitsOnly,
-                      ],
-                      prefixIcon: Icons.phone_outlined,
-                      validator: (value) {
-                        if (value == null || value.isEmpty) {
-                          return 'Phone number is required';
-                        }
-                        if (value.length != 10) {
-                          return 'Enter a valid 10-digit number';
-                        }
-                        if (!RegExp(r'^[6-9]\d{9}$').hasMatch(value)) {
-                          return 'Phone must start with 6-9';
-                        }
-                        return null;
-                      },
-                    ),
-                    const SizedBox(height: AppSpacing.md),
-                    
-                    // EDITABLE: Address
-                    AppTextField(
-                      label: 'Address Line 1 *',
-                      hint: 'Flat/House No.',
-                      controller: _addressController,
-                      prefixIcon: Icons.home_outlined,
-                      validator: (value) {
-                        if (value == null || value.isEmpty) {
-                          return 'Address is required';
-                        }
-                        return null;
-                      },
-                    ),
-                    const SizedBox(height: AppSpacing.md),
-                    
-                    AppTextField(
-                      label: 'Address Line 2 *',
-                      hint: 'Society/Locality',
-                      controller: _extendedAddrController,
-                      prefixIcon: Icons.location_city_outlined,
-                      validator: (value) {
-                        if (value == null || value.isEmpty) {
-                          return 'Society/Locality is required';
-                        }
-                        return null;
-                      },
-                    ),
-                    const SizedBox(height: AppSpacing.md),
-                    
-                    AppTextField(
-                      label: 'Address Line 3 *',
-                      hint: 'Sector/Area',
-                      controller: _extendedAddr2Controller,
-                      prefixIcon: Icons.map_outlined,
-                      validator: (value) {
-                        if (value == null || value.isEmpty) {
-                          return 'Sector/Area is required';
-                        }
-                        return null;
-                      },
-                    ),
-                    const SizedBox(height: AppSpacing.md),
-                    
-                    // City and State
-                    Row(
+                    child: Row(
                       children: [
-                        Expanded(
-                          child: AppTextField(
-                            label: 'City *',
-                            controller: _cityController,
-                            prefixIcon: Icons.location_city,
-                            validator: (value) {
-                              if (value == null || value.isEmpty) {
-                                return 'City is required';
-                              }
-                              return null;
-                            },
-                          ),
+                        const Icon(
+                          Icons.mail_outline,
+                          color: AppColors.darkGrey,
+                          size: 20,
                         ),
                         const SizedBox(width: AppSpacing.sm),
                         Expanded(
-                          child: AppTextField(
-                            label: 'State *',
-                            controller: _stateController,
-                            prefixIcon: Icons.public,
-                            validator: (value) {
-                              if (value == null || value.isEmpty) {
-                                return 'State is required';
-                              }
-                              return null;
-                            },
+                          child: Text(
+                            _email,
+                            style: const TextStyle(fontWeight: FontWeight.w600),
                           ),
+                        ),
+                        const Icon(
+                          Icons.verified,
+                          color: AppColors.success,
+                          size: 18,
                         ),
                       ],
                     ),
-                    const SizedBox(height: AppSpacing.md),
-                    
-                    // ZIP Code
-                    AppTextField(
-                      label: 'ZIP Code *',
-                      hint: '6-digit PIN',
-                      controller: _zipController,
-                      keyboardType: TextInputType.number,
-                      maxLength: 6,
-                      inputFormatters: [
-                        LengthLimitingTextInputFormatter(6),
-                        FilteringTextInputFormatter.digitsOnly,
-                      ],
-                      prefixIcon: Icons.pin_drop_outlined,
-                      validator: (value) {
-                        if (value == null || value.isEmpty) {
-                          return 'ZIP code is required';
-                        }
-                        if (value.length != 6) {
-                          return 'Enter valid 6-digit ZIP code';
-                        }
-                        return null;
-                      },
+                  ),
+                const SizedBox(height: AppSpacing.lg),
+                TextFormField(
+                  key: const Key('google_signup_phone_field'),
+                  controller: _phoneController,
+                  keyboardType: TextInputType.phone,
+                  maxLength: 10,
+                  autofocus: true,
+                  inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+                  decoration: InputDecoration(
+                    labelText: 'Phone Number',
+                    hintText: '9876543210',
+                    prefixText: '+91 ',
+                    counterText: '',
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(AppRadius.md),
                     ),
-                    const SizedBox(height: AppSpacing.lg),
-                    
-                    // Divider
-                    const Divider(),
-                    const SizedBox(height: AppSpacing.lg),
-                    
-                    // Password Section
-                    const Text(
-                      'Password',
-                      style: TextStyle(
-                        fontSize: 20,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                    const SizedBox(height: AppSpacing.md),
-                    
-                    // EDITABLE: Password
-                    AppTextField(
-                      label: 'Password *',
-                      hint: 'Create a strong password',
-                      controller: _passwordController,
-                      obscureText: _obscurePassword,
-                      prefixIcon: Icons.lock_outlined,
-                      suffixIcon: _obscurePassword
-                          ? Icons.visibility_off_outlined
-                          : Icons.visibility_outlined,
-                      suffixWidget: IconButton(
-                        icon: Icon(
-                          _obscurePassword
-                              ? Icons.visibility_off_outlined
-                              : Icons.visibility_outlined,
-                          size: 20,
-                        ),
-                        onPressed: () {
-                          setState(() {
-                            _obscurePassword = !_obscurePassword;
-                          });
-                        },
-                      ),
-                      onChanged: (value) {
-                        setState(() {
-                          _isPasswordValid = isValidPassword(value);
-                        });
-                      },
-                      validator: (value) {
-                        if (value == null || value.isEmpty) {
-                          return 'Password is required';
-                        }
-                        if (!isValidPassword(value)) {
-                          return 'Password does not meet requirements';
-                        }
-                        return null;
-                      },
-                    ),
-                    const SizedBox(height: AppSpacing.md),
-                    
-                    // Password Requirements
-                    _buildPasswordRequirements(),
-                    const SizedBox(height: AppSpacing.md),
-                    
-                    // EDITABLE: Confirm Password
-                    AppTextField(
-                      label: 'Confirm Password *',
-                      hint: 'Re-enter your password',
-                      controller: _confirmPasswordController,
-                      obscureText: _obscureConfirmPassword,
-                      prefixIcon: Icons.lock_outlined,
-                      suffixIcon: _obscureConfirmPassword
-                          ? Icons.visibility_off_outlined
-                          : Icons.visibility_outlined,
-                      suffixWidget: IconButton(
-                        icon: Icon(
-                          _obscureConfirmPassword
-                              ? Icons.visibility_off_outlined
-                              : Icons.visibility_outlined,
-                          size: 20,
-                        ),
-                        onPressed: () {
-                          setState(() {
-                            _obscureConfirmPassword = !_obscureConfirmPassword;
-                          });
-                        },
-                      ),
-                      validator: (value) {
-                        if (value == null || value.isEmpty) {
-                          return 'Please confirm your password';
-                        }
-                        if (value != _passwordController.text) {
-                          return 'Passwords do not match';
-                        }
-                        return null;
-                      },
-                    ),
-                    const SizedBox(height: AppSpacing.xl),
-                    
-                    // Submit Button
-                    SizedBox(
-                      width: double.infinity,
-                      height: 50,
-                      child: ElevatedButton(
-                        onPressed: _handleSignup,
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: AppColors.primaryOrange,
-                          foregroundColor: AppColors.white,
-                          disabledBackgroundColor: AppColors.lightGrey,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(AppRadius.md),
-                          ),
-                        ),
-                        child: _isLoading
-                            ? const CircularProgressIndicator(
-                                color: AppColors.white,
-                              )
-                            : const Text(
-                                'Create Account',
-                                style: TextStyle(
-                                  fontSize: 16,
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
-                      ),
-                    ),
-                    const SizedBox(height: AppSpacing.md),
-                    
-                    // Cancel Button
-                    SizedBox(
-                      width: double.infinity,
-                      child: TextButton(
-                        onPressed: () => Navigator.pop(context),
-                        child: const Text('Cancel'),
-                      ),
-                    ),
-                  ],
+                  ),
+                  validator: (value) {
+                    if (value == null || value.isEmpty) {
+                      return 'Phone number is required';
+                    }
+                    if (!isValidPhone(value)) {
+                      return 'Enter a valid 10-digit Indian number';
+                    }
+                    return null;
+                  },
+                  onFieldSubmitted: (_) => _sendOtp(),
                 ),
-              ),
+                const SizedBox(height: AppSpacing.lg),
+                SizedBox(
+                  width: double.infinity,
+                  height: 50,
+                  child: ElevatedButton(
+                    key: const Key('google_signup_send_otp'),
+                    onPressed: _awaitingOtp ? null : _sendOtp,
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: AppColors.primaryOrange,
+                      foregroundColor: AppColors.white,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(AppRadius.md),
+                      ),
+                    ),
+                    child: _awaitingOtp
+                        ? const SizedBox(
+                            width: 20,
+                            height: 20,
+                            child: CircularProgressIndicator(
+                              strokeWidth: 2,
+                              color: AppColors.white,
+                            ),
+                          )
+                        : const Text(
+                            'Send OTP',
+                            style: TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                  ),
+                ),
+                const SizedBox(height: AppSpacing.md),
+                TextButton(
+                  onPressed: () => Navigator.of(context).pop(),
+                  child: const Text('Cancel'),
+                ),
+              ],
             ),
-          );
-        },
+          ),
+        ),
       ),
     );
-  }
-
-  Widget _buildPasswordRequirements() {
-    final requirements = [
-      {'text': 'At least 8 characters', 'met': _passwordController.text.length >= 8},
-      {'text': '1 uppercase letter', 'met': _passwordController.text.contains(RegExp(r'[A-Z]'))},
-      {'text': '1 lowercase letter', 'met': _passwordController.text.contains(RegExp(r'[a-z]'))},
-      {'text': '2 numbers', 'met': (RegExp(r'\d').allMatches(_passwordController.text).length) >= 2},
-      {'text': '1 special character', 'met': _passwordController.text.contains(RegExp(r'[@$!%*?&]'))},
-    ];
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        ...requirements.map((req) => Padding(
-          padding: const EdgeInsets.symmetric(vertical: 2.0),
-          child: Row(
-            children: [
-              Icon(
-                req['met'] as bool? ?? false
-                    ? Icons.check_circle
-                    : Icons.circle_outlined,
-                size: 16,
-                color: req['met'] as bool? ?? false
-                    ? AppColors.success
-                    : AppColors.darkGrey,
-              ),
-              const SizedBox(width: AppSpacing.sm),
-              Text(
-                req['text'] as String,
-                style: TextStyle(
-                  fontSize: 12,
-                  color: req['met'] as bool? ?? false
-                      ? AppColors.success
-                      : AppColors.darkGrey,
-                ),
-              ),
-            ],
-          ),
-        ),),
-      ],
-    );
-  }
-
-  bool isValidPassword(String password) {
-    return RegExp(r'^(?=.*[a-z])(?=.*[A-Z])(?=(?:.*\d){2})(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$')
-        .hasMatch(password);
   }
 }

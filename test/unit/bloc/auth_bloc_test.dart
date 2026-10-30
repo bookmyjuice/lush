@@ -235,7 +235,7 @@ void main() {
       expect: () => [isA<GoogleLinkRequired>()],
     );
     blocTest<AuthenticationBloc, AuthenticationState>(
-      'signup_required emits SignUpStarted',
+      'signup_required emits GoogleLinkRequired (collision screen)',
       build: () {
         when(() => mockRepo.googleSignIn()).thenAnswer((_) async => {'type':'signup_required','user':createTestUser()});
         when(() => mockRepo.user).thenReturn(createTestUser());
@@ -243,7 +243,7 @@ void main() {
         return AuthenticationBloc(repo: mockRepo, cartRepo: mockCartRepo);
       },
       act: (bloc) => bloc.add(const GoogleSignIn()),
-      expect: () => [isA<SignUpStarted>()],
+      expect: () => [isA<GoogleLinkRequired>()],
     );
     blocTest<AuthenticationBloc, AuthenticationState>(
       'failure emits SignUpFailed',
@@ -262,6 +262,68 @@ void main() {
       },
       act: (bloc) => bloc.add(const GoogleSignIn()),
       expect: () => [isA<AuthError>()],
+    );
+  });
+
+  group('PhoneOtpLogin', () {
+    blocTest<AuthenticationBloc, AuthenticationState>(
+      'existing user emits AuthenticationSuccess',
+      build: () {
+        when(() => mockRepo.loginViaPhoneOtp(any<String>(), any<String>()))
+            .thenAnswer((_) async => {'type': 'login_success', 'token': 'mock-token'});
+        when(() => mockRepo.user).thenReturn(createTestUser());
+        return AuthenticationBloc(repo: mockRepo, cartRepo: mockCartRepo);
+      },
+      act: (bloc) => bloc.add(
+        const PhoneOtpLogin(phone: '9876543210', otp: '123456'),
+      ),
+      expect: () => [
+        isA<AuthenticationInProgress>(),
+        isA<AuthenticationSuccess>(),
+      ],
+    );
+
+    blocTest<AuthenticationBloc, AuthenticationState>(
+      'new phone emits PhoneSignupRequired carrying the signup token',
+      build: () {
+        when(() => mockRepo.loginViaPhoneOtp(any<String>(), any<String>()))
+            .thenAnswer((_) async => {
+                  'type': 'signup_required',
+                  'phone': '9876543210',
+                  'signupToken': 'token-abc',
+                });
+        when(() => mockRepo.user).thenReturn(createTestUser());
+        return AuthenticationBloc(repo: mockRepo, cartRepo: mockCartRepo);
+      },
+      act: (bloc) => bloc.add(
+        const PhoneOtpLogin(phone: '9876543210', otp: '123456'),
+      ),
+      expect: () => [
+        isA<AuthenticationInProgress>(),
+        isA<PhoneSignupRequired>()
+            .having((state) => state.signupToken, 'signupToken', 'token-abc'),
+      ],
+    );
+
+    blocTest<AuthenticationBloc, AuthenticationState>(
+      'new phone without a token emits AuthError',
+      build: () {
+        when(() => mockRepo.loginViaPhoneOtp(any<String>(), any<String>()))
+            .thenAnswer((_) async => {
+                  'type': 'signup_required',
+                  'phone': '9876543210',
+                  'signupToken': '',
+                });
+        when(() => mockRepo.user).thenReturn(createTestUser());
+        return AuthenticationBloc(repo: mockRepo, cartRepo: mockCartRepo);
+      },
+      act: (bloc) => bloc.add(
+        const PhoneOtpLogin(phone: '9876543210', otp: '123456'),
+      ),
+      expect: () => [
+        isA<AuthenticationInProgress>(),
+        isA<AuthError>(),
+      ],
     );
   });
 

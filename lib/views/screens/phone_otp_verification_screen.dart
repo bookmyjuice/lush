@@ -7,15 +7,14 @@ import 'package:lush/utils/back_button_handler.dart';
 import 'package:pin_input_text_field/pin_input_text_field.dart';
 import 'package:toastification/toastification.dart';
 
-/// Step 2 (Both flows): Phone OTP Verification Screen
-/// User enters 6-digit OTP sent to their phone.
-/// BR-011: If this is a login flow (not signup), after OTP verification,
-/// the screen attempts to login the user. If user doesn't exist, it starts signup flow.
+/// Single OTP verification step for every phone-based journey.
 ///
-/// FIX FLAG-004: Login flow now dispatches PhoneOtpLogin BLoC event instead of
-/// calling userRepository.loginViaPhoneOtp() directly.
-/// FIX FLAG-007: Firebase login flow also dispatches PhoneOtpLogin to BLoC instead
-/// of directing user back to login page.
+/// Verification always calls `/auth/login-otp`:
+/// * account exists  -> `AuthenticationSuccess` -> dashboard
+/// * account missing -> `PhoneSignupRequired` (carries `signupToken`) -> address
+///
+/// Google-first signups pass their Google identity through as arguments so the
+/// address step can create the account with `/auth/google-signup`.
 class PhoneOtpVerificationScreen extends StatefulWidget {
   static const routeName = '/phone-otp-verification';
 
@@ -29,34 +28,32 @@ class PhoneOtpVerificationScreen extends StatefulWidget {
 class PhoneOtpVerificationScreenState
     extends State<PhoneOtpVerificationScreen> {
   final _otpController = TextEditingController(text: '');
-  String? _email;
+
   String? _phone;
-  String? _firstName;
-  String? _lastName;
-  int _resendCountdown = 30;
-  bool _canResend = false;
+  String? _googleEmail;
+  String? _googleId;
+  String? _photoUrl;
   bool _isGoogleSignup = false;
-  bool _isLoginFlow = false;
-  bool _isFirebaseAuth = false;
-  String? _verificationId;
+  bool _isVerifying = false;
+  bool _canResend = false;
+  int _resendCountdown = 30;
 
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
+
     final args = ModalRoute.of(context)?.settings.arguments;
     if (args is Map<String, dynamic>) {
-      _email = args['email'] as String?;
       _phone = args['phone'] as String?;
-      _firstName = args['firstName'] as String?;
-      _lastName = args['lastName'] as String?;
+      _googleEmail = args['googleEmail'] as String?;
+      _googleId = args['googleId'] as String?;
+      _photoUrl = args['photoUrl'] as String?;
       _isGoogleSignup = args['isGoogleSignup'] as bool? ?? false;
-      _isLoginFlow = args['isLoginFlow'] as bool? ?? false;
-      _isFirebaseAuth = args['isFirebaseAuth'] as bool? ?? false;
-      _verificationId = args['verificationId'] as String?;
     }
 
     if (_phone == null || _phone!.isEmpty) {
       Navigator.pop(context);
+      return;
     }
 
     _startResendCountdown();
@@ -69,6 +66,7 @@ class PhoneOtpVerificationScreenState
   }
 
   void _startResendCountdown() {
+    if (!mounted) return;
     setState(() {
       _canResend = false;
       _resendCountdown = 30;
@@ -76,33 +74,26 @@ class PhoneOtpVerificationScreenState
 
     Future<void>.delayed(const Duration(seconds: 30), () {
       if (mounted) {
-        setState(() {
-          _canResend = true;
-        });
+        setState(() => _canResend = true);
       }
     });
   }
 
-  void _resendOTP() {
+  void _resendOtp() {
     if (!_canResend) return;
 
-    BlocProvider.of<AuthenticationBloc>(context).add(
-      const ResendOTP(),
-    );
-
+    context.read<AuthenticationBloc>().add(const ResendOTP());
     toastification.show(
       title: const Text('OTP Resent'),
       description: Text('A new OTP has been sent to $_phone'),
       type: ToastificationType.success,
     );
-
     _startResendCountdown();
   }
 
-  Future<void> _verifyOTP() async {
+  void _verifyOtp() {
     final otp = _otpController.text.trim();
-
-    if (otp.isEmpty || otp.length != 6) {
+    if (otp.length != 6) {
       toastification.show(
         title: const Text('Invalid OTP'),
         description: const Text('Please enter the 6-digit OTP'),
@@ -111,21 +102,54 @@ class PhoneOtpVerificationScreenState
       return;
     }
 
-    if (_isFirebaseAuth) {
-      // Firebase Phone Auth flow - dispatch to BLoC which handles Firebase verification
-      // The BlocListener handles success/failure and navigation
-      BlocProvider.of<AuthenticationBloc>(context).add(
-        VerifyFirebaseOtp(verificationId: _verificationId ?? '', smsCode: otp),
+    setState(() => _isVerifying = true);
+    context.read<AuthenticationBloc>().add(
+          PhoneOtpLogin(phone: _phone ?? '', otp: otp),
+        );
+  }
+
+  void _onAuthState(AuthenticationState state) {
+    if (state is AuthenticationSuccess) {
+      setState(() => _isVerifying = false);
+      toastification.show(
+        title: const Text('Login Successful'),
+        type: ToastificationType.success,
       );
-    } else if (_isLoginFlow) {
-      // FIX FLAG-004: Dispatch PhoneOtpLogin to BLoC instead of calling userRepository directly
-      BlocProvider.of<AuthenticationBloc>(context).add(
-        PhoneOtpLogin(phone: _phone ?? '', otp: otp),
+      Navigator.pushNamedAndRemoveUntil(
+          context, '/dashboard', (route) => false);
+      return;
+    }
+
+    if (state is PhoneSignupRequired) {
+      setState(() => _isVerifying = false);
+      toastification.show(
+        title: const Text('Phone Verified'),
+        description: const Text('Now confirm your email address to finish.'),
+        type: ToastificationType.success,
       );
-    } else {
-      // Signup flow (backend OTP) - use BLoC for verification
-      BlocProvider.of<AuthenticationBloc>(context).add(
-        VerifyOTP(otp: otp, phone: _phone ?? ''),
+      // Google signup already has a verified email from Google; the phone-first
+      // flow must prove the email as well (email is mandatory at signup).
+      Navigator.pushReplacementNamed(
+        context,
+        _isGoogleSignup ? '/address-entry' : '/signup-email-verification',
+        arguments: <String, dynamic>{
+          'phone': state.phone,
+          'signupToken': state.signupToken,
+          'isGoogleSignup': _isGoogleSignup,
+          if (_googleEmail != null) 'email': _googleEmail,
+          if (_googleId != null) 'googleId': _googleId,
+          if (_photoUrl != null) 'photoUrl': _photoUrl,
+        },
+      );
+      return;
+    }
+
+    if (state is AuthError) {
+      setState(() => _isVerifying = false);
+      toastification.show(
+        title: const Text('Verification Failed'),
+        description: Text(state.error),
+        type: ToastificationType.error,
       );
     }
   }
@@ -136,235 +160,48 @@ class PhoneOtpVerificationScreenState
       canPop: false,
       onPopInvokedWithResult: (didPop, result) async {
         if (didPop) return;
-        final hasOtp = _otpController.text.isNotEmpty;
         final shouldPop = await BackButtonHandler.handleBackPress(
           context: context,
-          hasUnsavedChanges: hasOtp,
-          message: 'Phone verification in progress. Are you sure you want to go back?',
+          hasUnsavedChanges: _otpController.text.isNotEmpty,
+          message:
+              'Phone verification in progress. Are you sure you want to go back?',
         );
         if (shouldPop && context.mounted) {
           Navigator.of(context).pop();
         }
       },
       child: Scaffold(
-      appBar: AppBar(
-        title: const Text('Verify Phone Number'),
-        backgroundColor: Colors.amber,
-        centerTitle: true,
-      ),
-      body: BlocListener<AuthenticationBloc, AuthenticationState>(
-        listenWhen: (previous, current) =>
-            current is OTPVerificationSuccess ||
-            current is OTPVerificationFailed ||
-            current is FirebasePhoneVerified ||
-            current is FirebasePhoneVerificationFailed ||
-            current is AuthenticationSuccess ||
-            current is SignUpStarted ||
-            current is AuthError,
-        listener: (context, state) async {
-          // --- FIX FLAG-004: Phone OTP Login (backend OTP flow, BR-011) ---
-          if (_isLoginFlow && !_isFirebaseAuth) {
-            if (state is AuthenticationSuccess) {
-              toastification.show(
-                title: const Text('Login Successful'),
-                type: ToastificationType.success,
-              );
-              if (mounted) {
-                Navigator.pushNamedAndRemoveUntil(context, '/dashboard', (route) => false);
-              }
-              return;
-            }
-            if (state is SignUpStarted) {
-              toastification.show(
-                title: const Text('Phone Verified'),
-                description: const Text('No account found. Please complete signup.'),
-                type: ToastificationType.info,
-              );
-              if (mounted) {
-                Navigator.pushReplacementNamed(
-                  context,
-                  '/email-entry-after-phone',
-                  arguments: _phone,
-                );
-              }
-              return;
-            }
-            if (state is AuthError) {
-              toastification.show(
-                title: const Text('Login Failed'),
-                description: Text(state.error),
-                type: ToastificationType.error,
-              );
-              return;
-            }
-          }
-
-          // --- Firebase Phone Auth verification ---
-          if (state is FirebasePhoneVerified) {
-            if (_isLoginFlow) {
-              // FIX FLAG-007: Dispatch PhoneOtpLogin to BLoC instead of navigating back
-              toastification.show(
-                title: const Text('Phone Verified'),
-                description: const Text('Completing login...'),
-                type: ToastificationType.success,
-              );
-              BlocProvider.of<AuthenticationBloc>(context).add(
-                PhoneOtpLogin(phone: _phone ?? '', otp: 'firebase_verified'),
-              );
-            } else {
-              // Firebase + Signup flow: continue signup
-              toastification.show(
-                title: const Text('Phone Verified via Firebase'),
-                type: ToastificationType.success,
-              );
-              if (_email != null && _email!.isNotEmpty) {
-                Navigator.pushReplacementNamed(
-                  context,
-                  '/address-entry',
-                  arguments: {
-                    'email': _email,
-                    'phone': _phone,
-                    'firstName': null,
-                    'lastName': null,
-                  },
-                );
-              } else {
-                Navigator.pushReplacementNamed(
-                  context,
-                  '/email-entry-after-phone',
-                  arguments: _phone,
-                );
-              }
-            }
-            return;
-          }
-
-          if (state is FirebasePhoneVerificationFailed) {
-            toastification.show(
-              title: const Text('Firebase Verification Failed'),
-              description: Text(state.error),
-              type: ToastificationType.error,
-            );
-            return;
-          }
-
-          // FIX FLAG-007: Handle PhoneOtpLogin result for Firebase + Login flow
-          if (_isFirebaseAuth && _isLoginFlow) {
-            if (state is AuthenticationSuccess) {
-              toastification.show(
-                title: const Text('Login Successful'),
-                type: ToastificationType.success,
-              );
-              if (mounted) {
-                Navigator.pushNamedAndRemoveUntil(context, '/dashboard', (route) => false);
-              }
-              return;
-            }
-            if (state is SignUpStarted) {
-              toastification.show(
-                title: const Text('Phone Verified'),
-                description: const Text('No account found. Please complete signup.'),
-                type: ToastificationType.info,
-              );
-              if (mounted) {
-                Navigator.pushReplacementNamed(
-                  context,
-                  '/email-entry-after-phone',
-                  arguments: _phone,
-                );
-              }
-              return;
-            }
-            if (state is AuthError) {
-              toastification.show(
-                title: const Text('Login Failed'),
-                description: Text(state.error),
-                type: ToastificationType.error,
-              );
-              return;
-            }
-          }
-
-          // --- Backend OTP signup flow ---
-          if (state is OTPVerificationSuccess && !_isLoginFlow) {
-            toastification.show(
-              title: const Text('Phone Verified'),
-              type: ToastificationType.success,
-            );
-
-            if (_isGoogleSignup) {
-              Navigator.pushReplacementNamed(
-                context,
-                '/address-entry',
-                arguments: {
-                  'email': _email,
-                  'phone': _phone,
-                  'firstName': _firstName,
-                  'lastName': _lastName,
-                },
-              );
-            } else if (_email != null && _email!.isNotEmpty) {
-              Navigator.pushReplacementNamed(
-                context,
-                '/address-entry',
-                arguments: {
-                  'email': _email,
-                  'phone': _phone,
-                  'firstName': null,
-                  'lastName': null,
-                },
-              );
-            } else {
-              Navigator.pushReplacementNamed(
-                context,
-                '/email-entry-after-phone',
-                arguments: _phone,
-              );
-            }
-          } else if (state is OTPVerificationFailed) {
-            toastification.show(
-              title: const Text('Verification Failed'),
-              description: Text(state.error),
-              type: ToastificationType.error,
-            );
-          }
-        },
-        child: SafeArea(
-          child: SingleChildScrollView(
-            padding: const EdgeInsets.all(24.0),
-            child: Column(
+        appBar: AppBar(
+          title: const Text('Verify Phone Number'),
+          backgroundColor: Colors.amber,
+          centerTitle: true,
+        ),
+        body: BlocListener<AuthenticationBloc, AuthenticationState>(
+          listenWhen: (previous, current) =>
+              current is AuthenticationSuccess ||
+              current is PhoneSignupRequired ||
+              current is AuthError,
+          listener: (context, state) => _onAuthState(state),
+          child: SafeArea(
+            child: ListView(
+              padding: const EdgeInsets.all(24),
               children: [
-                const SizedBox(height: 40),
-                const Icon(
-                  Icons.phone_android,
-                  size: 80,
-                  color: Colors.amber,
-                ),
-                const SizedBox(height: 30),
+                const SizedBox(height: 20),
                 const Text(
                   'Verify Your Phone Number',
-                  style: TextStyle(
-                    fontSize: 24,
-                    fontWeight: FontWeight.bold,
-                  ),
+                  style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
                   textAlign: TextAlign.center,
                 ),
                 const SizedBox(height: 10),
                 Text(
-                  'We\'ve sent a 6-digit OTP to\n$_phone',
-                  style: const TextStyle(
-                    fontSize: 16,
-                    color: Colors.grey,
-                  ),
+                  "We've sent a 6-digit OTP to\n$_phone",
+                  style: const TextStyle(fontSize: 16, color: Colors.grey),
                   textAlign: TextAlign.center,
                 ),
                 const SizedBox(height: 40),
                 const Text(
                   'Enter OTP',
-                  style: TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.w600,
-                  ),
+                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
                 ),
                 const SizedBox(height: 20),
                 PinInputTextField(
@@ -377,36 +214,44 @@ class PhoneOtpVerificationScreenState
                       Colors.green,
                     ),
                   ),
-                  onSubmit: (code) {
-                    _verifyOTP();
-                  },
+                  onSubmit: (_) => _verifyOtp(),
                 ),
                 const SizedBox(height: 40),
                 SizedBox(
                   width: double.infinity,
                   height: 50,
                   child: ElevatedButton(
-                    onPressed: _verifyOTP,
+                    key: const Key('otp_verify_button'),
+                    onPressed: _isVerifying ? null : _verifyOtp,
                     style: ElevatedButton.styleFrom(
                       backgroundColor: Colors.amber,
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(12),
                       ),
                     ),
-                    child: const Text(
-                      'Verify OTP',
-                      style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
+                    child: _isVerifying
+                        ? const SizedBox(
+                            width: 20,
+                            height: 20,
+                            child: CircularProgressIndicator(
+                              strokeWidth: 2,
+                              color: Colors.white,
+                            ),
+                          )
+                        : const Text(
+                            'Verify OTP',
+                            style: TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
                   ),
                 ),
                 const SizedBox(height: 30),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    const Text('Didn\'t receive the code?'),
+                    const Text("Didn't receive the code?"),
                     const SizedBox(width: 8),
                     if (!_canResend)
                       Text(
@@ -418,7 +263,7 @@ class PhoneOtpVerificationScreenState
                       )
                     else
                       GestureDetector(
-                        onTap: _resendOTP,
+                        onTap: _resendOtp,
                         child: const Text(
                           'Resend OTP',
                           style: TextStyle(
@@ -434,7 +279,6 @@ class PhoneOtpVerificationScreenState
             ),
           ),
         ),
-      ),
       ),
     );
   }

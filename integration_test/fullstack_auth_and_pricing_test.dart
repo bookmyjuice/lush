@@ -14,7 +14,7 @@ const String e2ePass = String.fromEnvironment('E2E_PASS');
 void main() {
   IntegrationTestWidgetsFlutterBinding.ensureInitialized();
 
-  testWidgets('Auth → Profile → Pricing URLs → Checkout → Portal',
+  testWidgets('Auth -> Profile -> Retired routes -> Production checkout',
       (tester) async {
     if (!runE2E) {
       if (kDebugMode) {
@@ -41,75 +41,49 @@ void main() {
     final authHeader = {'Authorization': 'Bearer $token'};
 
     // 2) Fetch profile (sanity check token)
-    final profileRes = await http.get(Uri.parse('$baseUrl/api/test/user'),
+    final profileRes = await http.get(Uri.parse('$baseUrl/api/v1/user/profile'),
         headers: authHeader,);
     expect(profileRes.statusCode, 200);
-
-    // 3) Pricing page session URLs
-    final pricingRes = await http.get(
-      Uri.parse('$baseUrl/api/test/generate_pricing_page_session_url'),
-      headers: authHeader,
-    );
-    expect(pricingRes.statusCode, 200);
-    final pricingJson = jsonDecode(pricingRes.body) as Map<String, dynamic>;
 
     // Validate expected URL host for test mode
     bool hasChargebeeHost(String? url) =>
         url?.contains('bookmyjuice-test.chargebee.com') ?? false;
 
-    final premiumUrl = pricingJson['premium']?['url'] as String?;
-    final signatureUrl = pricingJson['signature']?['url'] as String?;
-    final delightUrl = pricingJson['delight']?['url'] as String?;
-
-    expect(hasChargebeeHost(premiumUrl), isTrue);
-    expect(hasChargebeeHost(signatureUrl), isTrue);
-    expect(hasChargebeeHost(delightUrl), isTrue);
-
-    // 4) One-time checkout page URL + content
-    final oneTimeCheckoutRes = await http.get(
-      Uri.parse('$baseUrl/api/test/oneTimeCheckoutPageUrl'),
+    // 3) Retired-by-design routes must stay gone (V1 launch freeze).
+    //    Chargebee Pricing Pages and the Self-Serve Portal are replaced by native
+    //    BMJ screens, so these non-production routes return 410 Gone.
+    final pricingRes = await http.get(
+      Uri.parse('$baseUrl/api/test/generate_pricing_page_session_url'),
       headers: authHeader,
     );
-    expect(oneTimeCheckoutRes.statusCode, 200);
-    final oneTimeJson =
-        jsonDecode(oneTimeCheckoutRes.body) as Map<String, dynamic>;
-    final hostedUrl = oneTimeJson['url'] as String?;
-    expect(hasChargebeeHost(hostedUrl), isTrue);
+    expect(pricingRes.statusCode, 410,
+        reason: 'Chargebee pricing pages are retired (native screens replace them)');
 
-    // Validate content structure
-    final content = oneTimeJson['content'] as Map<String, dynamic>?;
-    expect(content, isNotNull);
-    final customer = content?['customer'] as Map<String, dynamic>?;
-    expect(customer?['id'], isNotEmpty);
-    expect(customer?['email'], isNotEmpty);
-    final items = content?['items'] as List?;
-    expect(items, isNotEmpty);
-    expect((items?.first as Map?)?['item_price_id'], isNotEmpty);
-    expect((items?.first as Map?)?['quantity'], isNotNull);
-
-    // 5) Cart checkout page URL + content
-    final cartCheckoutRes = await http.get(
-      Uri.parse('$baseUrl/api/test/cartCheckout'),
-      headers: authHeader,
-    );
-    expect(cartCheckoutRes.statusCode, 200);
-    final cartJson = jsonDecode(cartCheckoutRes.body) as Map<String, dynamic>;
-    final cartUrl = cartJson['url'] as String?;
-    expect(hasChargebeeHost(cartUrl), isTrue);
-
-    // Validate cart response has required structure
-    expect(cartJson['id'], isNotEmpty);
-    expect(cartJson['type'], equals('checkout_one_time_for_items'));
-    expect(cartJson['state'], equals('created'));
-
-    // 6) Self-serve portal session
     final portalRes = await http.get(
       Uri.parse('$baseUrl/api/test/portal'),
       headers: authHeader,
     );
-    expect(portalRes.statusCode, 200);
-    final portalJson = jsonDecode(portalRes.body) as Map<String, dynamic>;
-    final accessUrl = portalJson['access_url'] as String?;
-    expect(hasChargebeeHost(accessUrl), isTrue);
+    expect(portalRes.statusCode, 410,
+        reason: 'Chargebee Portal is retired (native screens replace it)');
+
+    // 4) One-time checkout must go through the production checkout contract.
+    final oneTimeCheckoutRes = await http.post(
+      Uri.parse('$baseUrl/api/v2/checkout/with-items'),
+      headers: {...authHeader, 'Content-Type': 'application/json'},
+      body: jsonEncode({
+        'items': [
+          {'price_id': 'pineapple300-INR', 'quantity': 1},
+        ],
+      }),
+    );
+    // 200 when the account is checkout-ready; 400 when the test account is not
+    // (missing Chargebee customer id / unknown price id). Never 404 or 410.
+    expect(oneTimeCheckoutRes.statusCode, anyOf(200, 400));
+    if (oneTimeCheckoutRes.statusCode == 200) {
+      final oneTimeJson =
+          jsonDecode(oneTimeCheckoutRes.body) as Map<String, dynamic>;
+      final data = oneTimeJson['data'] as Map<String, dynamic>;
+      expect(hasChargebeeHost(data['url'] as String?), isTrue);
+    }
   }, semanticsEnabled: false,);
 }

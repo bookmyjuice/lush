@@ -340,49 +340,22 @@ class EmailVerificationCodeSent extends AuthenticationState {
 }
 
 // ============================================================
-// Firebase Phone Auth States (co-exists as alternative)
+// Phone-first signup (A-1: OTP verified, account does not exist yet)
 // ============================================================
 
-/// Firebase Phone Auth SMS has been sent to the user's phone.
-class FirebasePhoneOtpSentState extends AuthenticationState {
+/// The phone number was verified but no account exists for it.
+///
+/// [signupToken] is the short-lived proof minted by `/auth/login-otp`; it is
+/// the only way the address step can create the account without a password.
+class PhoneSignupRequired extends AuthenticationState {
   final String phone;
-  final String verificationId;
+  final String signupToken;
 
-  const FirebasePhoneOtpSentState({
+  const PhoneSignupRequired({
     required this.phone,
-    required this.verificationId,
+    required this.signupToken,
   });
 
   @override
-  List<Object?> get props => [phone, verificationId];
-}
-
-/// Firebase Phone Auth verification succeeded.
-class FirebasePhoneVerified extends AuthenticationState {
-  final String phone;
-
-  const FirebasePhoneVerified({required this.phone});
-
-  @override
-  List<Object?> get props => [phone];
-}
-
-/// Firebase Phone Auth verification failed.
-class FirebasePhoneVerificationFailed extends AuthenticationState {
-  final String error;
-
-  const FirebasePhoneVerificationFailed({required this.error});
-
-  @override
-  List<Object?> get props => [error];
-}
-
-/// Firebase Phone Auth is in progress (code sent, waiting for user input).
-class FirebasePhoneAuthInProgress extends AuthenticationState {
-  final String phone;
-
-  const FirebasePhoneAuthInProgress({required this.phone});
-
-  @override
-  List<Object?> get props => [phone];
+  List<Object?> get props => [phone, signupToken];
 }

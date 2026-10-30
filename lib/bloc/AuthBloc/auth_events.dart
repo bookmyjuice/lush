@@ -231,54 +231,92 @@ class SignUp extends AuthenticationEvent {
 }
 
 // ============================================================
-// Firebase Phone Auth Events (co-exists as alternative to backend OTP)
+// Passwordless signup completion (A-1)
 // ============================================================
 
-/// Initiate Firebase Phone Auth verification.
-/// Sends SMS via Firebase (alternative to backend sendOTP).
-class FirebasePhoneSignIn extends AuthenticationEvent {
-  final String phoneNumber;
+/// Complete a phone-first signup with the verified [signupToken].
+class PhoneSignupRequested extends AuthenticationEvent {
+  final String signupToken;
+  final String firstName;
+  final String lastName;
+  final String email;
 
-  const FirebasePhoneSignIn({required this.phoneNumber});
+  /// Proof that [email] passed the email OTP check (mandatory at signup).
+  final String emailVerificationToken;
+  final String address;
+  final String extendedAddr;
+  final String extendedAddr2;
+  final String city;
+  final String state;
+  final String zip;
+  final String country;
 
-  @override
-  List<Object> get props => [phoneNumber];
-}
-
-/// Confirm that Firebase has sent the SMS code.
-class FirebasePhoneOtpSent extends AuthenticationEvent {
-  final String verificationId;
-
-  const FirebasePhoneOtpSent({required this.verificationId});
-
-  @override
-  List<Object> get props => [verificationId];
-}
-
-/// Verify the SMS code entered by the user via Firebase.
-class VerifyFirebaseOtp extends AuthenticationEvent {
-  final String verificationId;
-  final String smsCode;
-
-  const VerifyFirebaseOtp({
-    required this.verificationId,
-    required this.smsCode,
+  const PhoneSignupRequested({
+    required this.signupToken,
+    required this.firstName,
+    required this.lastName,
+    required this.email,
+    required this.emailVerificationToken,
+    required this.address,
+    required this.extendedAddr,
+    required this.extendedAddr2,
+    required this.city,
+    required this.state,
+    required this.zip,
+    required this.country,
   });
 
   @override
-  List<Object> get props => [verificationId, smsCode];
+  List<Object> get props => [
+        signupToken,
+        firstName,
+        lastName,
+        email,
+        emailVerificationToken,
+        address,
+        extendedAddr,
+        extendedAddr2,
+        city,
+        state,
+        zip,
+        country,
+      ];
 }
 
-/// Error during Firebase Phone Auth.
-class FirebasePhoneAuthError extends AuthenticationEvent {
-  final String error;
+/// Complete a Google signup: Google ID token + verified phone [signupToken].
+class GoogleSignupRequested extends AuthenticationEvent {
+  final String signupToken;
+  final String address;
+  final String extendedAddr;
+  final String extendedAddr2;
+  final String city;
+  final String state;
+  final String zip;
+  final String country;
 
-  const FirebasePhoneAuthError({required this.error});
+  const GoogleSignupRequested({
+    required this.signupToken,
+    required this.address,
+    required this.extendedAddr,
+    required this.extendedAddr2,
+    required this.city,
+    required this.state,
+    required this.zip,
+    required this.country,
+  });
 
   @override
-  List<Object> get props => [error];
+  List<Object> get props => [
+        signupToken,
+        address,
+        extendedAddr,
+        extendedAddr2,
+        city,
+        state,
+        zip,
+        country,
+      ];
 }
-
 // ============================================================
 // FIX: FLAG-004 — Phone OTP Login Event (backend OTP flow)
 // ============================================================

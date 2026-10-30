@@ -21,6 +21,9 @@ class UserRepository {
   final HttpClient ioc = HttpClient();
   late String token;
 
+  /// Fetch the authenticated customer's orders.
+  /// GET /api/orders/by-customer (production).
+  /// Returns a raw JSON array of order objects.
   Future<List<Map<String, dynamic>>> fetchOrders() async {
     try {
       ioc.badCertificateCallback =
@@ -28,7 +31,7 @@ class UserRepository {
       final http = IOClient(ioc);
       final authToken = await _secureStorage.getAuthToken();
       final response = await http.get(
-        Uri.parse('${server!}/api/test/ordersByCustomerId'),
+        Uri.parse('${server!}/api/orders/by-customer'),
         headers: {
           'Accept': 'application/json',
           'Content-Type': 'application/json',
@@ -50,6 +53,11 @@ class UserRepository {
     }
   }
 
+  /// Create a Chargebee Hosted Page for one-time checkout from cart items.
+  /// POST /api/v2/checkout/with-items (production).
+  ///
+  /// Request: { "items": [ { "price_id": <chargebee item price id>, "quantity": n } ] }
+  /// Response: { "status": "success", "message": "...", "data": { "url": ... } }
   Future<String> getCartCheckoutUrl(
       List<Map<String, dynamic>> cartItems,) async {
     try {
@@ -59,29 +67,35 @@ class UserRepository {
       final authToken = await _secureStorage.getAuthToken();
 
       final response = await http.post(
-        Uri.parse('$server/api/test/cartCheckout'),
+        Uri.parse('$server/api/v2/checkout/with-items'),
         headers: {
           'Authorization': 'Bearer $authToken',
           'Accept': 'application/json',
           'Content-Type': 'application/json',
         },
-        body: jsonEncode(cartItems),
+        body: jsonEncode({'items': cartItems}),
       );
 
       if (response.statusCode == 200) {
         final body = const Utf8Decoder().convert(response.bodyBytes);
         final dynamic jsonResponse = json.decode(body);
         if (jsonResponse is Map<String, dynamic>) {
-          // The hosted page URL is usually in 'url' or 'hosted_page.url'
-          final url = jsonResponse['url'] ??
+          // Production contract (POST /api/v2/checkout/with-items):
+          //   { "status": "success", "message": "...", "data": { "url": ... } }
+          // Legacy shapes ('url', 'hosted_page.url', 'checkout_url') are kept as
+          // fallbacks so older servers still resolve.
+          final data = jsonResponse['data'];
+          final url = (data is Map ? data['url'] : null) ??
+              jsonResponse['url'] ??
               jsonResponse['hosted_page']?['url'] ??
               jsonResponse['checkout_url'];
           return url?.toString() ?? jsonResponse.toString();
         }
         return jsonResponse.toString();
       } else {
+        final errorBody = const Utf8Decoder().convert(response.bodyBytes);
         throw Exception(
-            'Failed to get cart checkout URL: ${response.statusCode}',);
+            'Failed to get cart checkout URL: ${response.statusCode} - $errorBody',);
       }
     } catch (e) {
       throw Exception('Error getting cart checkout URL: $e');
@@ -130,7 +144,7 @@ class UserRepository {
   }
 
   /// TC-PROD-001: Fetch charge items from backend
-  /// GET /api/test/charge-items
+  /// GET /api/v1/catalog/charge-items
   /// Returns list of items with Delight/Signature/Premium categories
   /// and 200/300/500ml size prices
   Future<List<Map<String, dynamic>>> getChargeItems() async {
@@ -140,10 +154,10 @@ class UserRepository {
       final http = IOClient(ioc);
       final authToken = await _secureStorage.getAuthToken();
 
-      debugPrint('🛒 Fetching charge items from: $server/api/test/charge-items');
+      debugPrint('🛒 Fetching charge items from: $server/api/v1/catalog/charge-items');
 
       final response = await http.get(
-        Uri.parse('$server/api/test/charge-items'),
+        Uri.parse('$server/api/v1/catalog/charge-items'),
         headers: {
           'Accept': 'application/json',
           'Content-Type': 'application/json',
@@ -586,8 +600,11 @@ class UserRepository {
     }
   }
 
-  /// BR-001: Verify email verification code via backend
-  Future<String> verifyEmailCode(String email, String code) async {
+  /// BR-001: Verify an email verification code via backend.
+  ///
+  /// Returns the signed `emailVerificationToken` on success; that token is the
+  /// proof `/auth/phone-signup` requires (email is mandatory at signup).
+  Future<Map<String, dynamic>> verifyEmailCode(String email, String code) async {
     ioc.badCertificateCallback =
         (X509Certificate cert, String host, int port) => true;
     final http = IOClient(ioc);
@@ -604,9 +621,22 @@ class UserRepository {
         },
       );
       final body = const Utf8Decoder().convert(response.bodyBytes);
-      return json.decode(body)['message'] as String;
+      final decoded = json.decode(body) as Map<String, dynamic>;
+      final message = decoded['message'] as String? ?? '';
+      if (response.statusCode == 200 &&
+          (decoded['emailVerificationToken'] as String? ?? '').isNotEmpty) {
+        return {
+          'status': 'success',
+          'email': decoded['email'] as String? ?? email,
+          'emailVerificationToken': decoded['emailVerificationToken'],
+        };
+      }
+      return {
+        'status': 'error',
+        'error': message.isNotEmpty ? message : 'Invalid or expired code',
+      };
     } catch (e) {
-      return 'Error: Network error - $e';
+      return {'status': 'error', 'error': 'Network error - $e'};
     }
   }
 
@@ -667,50 +697,6 @@ class UserRepository {
       return 'Error: Network error - $e';
     }
   }
-
-  Future<Map<String, String>> getSubscriptionPageUrl() async {
-    final SharedPreferences sharedPreferences = await _prefs;
-
-    if (sharedPreferences
-                .getInt('premium_pricing_page_url_expires_at') !=
-            null &&
-        sharedPreferences.getInt('delight_pricing_page_url_expires_at') !=
-            null &&
-        sharedPreferences.getInt('signature_pricing_page_url_expires_at') !=
-            null) {
-      if (isUrlvalid(sharedPreferences
-              .getInt('premium_pricing_page_url_expires_at')!,) &&
-          isUrlvalid(sharedPreferences
-              .getInt('delight_pricing_page_url_expires_at')!,) &&
-          isUrlvalid(sharedPreferences
-              .getInt('signature_pricing_page_url_expires_at')!,)) {
-        return pricingPageUrlsMap();
-      } else {
-        try {
-          await getPricingPageUrl();
-          return pricingPageUrlsMap();
-        } catch (e) {
-          return {
-            'premium': 'could not get premium subscription page url',
-            'delight': 'could not get delight subscription page url',
-            'signature': 'could not get signature subscription page url',
-          };
-        }
-      }
-    } else {
-      try {
-        await getPricingPageUrl();
-        return pricingPageUrlsMap();
-      } catch (e) {
-        return {
-          'premium': 'could not get premium subscription page url',
-          'delight': 'could not get delight subscription page url',
-          'signature': 'could not get signature subscription page url',
-        };
-      }
-    }
-  }
-
   //   Future<void> verifyMobile(String mobileNumber) async {
   //     // Account account = Account(client);
   //     // // final u = account;
@@ -929,7 +915,11 @@ class UserRepository {
       if (response.statusCode == 200) {
         if (body['status'] == 'user_not_found') {
           // OTP verified but user doesn't exist - start signup
-          return {'type': 'signup_required', 'phone': phone};
+          return {
+            'type': 'signup_required',
+            'phone': phone,
+            'signupToken': body['signupToken'] as String? ?? '',
+          };
         } else {
           // User exists - login successful
           final token = body['accessToken'] as String?;
@@ -949,6 +939,166 @@ class UserRepository {
       debugPrint('❌ Phone OTP login failed: $e');
       return {'error': 'Phone OTP login failed: $e'};
     }
+  }
+
+  /// A-1: complete a phone-first signup with a verified phone number and email.
+  /// POST /api/auth/phone-signup  (body carries the `signupToken`)
+  Future<Map<String, dynamic>> completePhoneSignup({
+    required String signupToken,
+    required String firstName,
+    required String lastName,
+    required String email,
+    required String emailVerificationToken,
+    String address = '',
+    String extendedAddr = '',
+    String extendedAddr2 = '',
+    String city = '',
+    String state = '',
+    String zip = '',
+    String country = '',
+  }) async {
+    if (signupToken.isEmpty) {
+      return {
+        'error': 'Phone verification expired. Please verify your number again.',
+      };
+    }
+    if (email.trim().isEmpty || emailVerificationToken.isEmpty) {
+      return {
+        'error': 'Email verification expired. Please verify your email again.',
+      };
+    }
+
+    try {
+      ioc.badCertificateCallback =
+          (X509Certificate cert, String host, int port) => true;
+      final httpClient = IOClient(ioc);
+
+      final response = await httpClient.post(
+        Uri.parse('$server/api/auth/phone-signup'),
+        body: jsonEncode({
+          'signupToken': signupToken,
+          'firstName': firstName.trim(),
+          'lastName': lastName.trim(),
+          'email': email.trim(),
+          'emailVerificationToken': emailVerificationToken,
+          'address': address.trim(),
+          'extendedAddr': extendedAddr.trim(),
+          'extendedAddr2': extendedAddr2.trim(),
+          'city': city.trim(),
+          'state': state.trim(),
+          'zip': zip.trim(),
+          'country': country.trim().toUpperCase(),
+        }),
+        headers: {
+          'Accept': 'application/json',
+          'Content-Type': 'application/json',
+        },
+      );
+
+      return await _handleSignupResponse(response);
+    } catch (e) {
+      debugPrint('❌ Phone signup failed: $e');
+      return {'error': 'Could not create your account: $e'};
+    }
+  }
+
+  /// A-1: complete a Google-first signup. The Google ID token is taken from
+  /// the live Google session, never from a client-supplied id.
+  /// POST /api/auth/google-signup
+  Future<Map<String, dynamic>> completeGoogleSignup({
+    required String signupToken,
+    required String address,
+    required String extendedAddr,
+    required String extendedAddr2,
+    required String city,
+    required String state,
+    required String zip,
+    required String country,
+  }) async {
+    if (signupToken.isEmpty) {
+      return {
+        'error': 'Phone verification expired. Please verify your number again.',
+      };
+    }
+
+    try {
+      final account = GoogleSignInHelper.instance.currentUser;
+      if (account == null) {
+        return {
+          'error': 'Google session expired. Please sign in with Google again.',
+        };
+      }
+
+      final auth = await account.authentication;
+      final idToken = auth.idToken;
+      if (idToken == null || idToken.isEmpty) {
+        return {
+          'error': 'Google did not return an identity token. Please try again.',
+        };
+      }
+
+      ioc.badCertificateCallback =
+          (X509Certificate cert, String host, int port) => true;
+      final httpClient = IOClient(ioc);
+
+      final response = await httpClient.post(
+        Uri.parse('$server/api/auth/google-signup'),
+        body: jsonEncode({
+          'idToken': idToken,
+          'signupToken': signupToken,
+          'address': address.trim(),
+          'extendedAddr': extendedAddr.trim(),
+          'extendedAddr2': extendedAddr2.trim(),
+          'city': city.trim(),
+          'state': state.trim(),
+          'zip': zip.trim(),
+          'country': country.trim().toUpperCase(),
+        }),
+        headers: {
+          'Accept': 'application/json',
+          'Content-Type': 'application/json',
+        },
+      );
+
+      return await _handleSignupResponse(response);
+    } catch (e) {
+      debugPrint('❌ Google signup failed: $e');
+      return {'error': 'Could not create your account: $e'};
+    }
+  }
+
+  /// Shared success path for the passwordless signup endpoints: the server
+  /// returns a JWT, so the new account is signed in immediately.
+  Future<Map<String, dynamic>> _handleSignupResponse(
+    http.Response response,
+  ) async {
+    final body = const Utf8Decoder().convert(response.bodyBytes);
+    Map<String, dynamic> decoded = <String, dynamic>{};
+    if (body.isNotEmpty) {
+      try {
+        decoded = json.decode(body) as Map<String, dynamic>;
+      } catch (_) {
+        decoded = <String, dynamic>{};
+      }
+    }
+
+    if (response.statusCode == 200) {
+      final accessToken = decoded['accessToken'] as String?;
+      if (accessToken == null || accessToken.isEmpty) {
+        return {
+          'error': 'Account created but sign-in failed. Please sign in again.',
+        };
+      }
+      await _secureStorage.saveAuthToken(accessToken);
+      token = accessToken;
+      userLoggedIn = true;
+      await getUserDetailsFromServer();
+      return {'type': 'login_success', 'token': accessToken, 'user': user};
+    }
+
+    final message =
+        decoded['message'] as String? ?? 'Could not create your account';
+    return {'error': message.replaceFirst('Error: ', '')};
   }
 
   /// #2 UX: Link Google account to existing user
@@ -998,110 +1148,6 @@ class UserRepository {
     }
   }
 
-  bool isUrlvalid(int expiresAt) {
-    final expiryTime = DateTime.fromMillisecondsSinceEpoch(expiresAt * 1000, isUtc: true);
-    return DateTime.now().toUtc().isBefore(expiryTime);
-  }
-
-  Future<void> getPricingPageUrl() async {
-    ioc.badCertificateCallback =
-        (X509Certificate cert, String host, int port) => true;
-    final http = IOClient(ioc);
-    final SharedPreferences sharedPreferences = await SharedPreferences.getInstance();
-    final response = await http
-        .get(Uri.parse('$server/api/test/generate_pricing_page_session_url'),
-            // body: jsonEncode({"customerId": user.getId}),
-            headers: {
-          'Authorization': 'Bearer $token',
-          'Accept': 'application/json',
-          'Content-Type': 'application/json',
-        },);
-
-    if (response.statusCode == 200) {
-      final body = const Utf8Decoder().convert(response.bodyBytes);
-      final dynamic decoded = json.decode(body);
-      if (decoded is Map<String, dynamic>) {
-        final premiumData = decoded['premium'];
-        final delightData = decoded['delight'];
-        final signatureData = decoded['signature'];
-        
-        if (premiumData is Map<String, dynamic>) {
-          sharedPreferences
-            ..setString(
-                'premium_pricing_page_url', (premiumData['url'] as String?) ?? '',)
-            ..setInt('premium_pricing_page_url_expires_at',
-                (premiumData['expires_at'] as int?) ?? 0,);
-        }
-        if (delightData is Map<String, dynamic>) {
-          sharedPreferences
-            ..setString(
-                'delight_pricing_page_url', (delightData['url'] as String?) ?? '',)
-            ..setInt('delight_pricing_page_url_expires_at',
-                (delightData['expires_at'] as int?) ?? 0,);
-        }
-        if (signatureData is Map<String, dynamic>) {
-          sharedPreferences
-            ..setString(
-                'signature_pricing_page_url', (signatureData['url'] as String?) ?? '',)
-            ..setInt('signature_pricing_page_url_expires_at',
-                (signatureData['expires_at'] as int?) ?? 0,);
-        }
-      }
-    } else {
-      throw Exception('Error: ${response.statusCode}');
-    }
-  }
-
-  Future<String> getSelfServePageUrl() async {
-    final SharedPreferences sharedPreferences = await _prefs;
-    if (sharedPreferences.getInt('self_serve_page_url_expires_at') != null) {
-      if (isUrlvalid(
-          sharedPreferences.getInt('self_serve_page_url_expires_at')!,)) {
-        if (sharedPreferences.getString('self_serve_page_url') == null) {
-          return fetchSelfServePageUrlFromServer();
-        } else {
-          return sharedPreferences.getString('self_serve_page_url')!;
-        }
-      } else {
-        return fetchSelfServePageUrlFromServer();
-      }
-    } else {
-      return fetchSelfServePageUrlFromServer();
-    }
-  }
-
-  Future<String> fetchSelfServePageUrlFromServer() async {
-    ioc.badCertificateCallback =
-        (X509Certificate cert, String host, int port) => true;
-    final http = IOClient(ioc);
-    final SharedPreferences sharedPreferences = await SharedPreferences.getInstance();
-    final response = await http.get(Uri.parse('$server/api/test/portal'),
-        // body: jsonEncode({"customerId": user.getId}),
-        headers: {
-          'Authorization': 'Bearer $token',
-          'Accept': 'application/json',
-          'Content-Type': 'application/json',
-        },);
-
-    if (response.statusCode == 200) {
-      final body = const Utf8Decoder().convert(response.bodyBytes);
-      final dynamic decoded = json.decode(body);
-      if (decoded is Map<String, dynamic>) {
-        final url = decoded['access_url'];
-        final expiresAt = decoded['expires_at'];
-        
-        if (url is String) {
-          sharedPreferences.setInt('self_serve_page_url_expires_at',
-              expiresAt is int ? expiresAt : 0,);
-          return url;
-        }
-      }
-      return 'Error: Invalid response format';
-    } else {
-      return 'Error: ${response.statusCode}';
-    }
-  }
-
   /// #9 UX: Delete user account (soft delete)
   Future<String> deleteAccount() async {
     try {
@@ -1144,7 +1190,7 @@ class UserRepository {
     ioc.badCertificateCallback =
         (X509Certificate cert, String host, int port) => true;
     final http = IOClient(ioc);
-    var response = await http.get(Uri.parse('$server/api/test/user'), headers: {
+    var response = await http.get(Uri.parse('$server/api/v1/user/profile'), headers: {
       'authorization': 'Bearer $token',
       'Accept': 'application/json',
       'Content-Type': 'application/json',
@@ -1152,7 +1198,7 @@ class UserRepository {
     var body = const Utf8Decoder().convert(response.bodyBytes);
     if (response.statusCode != 200) {
       final fallbackToken = (await _secureStorage.getAuthToken()) ?? '';
-      response = await http.get(Uri.parse('$server/api/test/user'), headers: {
+      response = await http.get(Uri.parse('$server/api/v1/user/profile'), headers: {
         'authorization': 'Bearer $fallbackToken',
         'Accept': 'application/json',
         'Content-Type': 'application/json',
@@ -1179,108 +1225,6 @@ class UserRepository {
         .substring(5, 9)
         .toLowerCase();
   }
-
-  Future<Map<String, String>> pricingPageUrlsMap() async {
-    try {
-      // First try to get URLs from the backend
-      final apiUrls = await getPricingPageUrls();
-      if (apiUrls.isNotEmpty) {
-        // Save to SharedPreferences for future use
-        final SharedPreferences sharedPreferences = await _prefs;
-        for (final entry in apiUrls.entries) {
-          await sharedPreferences.setString(
-              '${entry.key}_pricing_page_url', entry.value,);
-        }
-        return apiUrls;
-      }
-    } catch (e) {
-      debugPrint('Error fetching pricing page URLs from API: $e');
-      // Fall back to cached URLs if API call fails
-    }
-
-    // Fallback to cached URLs
-    final Map<String, String> urls = {'premium': '', 'delight': '', 'signature': ''};
-    final SharedPreferences sharedPreferences = await _prefs;
-    urls['premium'] =
-        sharedPreferences.getString('premium_pricing_page_url') ?? '';
-    urls['delight'] =
-        sharedPreferences.getString('delight_pricing_page_url') ?? '';
-    urls['signature'] =
-        sharedPreferences.getString('signature_pricing_page_url') ?? '';
-    return urls;
-  }
-
-  /// Fetch pricing page URLs from the backend
-  Future<Map<String, String>> getPricingPageUrls() async {
-    try {
-      ioc.badCertificateCallback =
-          (X509Certificate cert, String host, int port) => true;
-      final http = IOClient(ioc);
-
-      final response = await http.get(
-        Uri.parse('$server/api/test/generate_pricing_page_session_url'),
-        headers: {
-          'Authorization': 'Bearer $token',
-          'Accept': 'application/json',
-          'Content-Type': 'application/json',
-        },
-      );
-
-      if (response.statusCode == 200) {
-        final body = const Utf8Decoder().convert(response.bodyBytes);
-        final Map<String, dynamic> responseJson = json.decode(body) as Map<String, dynamic>;
-
-        // Extract URLs from the response
-        final Map<String, String> urls = {};
-
-        if (responseJson.containsKey('premium') &&
-            responseJson['premium'] is Map) {
-          final premiumData = responseJson['premium'] as Map<String, dynamic>;
-          if (premiumData.containsKey('hosted_page') &&
-              premiumData['hosted_page'] is Map<String, dynamic>) {
-            final hostedPage = premiumData['hosted_page'] as Map<String, dynamic>;
-            if (hostedPage.containsKey('url')) {
-              urls['premium'] = hostedPage['url'] as String;
-            }
-          }
-        }
-
-        if (responseJson.containsKey('signature') &&
-            responseJson['signature'] is Map) {
-          final signatureData =
-              responseJson['signature'] as Map<String, dynamic>;
-          if (signatureData.containsKey('hosted_page') &&
-              signatureData['hosted_page'] is Map<String, dynamic>) {
-            final hostedPageData = signatureData['hosted_page'] as Map<String, dynamic>;
-            if (hostedPageData.containsKey('url')) {
-              urls['signature'] = hostedPageData['url'] as String;
-            }
-          }
-        }
-
-        if (responseJson.containsKey('delight') &&
-            responseJson['delight'] is Map) {
-          final delightData = responseJson['delight'] as Map<String, dynamic>;
-          if (delightData.containsKey('hosted_page') &&
-              delightData['hosted_page'] is Map<String, dynamic>) {
-            final hostedPage = delightData['hosted_page'] as Map<String, dynamic>;
-            if (hostedPage.containsKey('url')) {
-              urls['delight'] = hostedPage['url'] as String;
-            }
-          }
-        }
-
-        return urls;
-      } else {
-        throw Exception(
-            'Failed to load pricing page URLs: ${response.statusCode}',);
-      }
-    } catch (e) {
-      debugPrint('Error in getPricingPageUrls: $e');
-      return {};
-    }
-  }
-
   // ==================== Delivery Domain API Methods ====================
 
   /// FR-DEL-001: Check if a pincode is serviceable
