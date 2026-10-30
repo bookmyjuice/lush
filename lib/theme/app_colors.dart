@@ -1,10 +1,18 @@
 /// BookMyJuice Design System Colors
 ///
-/// All color tokens from docs/DESIGN_SYSTEM.md mapped to Flutter constants.
-/// Uses Material 3 ColorScheme seeds.
+/// **Legacy names, Stitch values.** `BMJ_UX_REHAUL_PLAN.md` §2.1 maps every
+/// existing `AppColors.*` constant onto the `vibrant_zest` palette, so no call
+/// site has to change: the names stay, the values move. All values come from
+/// [BMJTokens]; new code should read [BMJPalette] instead of hard-coding a
+/// theme side here.
+///
+/// Light is the design target (plan amendment 2026-10-17). The dark constants
+/// below keep the `DESIGN.md` surface tier.
 library;
 
 import 'package:flutter/material.dart';
+
+import 'bmj_tokens.dart';
 
 /// Brand and semantic color constants.
 ///
@@ -13,39 +21,43 @@ import 'package:flutter/material.dart';
 class AppColors {
   AppColors._();
 
-  // ── Brand Primary (Orange) ──
-  static const Color primaryOrange = Color(0xFFFF8C42);
-  static const Color primaryOrangeDark = Color(0xFFE67E3A);
-  static const Color primaryOrangeLight = Color(0xFFFFA96A);
+  // ── Brand Primary (Orange) — Stitch action colour ──
 
-  // ── Brand Primary (Green) — actual app branding ──
-  static const Color primaryGreen = Color(0xFF2E7D32);
-  static const Color primaryGreenDark = Color(0xFF1B5E20);
-  static const Color primaryGreenLight = Color(0xFF4CAF50);
-  static const Color primaryAccent = Color(0xFF4ECDC4);
+  /// `primary-container` — CTAs, selected chips, glow.
+  static const Color primaryOrange = BMJTokens.orange;
+  static const Color primaryOrangeDark = BMJTokens.orangeDeep;
+  static const Color primaryOrangeLight = BMJTokens.orangeSoft;
+
+  // ── Brand Primary (Green) — lime secondary ──
+
+  /// Lime that is legible as text on the light surface.
+  static const Color primaryGreen = BMJTokens.limeText;
+  static const Color primaryGreenDark = BMJTokens.limeDeep;
+  static const Color primaryGreenLight = BMJTokens.lime;
+  static const Color primaryAccent = BMJTokens.tertiary;
 
   // ── Brand Gradients ──
-  static const Color gradientStart = Color(0xFFFFA726);
-  static const Color gradientEnd = Color(0xFFFF7043);
+  static const Color gradientStart = BMJTokens.amber;
+  static const Color gradientEnd = BMJTokens.orange;
 
-  // ── Brand Secondary (Teal) ──
-  static const Color secondaryTeal = Color(0xFF4ECDC4);
-  static const Color secondaryTealDark = Color(0xFF45B7AF);
-  static const Color secondaryTealLight = Color(0xFF7FD9D2);
+  // ── Brand Secondary (Teal / tertiary) ──
+  static const Color secondaryTeal = BMJTokens.tertiary;
+  static const Color secondaryTealDark = Color(0xFF2FB3AA);
+  static const Color secondaryTealLight = Color(0xFF8FE6DF);
 
   // ── Semantic / Status ──
-  static const Color success = Color(0xFF4CAF50);
-  static const Color warning = Color(0xFFFFC107);
-  static const Color error = Color(0xFFF44336);
-  static const Color info = Color(0xFF2196F3);
+  static const Color success = BMJTokens.limeText;
+  static const Color warning = BMJTokens.amber;
+  static const Color error = BMJTokens.errorLight;
+  static const Color info = Color(0xFF0EA5E9);
 
-  // ── Neutrals ──
+  // ── Neutrals (warm, light-first) ──
   static const Color white = Color(0xFFFFFFFF);
-  static const Color offWhite = Color(0xFFFEFEFE);
-  static const Color lightGrey = Color(0xFFF5F5F5);
-  static const Color grey = Color(0xFF9E9E9E);
-  static const Color darkGrey = Color(0xFF424242);
-  static const Color nearlyBlack = Color(0xFF213333);
+  static const Color offWhite = BMJTokens.lightSurfaceContainerLow;
+  static const Color lightGrey = BMJTokens.lightSurfaceContainerHigh;
+  static const Color grey = Color(0xFF78716C);
+  static const Color darkGrey = Color(0xFF44403C);
+  static const Color nearlyBlack = BMJTokens.lightOnSurface;
 
   // ── White Opacity Variants (for login screen) ──
   /// 54% opacity white.
@@ -54,77 +66,77 @@ class AppColors {
   /// 70% opacity white.
   static const Color white70 = Color(0xB3FFFFFF);
 
-  // ── Light Theme Surface ──
-  static const Color lightBackground = Color(0xFFFAFAFA);
-  static const Color lightSurface = Color(0xFFFFFFFF);
-  static const Color lightCard = Color(0xFFFFFFFF);
-  static const Color lightDivider = Color(0xFFE0E0E0);
-  static const Color lightTextPrimary = Color(0xFF213333);
-  static const Color lightTextSecondary = Color(0xFF424242);
-  static const Color lightTextDisabled = Color(0xFFBDBDBD);
+  // ── Light Theme Surface (design target) ──
+  static const Color lightBackground = BMJTokens.lightSurface;
+  static const Color lightSurface = BMJTokens.lightSurfaceContainer;
+  static const Color lightCard = BMJTokens.lightSurfaceContainerLow;
+  static const Color lightDivider = BMJTokens.lightOutlineVariant;
+  static const Color lightTextPrimary = BMJTokens.lightOnSurface;
+  static const Color lightTextSecondary = BMJTokens.lightOnSurfaceVariant;
+  static const Color lightTextDisabled = Color(0xFFA8A29E);
 
-  // ── Dark Theme Surface ──
-  static const Color darkBackground = Color(0xFF121212);
-  static const Color darkSurface = Color(0xFF1E1E1E);
-  static const Color darkCard = Color(0xFF1E1E1E);
-  static const Color darkDivider = Color(0xFF2C2C2C);
-  static const Color darkTextPrimary = Color(0xFFFEFEFE);
-  static const Color darkTextSecondary = Color(0xFFB0B0B0);
-  static const Color darkTextDisabled = Color(0xFF808080);
+  // ── Dark Theme Surface (DESIGN.md tier) ──
+  static const Color darkBackground = BMJTokens.darkSurfaceDeep;
+  static const Color darkSurface = BMJTokens.darkSurface;
+  static const Color darkCard = BMJTokens.darkSurfaceContainer;
+  static const Color darkDivider = BMJTokens.darkSurfaceContainerHighest;
+  static const Color darkTextPrimary = BMJTokens.darkOnSurface;
+  static const Color darkTextSecondary = BMJTokens.darkOnSurfaceVariant;
+  static const Color darkTextDisabled = BMJTokens.darkOutline;
 
   // ── Glassmorphism Tokens ──
-  /// Deep background for dark glass screens (#0A0F0D).
-  static const Color glassBg = Color(0xFF0A0F0D);
+  /// Deep background for dark glass screens (was #0A0F0D).
+  static const Color glassBg = BMJTokens.darkSurfaceDeep;
 
-  /// Elevated surface for glass cards (#0F1613).
-  static const Color glassElevated = Color(0xFF0F1613);
+  /// Elevated surface for glass cards (was #0F1613).
+  static const Color glassElevated = BMJTokens.darkSurface;
 
-  /// Glass surface overlay — 6% white.
-  static const Color glassSurface = Color(0x0FFFFFFF);
+  /// Glass surface overlay — 8 % white.
+  static const Color glassSurface = BMJTokens.darkGlassFill;
 
-  /// Stronger glass overlay — 8% white.
-  static const Color glassSurfaceStrong = Color(0x14FFFFFF);
+  /// Stronger glass overlay — 14 % white.
+  static const Color glassSurfaceStrong = BMJTokens.darkGlassFillStrong;
 
-  /// Glass border — 12% white.
-  static const Color glassBorder = Color(0x1AFFFFFF);
+  /// Glass border — 10 % white hairline.
+  static const Color glassBorder = BMJTokens.darkGlassBorder;
 
-  /// Glass border subtle — 8% white.
-  static const Color glassBorderSubtle = Color(0x14FFFFFF);
+  /// Glass border subtle — 8 % white.
+  static const Color glassBorderSubtle = BMJTokens.darkGlassFill;
 
-  /// Glass text primary (#E8F5E9 — light green-white).
-  static const Color glassText = Color(0xFFE8F5E9);
+  /// Glass text primary (`#F6DED3` — warm on-surface).
+  static const Color glassText = BMJTokens.darkOnSurface;
 
-  /// Glass text dim (#9FB0A8 — muted green-grey).
-  static const Color glassTextDim = Color(0xFF9FB0A8);
+  /// Glass text dim (`#E0C0B1` — on-surface-variant).
+  static const Color glassTextDim = BMJTokens.darkOnSurfaceVariant;
 
-  /// Glass accent green (#22C55E — neon green).
-  static const Color glassAccent = Color(0xFF22C55E);
+  /// Glass accent — neon lime.
+  static const Color glassAccent = BMJTokens.lime;
 
-  /// Glass accent green dark (#16A34A).
-  static const Color glassAccentDark = Color(0xFF16A34A);
+  /// Glass accent, deep — white-on-fill lime.
+  static const Color glassAccentDark = BMJTokens.limeDeep;
 
-  /// Glass accent orange (#FB923C).
-  static const Color glassOrange = Color(0xFFFB923C);
+  /// Glass accent orange (`#FFB690`).
+  static const Color glassOrange = BMJTokens.orangeSoft;
 
-  /// Glass accent pink (#F472B6).
-  static const Color glassPink = Color(0xFFF472B6);
+  /// Glass accent pink.
+  static const Color glassPink = Color(0xFFFF8FA3);
 
-  /// Glass accent purple (#A78BFA).
+  /// Glass accent purple.
   static const Color glassPurple = Color(0xFFA78BFA);
 
-  /// Glass glow shadow — neon green.
-  static const Color glassGlow = Color(0x4022C55E);
+  /// Glass glow — `rgba(249,115,22,0.45)`, never a black shadow.
+  static const Color glassGlow = BMJTokens.glow;
 
   // ── Light Glassmorphism Tokens ──
-  /// Light background for glass in light theme (#F0F5F2).
-  static const Color glassBgLight = Color(0xFFF0F5F2);
+  /// Light background for glass (warm off-white).
+  static const Color glassBgLight = BMJTokens.lightSurface;
 
-  /// Light elevated glass (#EAF0EC).
-  static const Color glassElevatedLight = Color(0xFFEAF0EC);
+  /// Light elevated glass.
+  static const Color glassElevatedLight = BMJTokens.lightSurfaceContainerHigh;
 
-  /// Light glass overlay — 40% white.
-  static const Color glassSurfaceLight = Color(0x66FFFFFF);
+  /// Light glass overlay — 72 % white.
+  static const Color glassSurfaceLight = BMJTokens.lightGlassFill;
 
-  /// Light glass border — 20% black.
-  static const Color glassBorderLight = Color(0x33000000);
+  /// Light glass border — 8 % slate hairline.
+  static const Color glassBorderLight = BMJTokens.lightGlassBorder;
 }

@@ -1,12 +1,17 @@
-/// Cart icon with badge count - glassmorphism style.
+/// Cart icon with badge count - a bare accent glyph, the way the reference draws
+/// it (no chip, no fill, no border).
+///
+/// Thin composition: [BMJBadge] owns the count bubble, the design system owns
+/// the colours, and this widget only knows about the cart BLoC.
 library;
 
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:lush/bloc/CartBloc/cart_bloc.dart';
 import 'package:lush/bloc/CartBloc/cart_state.dart';
-import 'package:lush/theme/app_colors.dart';
 import 'package:lush/theme/app_radius.dart';
+import 'package:lush/theme/bmj_tokens.dart';
+import 'package:lush/widgets/bmj_badge.dart';
 
 class CartBadgeIcon extends StatelessWidget {
   final double iconSize;
@@ -14,64 +19,51 @@ class CartBadgeIcon extends StatelessWidget {
 
   const CartBadgeIcon({
     super.key,
-    this.iconSize = 20,
+    this.iconSize = 26,
     this.onTap,
   });
 
   @override
   Widget build(BuildContext context) {
+    final palette = BMJPalette.of(context);
+
     return BlocBuilder<CartBloc, CartState>(
       builder: (context, state) {
-        final itemCount = state is CartLoaded ? state.items.fold<num>(0, (sum, item) => sum + item.quantity).toInt() : 0;
-        return GestureDetector(
-          onTap: onTap ?? () => Navigator.of(context).pushNamed('/cart'),
-          child: Stack(
-            clipBehavior: Clip.none,
-            children: [
-              Container(
-                padding: const EdgeInsets.all(8),
-                decoration: BoxDecoration(
-                  color: AppColors.glassSurface.withValues(alpha: 0.6),
-                  borderRadius: BorderRadius.circular(AppRadius.md),
-                  border: Border.all(
-                    color: AppColors.glassBorderSubtle,
-                    width: 0.5,
+        final itemCount = state is CartLoaded
+            ? state.items
+                .fold<num>(0, (sum, item) => sum + item.quantity)
+                .toInt()
+            : 0;
+
+        return Semantics(
+          button: true,
+          label: 'Cart, $itemCount ${itemCount == 1 ? 'item' : 'items'}',
+          child: ExcludeSemantics(
+            child: BMJBadge(
+              count: itemCount,
+              child: GestureDetector(
+                onTap: onTap ?? () => Navigator.of(context).pushNamed('/cart'),
+                behavior: HitTestBehavior.opaque,
+                child: Container(
+                  constraints:
+                      const BoxConstraints(minWidth: 40, minHeight: 40),
+                  padding: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    color: Colors.transparent,
+                    borderRadius: BorderRadius.circular(AppRadius.md),
+                    border: Border.all(
+                      color: Colors.transparent,
+                      width: BMJTokens.hairline,
+                    ),
                   ),
-                ),
-                child: Icon(
-                  Icons.shopping_bag_outlined,
-                  size: iconSize,
-                  color: AppColors.glassText,
+                  child: Icon(
+                    Icons.shopping_bag_outlined,
+                    size: iconSize,
+                    color: palette.primaryEmphasis,
+                  ),
                 ),
               ),
-              if (itemCount > 0)
-                Positioned(
-                  right: -4,
-                  top: -4,
-                  child: Container(
-                    padding: const EdgeInsets.all(4),
-                    decoration: BoxDecoration(
-                      color: AppColors.glassAccent,
-                      shape: BoxShape.circle,
-                      boxShadow: [
-                        BoxShadow(
-                          color: AppColors.glassAccent.withValues(alpha: 0.4),
-                          blurRadius: 6,
-                          spreadRadius: 1,
-                        ),
-                      ],
-                    ),
-                    child: Text(
-                      '$itemCount',
-                      style: const TextStyle(
-                        fontSize: 10,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.black,
-                      ),
-                    ),
-                  ),
-                ),
-            ],
+            ),
           ),
         );
       },
