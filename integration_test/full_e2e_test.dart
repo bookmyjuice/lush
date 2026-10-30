@@ -149,18 +149,18 @@ void main() {
       await launchApp(tester);
       await tester.tap(find.text('Sign Up'));
       await tester.pumpAndSettle(const Duration(seconds: 2));
-      expect(find.text('Sign up with Email'), findsOneWidget);
+      // V1 launch (decision D-5): Phone (OTP) + Google only.
+      expect(find.text('Sign up with Phone'), findsOneWidget);
+      expect(find.text('Sign up with Google'), findsOneWidget);
     });
 
-    testWidgets('T1.13 Signup with email navigates', (tester) async {
+    testWidgets('T1.13 Email signup is not advertised (D-5)', (tester) async {
       await launchApp(tester);
       await tester.tap(find.text('Sign Up'));
       await tester.pumpAndSettle(const Duration(seconds: 2));
-      final emailCard = find.text('Sign up with Email');
-      if (emailCard.evaluate().isNotEmpty) {
-        await tester.tap(emailCard);
-        await tester.pumpAndSettle(const Duration(seconds: 3));
-      }
+      // Decision D-5: email + password signup is removed from the V1 launch
+      // surface, so no entry point may be rendered here.
+      expect(find.text('Sign up with Email'), findsNothing);
     });
 
     testWidgets('T1.14 Auth flow smoke', (tester) async {

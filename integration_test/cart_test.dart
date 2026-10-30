@@ -52,6 +52,9 @@ void main() {
     // ============================================================
     // FR-CART-001: View cart items with quantity
     // ============================================================
+    // NOTE (decision D-5): this template logged in by completing the email-first signup
+    // flow. The V1 launch surface no longer advertises that flow (Phone OTP + Google
+    // only), so the test is skipped until it is re-authored against the V1 entry.
     testWidgets('FR-CART-001: View cart items with quantity', (tester) async {
       if (!runE2E) {
         return;
@@ -162,7 +165,7 @@ void main() {
         // ignore: avoid_print
         print('[FR-CART-001] Empty cart verified');
       }
-    }, semanticsEnabled: false,);
+    }, skip: true, semanticsEnabled: false,);
 
     // ============================================================
     // FR-CART-002: Increment/Decrement quantity
@@ -280,11 +283,15 @@ void main() {
       final token = signinJson['accessToken'] as String?;
       expect(token, isNotEmpty);
 
-      // Test cart checkout endpoint
+      // Test production one-time checkout endpoint
       final cartCheckoutRes = await http
-          .get(
-            Uri.parse('$baseUrl/api/test/cartCheckout'),
-            headers: {'Authorization': 'Bearer $token'},
+          .post(
+            Uri.parse('$baseUrl/api/v2/checkout/with-items'),
+            headers: {
+              'Authorization': 'Bearer $token',
+              'Content-Type': 'application/json',
+            },
+            body: jsonEncode({'items': <Map<String, dynamic>>[]}),
           )
           .timeout(apiTimeout);
       

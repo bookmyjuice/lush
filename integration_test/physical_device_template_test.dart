@@ -58,6 +58,9 @@ void main() {
     // ============================================================
     // TEST 1: Email-first Signup Flow
     // ============================================================
+    // NOTE (decision D-5): the email-first signup flow is no longer advertised on the V1
+    // launch surface (Phone OTP + Google only), so the steps below can never run again as
+    // written. Skipped until re-authored against the V1 entry — see BMJ_LAUNCH_CHECKLIST.md.
     testWidgets('Email-first Signup Flow', (tester) async {
       if (!runE2E) {
         return;
@@ -157,7 +160,7 @@ void main() {
         // ignore: avoid_print
         print('[TEST 1] Email-first signup completed');
       }
-    }, semanticsEnabled: false,);
+    }, skip: true, semanticsEnabled: false,);
 
     // ============================================================
     // TEST 2: Phone-first Signup Flow
