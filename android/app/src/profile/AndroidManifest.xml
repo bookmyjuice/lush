@@ -4,4 +4,6 @@
          to allow setting breakpoints, to provide hot reload, etc.
     -->
     <uses-permission android:name="android.permission.INTERNET"/>
+    <!-- Profile builds are used for on-device QA against the HTTP API. -->
+    <application android:usesCleartextTraffic="true"/>
 </manifest>

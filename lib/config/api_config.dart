@@ -1,7 +1,6 @@
 import 'package:flutter/foundation.dart';
 
-const String _envApiBaseUrl =
-    String.fromEnvironment('API_BASE_URL');
+const String _envApiBaseUrl = String.fromEnvironment('API_BASE_URL');
 
 /// Environment-aware Chargebee configuration.
 /// All values from build-time --dart-define flags.
@@ -16,17 +15,16 @@ class ChargebeeConfig {
 
   static bool get isProduction => _env == 'production';
 
-  static String get siteName =>
-      isProduction ? prodSiteName : testSiteName;
+  static String get siteName => isProduction ? prodSiteName : testSiteName;
 
-  static String get apiKey =>
-      isProduction
-          ? const String.fromEnvironment('CHARGEBEE_PROD_KEY')
-          : const String.fromEnvironment(
-              'CHARGEBEE_TEST_KEY',
-              defaultValue:
-                  'test_ai_-ZFEjZ3qiK2mW3k7C9M2Q60OK2QmLslRdSnNWt61z4E',
-            );
+  /// Never ship a Chargebee API key inside the app: anything compiled into the
+  /// binary is extractable. The storefront talks to the BMJ API, which holds the
+  /// key server-side; these getters exist only for tooling builds that pass the
+  /// value with `--dart-define`. The previous hardcoded test key was dead code
+  /// (nothing reads [apiKey]) and has been removed from source.
+  static String get apiKey => isProduction
+      ? const String.fromEnvironment('CHARGEBEE_PROD_KEY')
+      : const String.fromEnvironment('CHARGEBEE_TEST_KEY');
 }
 
 /// API base URL configuration.

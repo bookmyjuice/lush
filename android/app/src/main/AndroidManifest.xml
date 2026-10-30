@@ -1,9 +1,15 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- Release builds talk to the BMJ API over the network; the Flutter template
+         declares INTERNET only in debug/profile, which leaves release with no
+         network at all. -->
+    <uses-permission android:name="android.permission.INTERNET"/>
+    <!-- Android 13+ needs this declared or FCM can never show a notification. -->
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS"/>
+
     <application
         android:label="@string/app_name"
         android:name="${applicationName}"
-        android:icon="@mipmap/ic_launcher"
-        android:usesCleartextTraffic="true">
+        android:icon="@mipmap/ic_launcher">
         <activity
             android:name=".MainActivity"
             android:exported="true"

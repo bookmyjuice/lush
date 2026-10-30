@@ -4,4 +4,7 @@
          to allow setting breakpoints, to provide hot reload, etc.
     -->
     <uses-permission android:name="android.permission.INTERNET"/>
+    <!-- Local QA talks to the API over plain HTTP (localhost / 10.0.2.2); release
+         keeps the platform default of cleartext disabled. -->
+    <application android:usesCleartextTraffic="true"/>
 </manifest>
