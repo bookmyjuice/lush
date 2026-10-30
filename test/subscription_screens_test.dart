@@ -9,6 +9,7 @@ import 'package:lush/UserRepository/user_repository.dart';
 import 'package:lush/bloc/SubscriptionBloc/subscription_bloc.dart';
 import 'package:lush/get_it.dart';
 import 'package:lush/services/subscription_service.dart';
+import 'package:lush/theme/theme_cubit.dart';
 import 'package:lush/views/models/subscription_plan_catalog.dart';
 import 'package:lush/views/models/subscription_selection.dart';
 import 'package:lush/views/models/user.dart';
@@ -16,6 +17,7 @@ import 'package:lush/views/screens/subscription/subscription_family_screen.dart'
 import 'package:lush/views/screens/subscription/subscription_plan_screen.dart';
 import 'package:lush/views/screens/subscription/subscription_schedule_screen.dart';
 import 'package:lush/views/screens/subscription/subscription_summary_screen.dart';
+import 'package:lush/widgets/glass_card.dart';
 import 'package:mocktail/mocktail.dart';
 
 class MockSubscriptionService extends Mock implements SubscriptionService {}
@@ -48,7 +50,15 @@ void setLargeViewport(WidgetTester tester) {
 Widget buildTestApp(Widget child, SubscriptionBloc bloc) {
   return ScreenUtilInit(designSize: const Size(375, 812), minTextAdapt: true,
     builder: (_, __) => MaterialApp(
-      home: BlocProvider<SubscriptionBloc>.value(value: bloc, child: child),
+      // The subscription screens read `ThemeCubit` for their colour scheme.
+      // Without it every one of them threw ProviderNotFoundException.
+      home: MultiBlocProvider(
+        providers: <BlocProvider<dynamic>>[
+          BlocProvider<SubscriptionBloc>.value(value: bloc),
+          BlocProvider<ThemeCubit>(create: (_) => ThemeCubit()),
+        ],
+        child: child,
+      ),
     ),);
 }
 
@@ -102,6 +112,43 @@ void main() {
       expect(find.text('Failed to load plans'), findsOneWidget);
       expect(find.text('Retry'), findsOneWidget);
     });
+
+    testWidgets('family card shows the cheapest real weekly price',
+        (tester) async {
+      setLargeViewport(tester);
+      // weekly = 69900 paise → ₹699/week, monthly = 249900 paise.
+      bloc.emit(SubscriptionCatalogLoaded(plans: [buildTestCatalog()]));
+      await tester.pumpWidget(buildTestApp(const SubscriptionFamilyScreen(), bloc));
+      await tester.pumpAndSettle();
+      expect(find.text('From ₹699/week'), findsOneWidget);
+      expect(find.textContaining('₹0'), findsNothing);
+    });
+
+    testWidgets('unpriced family shows an em dash, never ₹0', (tester) async {
+      setLargeViewport(tester);
+      bloc.emit(SubscriptionCatalogLoaded(plans: [
+        SubscriptionPlanCatalog(
+          itemId: 'bmj-delight-200ml',
+          name: 'Delight 200ml',
+          family: 'delight',
+          size: '200ml',
+          planType: 'generic',
+          metadata: const {'size': '200ml', 'plan_type': 'generic'},
+          prices: const [
+            SubscriptionPriceOption(
+              itemPriceId: 'unpriced',
+              period: 'weekly',
+              priceInPaise: 0,
+              bottleCount: 6,
+            ),
+          ],
+        ),
+      ],),);
+      await tester.pumpWidget(buildTestApp(const SubscriptionFamilyScreen(), bloc));
+      await tester.pumpAndSettle();
+      expect(find.text('From —'), findsOneWidget);
+      expect(find.textContaining('₹0'), findsNothing);
+    });
   });
 
   group('SubscriptionPlanScreen', () {
@@ -150,7 +197,7 @@ void main() {
     const emptySel = SubscriptionSelection(itemId: 'bmj-d-200ml', itemPriceId: 'bmj-d-200ml-w',
       family: 'delight', size: '200ml', period: 'weekly', priceInPaise: 69900, daySchedule: {},);
 
-    testWidgets('shows 6 day rows, no Sunday', (tester) async {
+    testWidgets('shows 6 delivery rows plus a Sunday holiday row', (tester) async {
       setLargeViewport(tester);
       await tester.pumpWidget(buildTestApp(const SubscriptionScheduleScreen(selection: emptySel), bloc));
       await tester.pumpAndSettle();
@@ -160,7 +207,9 @@ void main() {
       expect(find.text('Thursday'), findsOneWidget);
       expect(find.text('Friday'), findsOneWidget);
       expect(find.text('Saturday'), findsOneWidget);
-      expect(find.text('Sunday'), findsNothing);
+      // Sunday is rendered as a non-selectable holiday row (no deliveries).
+      expect(find.text('Sunday'), findsOneWidget);
+      expect(find.text('No delivery'), findsOneWidget);
     });
 
     testWidgets('Same Everyday checked by default', (tester) async {
@@ -168,8 +217,17 @@ void main() {
       await tester.pumpWidget(buildTestApp(const SubscriptionScheduleScreen(selection: emptySel), bloc));
       await tester.pumpAndSettle();
       expect(find.text('Same Everyday'), findsOneWidget);
-      final cb = tester.widget<CheckboxListTile>(find.byType(CheckboxListTile).first);
-      expect(cb.value, true);
+      // The option is a glass toggle (check icon), not a CheckboxListTile.
+      expect(
+        find.descendant(
+          of: find.ancestor(
+            of: find.text('Same Everyday'),
+            matching: find.byType(GlassCard),
+          ),
+          matching: find.byIcon(Icons.check_circle),
+        ),
+        findsOneWidget,
+      );
     });
 
     testWidgets('CTA disabled when incomplete', (tester) async {

@@ -14,8 +14,7 @@ class ResumeSubscriptionScreen extends StatefulWidget {
       _ResumeSubscriptionScreenState();
 }
 
-class _ResumeSubscriptionScreenState
-    extends State<ResumeSubscriptionScreen> {
+class _ResumeSubscriptionScreenState extends State<ResumeSubscriptionScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -23,11 +22,16 @@ class _ResumeSubscriptionScreenState
       appBar: AppBar(
         backgroundColor: AppColors.white,
         elevation: 0,
-        title: const Text('Resume Subscription',
-            style: TextStyle(color: AppColors.lightTextPrimary),),
+        title: const Text(
+          'Resume Subscription',
+          style: TextStyle(color: AppColors.lightTextPrimary),
+        ),
         leading: IconButton(
-          icon: Icon(Icons.arrow_back_ios,
-              color: AppColors.lightTextPrimary, size: 20.sp,),
+          icon: Icon(
+            Icons.arrow_back_ios,
+            color: AppColors.lightTextPrimary,
+            size: 20.sp,
+          ),
           onPressed: () => Navigator.pop(context),
         ),
       ),
@@ -57,14 +61,21 @@ class _ResumeSubscriptionScreenState
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text(sub.plan.name,
-                              style: TextStyle(
-                                  fontSize: 18.sp,
-                                  fontWeight: FontWeight.bold,),),
+                          Text(
+                            sub.plan.name,
+                            style: TextStyle(
+                              fontSize: 18.sp,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
                           SizedBox(height: 8.h),
-                          Text('Paused since: ${DateFormat('dd MMM yyyy').format(sub.startDate)}',
-                              style: TextStyle(
-                                  fontSize: 14.sp, color: AppColors.grey,),),
+                          Text(
+                            'Paused since: ${DateFormat('dd MMM yyyy').format(sub.startDate)}',
+                            style: TextStyle(
+                              fontSize: 14.sp,
+                              color: AppColors.grey,
+                            ),
+                          ),
                         ],
                       ),
                     ),
@@ -74,9 +85,10 @@ class _ResumeSubscriptionScreenState
                   child: Text(
                     'Resume your subscription now?',
                     style: TextStyle(
-                        fontSize: 18.sp,
-                        fontWeight: FontWeight.w600,
-                        color: AppColors.lightTextPrimary,),
+                      fontSize: 18.sp,
+                      fontWeight: FontWeight.w600,
+                      color: AppColors.lightTextPrimary,
+                    ),
                   ),
                 ),
                 const Spacer(),
@@ -88,14 +100,15 @@ class _ResumeSubscriptionScreenState
                         : () {
                             final subId = sub?.id ?? '';
                             context.read<SubscriptionBloc>().add(
-                                ResumeSubscription(subscriptionId: subId),);
+                                  ResumeSubscription(subscriptionId: subId),
+                                );
                           },
                     icon: isLoading
                         ? const SizedBox(
                             width: 20,
                             height: 20,
-                            child:
-                                CircularProgressIndicator(strokeWidth: 2),)
+                            child: CircularProgressIndicator(strokeWidth: 2),
+                          )
                         : const Icon(Icons.play_circle_outline),
                     label: const Text('Resume Now'),
                     style: ElevatedButton.styleFrom(
@@ -103,7 +116,8 @@ class _ResumeSubscriptionScreenState
                       foregroundColor: AppColors.white,
                       padding: EdgeInsets.symmetric(vertical: 14.h),
                       shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12.r),),
+                        borderRadius: BorderRadius.circular(12.r),
+                      ),
                     ),
                   ),
                 ),

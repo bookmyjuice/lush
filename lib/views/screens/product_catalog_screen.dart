@@ -2,9 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:lush/bloc/CartBloc/cart_bloc.dart';
 import 'package:lush/bloc/CartBloc/cart_event.dart';
-import 'package:lush/bloc/ProductCatalogBloc/product_catalog_bloc.dart' hide AddToCart;
+import 'package:lush/bloc/ProductCatalogBloc/product_catalog_bloc.dart'
+    hide AddToCart;
 import 'package:lush/theme/app_colors.dart';
 import 'package:lush/utils/analytics_service.dart';
+import 'package:lush/utils/price_utils.dart';
 import 'package:lush/views/models/cart_item.dart';
 import 'package:lush/views/models/item.dart';
 import 'package:lush/views/widgets/shimmer_product_card.dart';
@@ -62,9 +64,12 @@ class ProductCatalogScreenState extends State<ProductCatalogScreen> {
             if (_selectedCategory == null && state.categories.isNotEmpty) {
               setState(() {
                 _selectedCategory = state.categories.first;
-                _selectedSize = state.sizes.isNotEmpty ? state.sizes.first : null;
+                _selectedSize =
+                    state.sizes.isNotEmpty ? state.sizes.first : null;
               });
-              context.read<ProductCatalogBloc>().add(FilterByCategory(category: _selectedCategory!));
+              context
+                  .read<ProductCatalogBloc>()
+                  .add(FilterByCategory(category: _selectedCategory!));
             }
           }
         },
@@ -76,7 +81,9 @@ class ProductCatalogScreenState extends State<ProductCatalogScreen> {
             Expanded(
               child: RefreshIndicator(
                 onRefresh: () async {
-                  context.read<ProductCatalogBloc>().add(const LoadProductCatalog());
+                  context
+                      .read<ProductCatalogBloc>()
+                      .add(const LoadProductCatalog());
                   await Future<void>.delayed(const Duration(seconds: 1));
                 },
                 child: BlocBuilder<ProductCatalogBloc, ProductCatalogState>(
@@ -84,9 +91,12 @@ class ProductCatalogScreenState extends State<ProductCatalogScreen> {
                     if (state is ProductCatalogLoading) {
                       return GridView.builder(
                         padding: const EdgeInsets.all(16),
-                        gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                          crossAxisCount: 2, childAspectRatio: 0.75,
-                          crossAxisSpacing: 16, mainAxisSpacing: 16,
+                        gridDelegate:
+                            const SliverGridDelegateWithFixedCrossAxisCount(
+                          crossAxisCount: 2,
+                          childAspectRatio: 0.75,
+                          crossAxisSpacing: 16,
+                          mainAxisSpacing: 16,
                         ),
                         itemCount: 6,
                         itemBuilder: (_, __) => const ShimmerProductCard(),
@@ -97,28 +107,39 @@ class ProductCatalogScreenState extends State<ProductCatalogScreen> {
                         child: Column(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
-                            const Icon(Icons.error_outline, size: 64, color: Colors.grey),
+                            const Icon(Icons.error_outline,
+                                size: 64, color: Colors.grey),
                             const SizedBox(height: 16),
-                            Text(state.message, style: const TextStyle(color: Colors.grey)),
+                            Text(state.message,
+                                style: const TextStyle(color: Colors.grey)),
                             const SizedBox(height: 16),
                             ElevatedButton(
-                              onPressed: () => context.read<ProductCatalogBloc>().add(const LoadProductCatalog()),
+                              onPressed: () => context
+                                  .read<ProductCatalogBloc>()
+                                  .add(const LoadProductCatalog()),
                               child: const Text('Retry'),
                             ),
                           ],
                         ),
                       );
                     }
-                    if (state is ProductCatalogEmpty || (state is ProductCatalogFiltered && state.items.isEmpty)) {
+                    if (state is ProductCatalogEmpty ||
+                        (state is ProductCatalogFiltered &&
+                            state.items.isEmpty)) {
                       return const Center(
                         child: Column(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
-                            Icon(Icons.inventory_2_outlined, size: 64, color: Colors.grey),
+                            Icon(Icons.inventory_2_outlined,
+                                size: 64, color: Colors.grey),
                             SizedBox(height: 16),
-                            Text('No products found', style: TextStyle(fontSize: 18, color: Colors.grey)),
+                            Text('No products found',
+                                style: TextStyle(
+                                    fontSize: 18, color: Colors.grey)),
                             SizedBox(height: 8),
-                            Text('Try selecting a different category or size', style: TextStyle(fontSize: 14, color: Colors.grey)),
+                            Text('Try selecting a different category or size',
+                                style: TextStyle(
+                                    fontSize: 14, color: Colors.grey)),
                           ],
                         ),
                       );
@@ -126,7 +147,8 @@ class ProductCatalogScreenState extends State<ProductCatalogScreen> {
                     if (state is ProductCatalogLoaded) {
                       return _buildProductGrid(state.items, _selectedSize);
                     }
-                    if (state is ProductCatalogFiltered) return _buildProductGrid(state.items, _selectedSize);
+                    if (state is ProductCatalogFiltered)
+                      return _buildProductGrid(state.items, _selectedSize);
                     return const Center(child: Text('Something went wrong'));
                   },
                 ),
@@ -151,7 +173,9 @@ class ProductCatalogScreenState extends State<ProductCatalogScreen> {
                   icon: const Icon(Icons.clear),
                   onPressed: () {
                     _searchController.clear();
-                    context.read<ProductCatalogBloc>().add(const SearchProducts(query: ''));
+                    context
+                        .read<ProductCatalogBloc>()
+                        .add(const SearchProducts(query: ''));
                   },
                 )
               : null,
@@ -161,7 +185,8 @@ class ProductCatalogScreenState extends State<ProductCatalogScreen> {
           ),
           filled: true,
           fillColor: AppColors.lightGrey,
-          contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+          contentPadding:
+              const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
         ),
         onChanged: (value) {
           AnalyticsService.logSearchPerformed(value);
@@ -197,16 +222,22 @@ class ProductCatalogScreenState extends State<ProductCatalogScreen> {
                   label: Text(category),
                   selected: isSelected,
                   onSelected: (selected) {
-                    setState(() => _selectedCategory = selected ? category : null);
+                    setState(
+                        () => _selectedCategory = selected ? category : null);
                     AnalyticsService.logFamilySelected(category);
-                    context.read<ProductCatalogBloc>().add(FilterByCategory(category: category));
+                    context
+                        .read<ProductCatalogBloc>()
+                        .add(FilterByCategory(category: category));
                   },
                   backgroundColor: AppColors.lightGrey,
                   selectedColor: AppColors.primaryOrange.withValues(alpha: 0.3),
                   checkmarkColor: AppColors.primaryOrange,
                   labelStyle: TextStyle(
-                    color: isSelected ? AppColors.primaryOrange : Colors.grey.shade700,
-                    fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+                    color: isSelected
+                        ? AppColors.primaryOrange
+                        : Colors.grey.shade700,
+                    fontWeight:
+                        isSelected ? FontWeight.bold : FontWeight.normal,
                   ),
                 ),
               );
@@ -244,14 +275,19 @@ class ProductCatalogScreenState extends State<ProductCatalogScreen> {
                   selected: isSelected,
                   onSelected: (selected) {
                     setState(() => _selectedSize = selected ? size : null);
-                    context.read<ProductCatalogBloc>().add(FilterBySize(size: size));
+                    context
+                        .read<ProductCatalogBloc>()
+                        .add(FilterBySize(size: size));
                   },
                   backgroundColor: AppColors.lightGrey,
                   selectedColor: AppColors.primaryOrange.withValues(alpha: 0.3),
                   checkmarkColor: AppColors.primaryOrange,
                   labelStyle: TextStyle(
-                    color: isSelected ? AppColors.primaryOrange : Colors.grey.shade700,
-                    fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+                    color: isSelected
+                        ? AppColors.primaryOrange
+                        : Colors.grey.shade700,
+                    fontWeight:
+                        isSelected ? FontWeight.bold : FontWeight.normal,
                   ),
                 ),
               );
@@ -266,11 +302,14 @@ class ProductCatalogScreenState extends State<ProductCatalogScreen> {
     return GridView.builder(
       padding: const EdgeInsets.all(16),
       gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-        crossAxisCount: 2, childAspectRatio: 0.75,
-        crossAxisSpacing: 16, mainAxisSpacing: 16,
+        crossAxisCount: 2,
+        childAspectRatio: 0.75,
+        crossAxisSpacing: 16,
+        mainAxisSpacing: 16,
       ),
       itemCount: items.length,
-      itemBuilder: (context, index) => _buildProductCard(items[index], selectedSize),
+      itemBuilder: (context, index) =>
+          _buildProductCard(items[index], selectedSize),
     );
   }
 
@@ -288,18 +327,31 @@ class ProductCatalogScreenState extends State<ProductCatalogScreen> {
               width: double.infinity,
               decoration: BoxDecoration(
                 gradient: LinearGradient(
-                  colors: [_hexToColor(item.startColor), _hexToColor(item.endColor)],
-                  begin: Alignment.topLeft, end: Alignment.bottomRight,
+                  colors: [
+                    _hexToColor(item.startColor),
+                    _hexToColor(item.endColor)
+                  ],
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
                 ),
-                borderRadius: const BorderRadius.only(topLeft: Radius.circular(16), topRight: Radius.circular(16)),
+                borderRadius: const BorderRadius.only(
+                    topLeft: Radius.circular(16),
+                    topRight: Radius.circular(16)),
               ),
               child: item.imagePath.isNotEmpty
-                  ? Image.asset(item.imagePath, fit: BoxFit.contain,
+                  ? Image.asset(
+                      item.imagePath,
+                      fit: BoxFit.contain,
                       errorBuilder: (_, __, ___) => Center(
-                        child: Icon(Icons.local_drink, size: 64, color: Colors.white.withValues(alpha: 0.5)),
+                        child: Icon(Icons.local_drink,
+                            size: 64,
+                            color: Colors.white.withValues(alpha: 0.5)),
                       ),
                     )
-                  : Center(child: Icon(Icons.local_drink, size: 64, color: Colors.white.withValues(alpha: 0.5))),
+                  : Center(
+                      child: Icon(Icons.local_drink,
+                          size: 64,
+                          color: Colors.white.withValues(alpha: 0.5))),
             ),
           ),
           Padding(
@@ -308,27 +360,45 @@ class ProductCatalogScreenState extends State<ProductCatalogScreen> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                   decoration: BoxDecoration(
-                    color: _getCategoryColor(item.category).withValues(alpha: 0.2),
+                    color:
+                        _getCategoryColor(item.category).withValues(alpha: 0.2),
                     borderRadius: BorderRadius.circular(12),
                   ),
-                  child: Text(item.category, style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: _getCategoryColor(item.category))),
+                  child: Text(item.category,
+                      style: TextStyle(
+                          fontSize: 10,
+                          fontWeight: FontWeight.bold,
+                          color: _getCategoryColor(item.category))),
                 ),
                 const SizedBox(height: 8),
-                Text(item.name, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold), maxLines: 2, overflow: TextOverflow.ellipsis),
+                Text(item.name,
+                    style: const TextStyle(
+                        fontSize: 16, fontWeight: FontWeight.bold),
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis),
                 const SizedBox(height: 4),
-                Text('${item.calories} cal', style: TextStyle(fontSize: 12, color: Colors.grey.shade600)),
+                Text('${item.calories} cal',
+                    style:
+                        TextStyle(fontSize: 12, color: Colors.grey.shade600)),
                 const SizedBox(height: 8),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     Flexible(
-                      child: defaultPrice != null
-                          ? Text('₹${defaultPrice.price?.toStringAsFixed(2) ?? '0.00'}',
-                              style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: AppColors.primaryOrange),
-                              overflow: TextOverflow.ellipsis,)
-                          : const Text('From ₹75', style: TextStyle(fontSize: 14, color: Colors.grey), overflow: TextOverflow.ellipsis),
+                      child: Text(
+                        formatRupees(defaultPrice?.price),
+                        style: defaultPrice?.price == null
+                            ? TextStyle(
+                                fontSize: 14, color: Colors.grey.shade600)
+                            : const TextStyle(
+                                fontSize: 18,
+                                fontWeight: FontWeight.bold,
+                                color: AppColors.primaryOrange),
+                        overflow: TextOverflow.ellipsis,
+                      ),
                     ),
                     IconButton(
                       icon: const Icon(Icons.add_circle, size: 32),
@@ -353,7 +423,8 @@ class ProductCatalogScreenState extends State<ProductCatalogScreen> {
 
     if (selectedSize != null && selectedSize.isNotEmpty) {
       final match = item.prices.firstWhere(
-        (p) => (p.name?.toLowerCase().contains(selectedSize.toLowerCase()) ?? false),
+        (p) => (p.name?.toLowerCase().contains(selectedSize.toLowerCase()) ??
+            false),
         orElse: () => _cheapestPrice(item.prices),
       );
       return match;
@@ -374,55 +445,87 @@ class ProductCatalogScreenState extends State<ProductCatalogScreen> {
   }
 
   void _showSizeSelectionDialog(CatalogItem item) {
+    // Hoisted out of the StatefulBuilder body: declaring it inside the builder
+    // re-initialised the selection to null on every rebuild, which left the
+    // radio unchecked and the "Add to Cart" button permanently disabled.
+    ItemPrice? selectedPrice;
     showModalBottomSheet<dynamic>(
       context: context,
-      shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(20))),
+      shape: const RoundedRectangleBorder(
+          borderRadius: BorderRadius.vertical(top: Radius.circular(20))),
       builder: (context) {
         return StatefulBuilder(
           builder: (context, setModalState) {
-            ItemPrice? selectedPrice;
             return Padding(
               padding: const EdgeInsets.all(24),
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(item.name, style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+                  Text(item.name,
+                      style: const TextStyle(
+                          fontSize: 20, fontWeight: FontWeight.bold)),
                   const SizedBox(height: 8),
-                  const Text('Select Size', style: TextStyle(fontSize: 16, color: Colors.grey)),
+                  const Text('Select Size',
+                      style: TextStyle(fontSize: 16, color: Colors.grey)),
                   const SizedBox(height: 24),
                   ...item.prices.map((price) {
                     final isSelected = selectedPrice == price;
                     return ListTile(
-                      title: Text(price.name ?? 'Unknown Size',
-                          style: TextStyle(fontWeight: isSelected ? FontWeight.bold : FontWeight.normal),),
-                      subtitle: Text('₹${price.price?.toStringAsFixed(2) ?? '0.00'}',
-                          style: const TextStyle(color: AppColors.primaryOrange, fontWeight: FontWeight.bold),),
-                      trailing: Radio<ItemPrice>(value: price, groupValue: selectedPrice,
-                          onChanged: (v) => setModalState(() => selectedPrice = v), activeColor: AppColors.primaryOrange,),
+                      title: Text(
+                        price.name ?? 'Unknown Size',
+                        style: TextStyle(
+                            fontWeight: isSelected
+                                ? FontWeight.bold
+                                : FontWeight.normal),
+                      ),
+                      subtitle: Text(
+                        formatRupees(price.price),
+                        style: const TextStyle(
+                            color: AppColors.primaryOrange,
+                            fontWeight: FontWeight.bold),
+                      ),
+                      trailing: Radio<ItemPrice>(
+                        value: price,
+                        groupValue: selectedPrice,
+                        onChanged: (v) =>
+                            setModalState(() => selectedPrice = v),
+                        activeColor: AppColors.primaryOrange,
+                      ),
                       onTap: () => setModalState(() => selectedPrice = price),
                     );
                   }),
                   const SizedBox(height: 24),
                   SizedBox(
-                    width: double.infinity, height: 50,
+                    width: double.infinity,
+                    height: 50,
                     child: ElevatedButton(
                       onPressed: selectedPrice != null
                           ? () {
-                              HapticFeedbackUtil.HapticFeedbackUtil.lightFeedback();
-                              context.read<CartBloc>().add(AddToCart(CartItem(item: item.item, selectedPrice: selectedPrice)));
+                              HapticFeedbackUtil.HapticFeedbackUtil
+                                  .lightFeedback();
+                              context.read<CartBloc>().add(AddToCart(CartItem(
+                                  item: item.item,
+                                  selectedPrice: selectedPrice)));
                               Navigator.pop(context);
-                              ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-                                content: Text('${item.name} (${selectedPrice!.name}) added to cart'),
-                                backgroundColor: AppColors.success, behavior: SnackBarBehavior.floating,
-                              ),);
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(
+                                  content: Text(
+                                      '${item.name} (${selectedPrice!.name}) added to cart'),
+                                  backgroundColor: AppColors.success,
+                                  behavior: SnackBarBehavior.floating,
+                                ),
+                              );
                             }
                           : null,
                       style: ElevatedButton.styleFrom(
                         backgroundColor: AppColors.primaryOrange,
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                        shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12)),
                       ),
-                      child: const Text('Add to Cart', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+                      child: const Text('Add to Cart',
+                          style: TextStyle(
+                              fontSize: 16, fontWeight: FontWeight.bold)),
                     ),
                   ),
                   const SizedBox(height: 16),
@@ -437,15 +540,21 @@ class ProductCatalogScreenState extends State<ProductCatalogScreen> {
 
   Color _hexToColor(String hexColor) {
     hexColor = hexColor.replaceAll('#', '');
-    return hexColor.length == 6 ? Color(int.parse('0xFF$hexColor')) : AppColors.primaryOrange;
+    return hexColor.length == 6
+        ? Color(int.parse('0xFF$hexColor'))
+        : AppColors.primaryOrange;
   }
 
   Color _getCategoryColor(String category) {
     switch (category.toLowerCase()) {
-      case 'delight': return AppColors.success;
-      case 'signature': return AppColors.info;
-      case 'premium': return AppColors.primaryOrangeDark;
-      default: return AppColors.primaryOrange;
+      case 'delight':
+        return AppColors.success;
+      case 'signature':
+        return AppColors.info;
+      case 'premium':
+        return AppColors.primaryOrangeDark;
+      default:
+        return AppColors.primaryOrange;
     }
   }
 }

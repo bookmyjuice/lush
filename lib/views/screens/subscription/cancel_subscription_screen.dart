@@ -35,14 +35,18 @@ class _CancelSubscriptionScreenState extends State<CancelSubscriptionScreen> {
       appBar: AppBar(
         backgroundColor: AppColors.white,
         elevation: 0,
-        title: const Text('Cancel Subscription',
-            style: TextStyle(color: AppColors.lightTextPrimary),),
+        title: const Text(
+          'Cancel Subscription',
+          style: TextStyle(color: AppColors.lightTextPrimary),
+        ),
         leading: IconButton(
-          icon: Icon(Icons.arrow_back_ios,
-              color: AppColors.lightTextPrimary, size: 20.sp,),
-          onPressed: () => _step == 2
-              ? setState(() => _step = 1)
-              : Navigator.pop(context),
+          icon: Icon(
+            Icons.arrow_back_ios,
+            color: AppColors.lightTextPrimary,
+            size: 20.sp,
+          ),
+          onPressed: () =>
+              _step == 2 ? setState(() => _step = 1) : Navigator.pop(context),
         ),
       ),
       body: BlocListener<SubscriptionBloc, SubscriptionState>(
@@ -65,28 +69,34 @@ class _CancelSubscriptionScreenState extends State<CancelSubscriptionScreen> {
   }
 
   Widget _buildStep1() {
-    final isPauseSuggestion = _selectedReason ==
-        'Temporary break (consider pausing instead)';
+    final isPauseSuggestion =
+        _selectedReason == 'Temporary break (consider pausing instead)';
 
     return Padding(
       padding: EdgeInsets.all(16.w),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text('Why are you cancelling?',
-              style: TextStyle(
-                  fontSize: 18.sp,
-                  fontWeight: FontWeight.w600,
-                  color: AppColors.lightTextPrimary,),),
+          Text(
+            'Why are you cancelling?',
+            style: TextStyle(
+              fontSize: 18.sp,
+              fontWeight: FontWeight.w600,
+              color: AppColors.lightTextPrimary,
+            ),
+          ),
           SizedBox(height: 16.h),
           DropdownButtonFormField<String>(
             initialValue: _selectedReason,
             decoration: InputDecoration(
               labelText: 'Select a reason',
               border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12.r),),
+                borderRadius: BorderRadius.circular(12.r),
+              ),
             ),
-            items: _reasons.map((r) => DropdownMenuItem(value: r, child: Text(r))).toList(),
+            items: _reasons
+                .map((r) => DropdownMenuItem(value: r, child: Text(r)))
+                .toList(),
             onChanged: (v) => setState(() => _selectedReason = v),
           ),
           if (isPauseSuggestion) ...[
@@ -102,11 +112,13 @@ class _CancelSubscriptionScreenState extends State<CancelSubscriptionScreen> {
                     Expanded(
                       child: Text(
                         'Did you know you can pause instead?',
-                        style: TextStyle(fontSize: 14.sp, color: AppColors.lightTextPrimary),
+                        style: TextStyle(
+                            fontSize: 14.sp, color: AppColors.lightTextPrimary),
                       ),
                     ),
                     TextButton(
-                      onPressed: () => Navigator.pushNamed(context, '/subscription/pause'),
+                      onPressed: () =>
+                          Navigator.pushNamed(context, '/subscription/pause'),
                       child: const Text('Pause my subscription'),
                     ),
                   ],
@@ -126,7 +138,8 @@ class _CancelSubscriptionScreenState extends State<CancelSubscriptionScreen> {
                 foregroundColor: AppColors.white,
                 padding: EdgeInsets.symmetric(vertical: 14.h),
                 shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12.r),),
+                  borderRadius: BorderRadius.circular(12.r),
+                ),
               ),
               child: const Text('Continue'),
             ),
@@ -152,7 +165,8 @@ class _CancelSubscriptionScreenState extends State<CancelSubscriptionScreen> {
               padding: EdgeInsets.all(16.w),
               child: Row(
                 children: [
-                  Icon(Icons.warning_amber, color: AppColors.error, size: 24.sp),
+                  Icon(Icons.warning_amber,
+                      color: AppColors.error, size: 24.sp),
                   SizedBox(width: 12.w),
                   Expanded(
                     child: Text(
@@ -171,11 +185,16 @@ class _CancelSubscriptionScreenState extends State<CancelSubscriptionScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text('Plan: $_selectedReason',
-                      style: TextStyle(fontSize: 16.sp, fontWeight: FontWeight.bold),),
+                  Text(
+                    'Plan: $_selectedReason',
+                    style:
+                        TextStyle(fontSize: 16.sp, fontWeight: FontWeight.bold),
+                  ),
                   SizedBox(height: 8.h),
-                  Text('Reason: $_selectedReason',
-                      style: TextStyle(fontSize: 14.sp, color: AppColors.grey),),
+                  Text(
+                    'Reason: $_selectedReason',
+                    style: TextStyle(fontSize: 14.sp, color: AppColors.grey),
+                  ),
                 ],
               ),
             ),
@@ -189,7 +208,8 @@ class _CancelSubscriptionScreenState extends State<CancelSubscriptionScreen> {
                   style: OutlinedButton.styleFrom(
                     padding: EdgeInsets.symmetric(vertical: 14.h),
                     shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12.r),),
+                      borderRadius: BorderRadius.circular(12.r),
+                    ),
                   ),
                   child: const Text('Go Back'),
                 ),
@@ -201,24 +221,26 @@ class _CancelSubscriptionScreenState extends State<CancelSubscriptionScreen> {
                       ? null
                       : () {
                           context.read<SubscriptionBloc>().add(
-                              CancelSubscription(
-                                subscriptionId: '',
-                                reason: _selectedReason ?? '',
-                              ),);
+                                CancelSubscription(
+                                  subscriptionId: '',
+                                  reason: _selectedReason ?? '',
+                                ),
+                              );
                         },
                   style: ElevatedButton.styleFrom(
                     backgroundColor: AppColors.error,
                     foregroundColor: AppColors.white,
                     padding: EdgeInsets.symmetric(vertical: 14.h),
                     shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12.r),),
+                      borderRadius: BorderRadius.circular(12.r),
+                    ),
                   ),
                   child: _isLoading
                       ? const SizedBox(
                           width: 20,
                           height: 20,
-                          child:
-                              CircularProgressIndicator(strokeWidth: 2),)
+                          child: CircularProgressIndicator(strokeWidth: 2),
+                        )
                       : const Text('Confirm Cancel'),
                 ),
               ),

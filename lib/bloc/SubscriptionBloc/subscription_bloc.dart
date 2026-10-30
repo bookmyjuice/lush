@@ -155,18 +155,6 @@ class ResumeSubscription extends SubscriptionEvent {
   List<Object> get props => [subscriptionId];
 }
 
-/// Modify subscription day-wise schedule.
-class ModifySubscriptionSchedule extends SubscriptionEvent {
-  final String subscriptionId;
-  final Map<String, String> newSchedule; // day → itemPriceId
-  const ModifySubscriptionSchedule({
-    required this.subscriptionId,
-    required this.newSchedule,
-  });
-  @override
-  List<Object> get props => [subscriptionId, newSchedule];
-}
-
 // Enhanced subscription model for active subscriptions
 class ActiveSubscription extends Equatable {
   final String id;
@@ -402,13 +390,6 @@ class SubscriptionResumed extends SubscriptionState {
   List<Object> get props => [subscription];
 }
 
-class SubscriptionModified extends SubscriptionState {
-  final String message;
-  const SubscriptionModified({required this.message});
-  @override
-  List<Object> get props => [message];
-}
-
 // BLoC
 class SubscriptionBloc extends Bloc<SubscriptionEvent, SubscriptionState> {
   final UserRepository userRepository = getIt.get();
@@ -426,7 +407,6 @@ class SubscriptionBloc extends Bloc<SubscriptionEvent, SubscriptionState> {
     on<ResumeSubscription>(_onResumeSubscription);
     on<LoadSubscriptionCatalog>(_onLoadSubscriptionCatalog);
     on<CreateSubscriptionFromSelection>(_onCreateSubscriptionFromSelection);
-    on<ModifySubscriptionSchedule>(_onModifySubscriptionSchedule);
   }
 
   Future<void> _onLoadSubscriptionCatalog(
@@ -454,7 +434,17 @@ class SubscriptionBloc extends Bloc<SubscriptionEvent, SubscriptionState> {
   ) async {
     emit(const SubscriptionLoading());
     try {
-      await _subscriptionService.createSubscription(event.selection.itemPriceId);
+      final Map<String, String> schedule = event.selection.daySchedule;
+      if (schedule.isEmpty) {
+        await _subscriptionService.createSubscription(event.selection.itemPriceId);
+      } else {
+        // The day-wise schedule the customer picked; the backend persists it so
+        // `nextDeliveryAt` is a real date instead of an em dash.
+        await _subscriptionService.createSubscription(
+          event.selection.itemPriceId,
+          daySchedule: schedule,
+        );
+      }
       if (isClosed) return;
       emit(const SubscriptionCreatedSuccess(message: 'Subscription created successfully'));
     } catch (e) {
@@ -719,25 +709,6 @@ class SubscriptionBloc extends Bloc<SubscriptionEvent, SubscriptionState> {
       await _subscriptionService.resumeSubscription(event.subscriptionId);
       // Refetch to get updated state
       add(const LoadActiveSubscriptions());
-    } catch (e) {
-      if (isClosed) return;
-      emit(SubscriptionError(message: e.toString()));
-    }
-  }
-
-  /// Modify schedule — calls API with new day-wise schedule.
-  Future<void> _onModifySubscriptionSchedule(
-    ModifySubscriptionSchedule event,
-    Emitter<SubscriptionState> emit,
-  ) async {
-    emit(const SubscriptionLoading());
-    try {
-      await _subscriptionService.modifySchedule(
-        event.subscriptionId,
-        event.newSchedule,
-      );
-      if (isClosed) return;
-      emit(const SubscriptionModified(message: 'Schedule updated'));
     } catch (e) {
       if (isClosed) return;
       emit(SubscriptionError(message: e.toString()));

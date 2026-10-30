@@ -1,8 +1,7 @@
 /// Unit tests for [SubscriptionService].
 ///
 /// Covers: getSubscriptionPlans, getMySubscriptions, getSubscriptionDetails,
-/// createSubscription, pauseSubscription, resumeSubscription, cancelSubscription,
-/// modifySchedule.
+/// createSubscription, pauseSubscription, resumeSubscription, cancelSubscription.
 ///
 /// Uses [MockClient] from package:http/testing.dart to mock HTTP responses,
 /// and [MockSecureStorageService] (mocktail) to inject test tokens.
@@ -155,6 +154,37 @@ void main() {
       final result = await service.createSubscription('plan_1');
       expect(result['url'], contains('chargebee.com'));
     });
+    test('sends the day-wise schedule when one is provided', () async {
+      final client = MockClient((request) async {
+        final body = json.decode(request.body!) as Map<String, dynamic>;
+        expect(body['planId'], 'bmj-delight-200ml-weekly');
+        expect(body['schedule'], <String, dynamic>{
+          'monday': 'mix-punch',
+          'wednesday': 'carrot-juice',
+        });
+        return http.Response(json.encode({'url': 'https://checkout.chargebee.com/hosted/xxx'}), 200);
+      });
+      final service = SubscriptionService(client: client);
+      await service.createSubscription(
+        'bmj-delight-200ml-weekly',
+        daySchedule: <String, String>{
+          'monday': 'mix-punch',
+          'wednesday': 'carrot-juice',
+        },
+      );
+    });
+
+    test('omits the schedule key when no schedule is passed', () async {
+      final client = MockClient((request) async {
+        final body = json.decode(request.body!) as Map<String, dynamic>;
+        expect(body.containsKey('schedule'), isFalse);
+        return http.Response(json.encode({'url': 'https://checkout.chargebee.com/hosted/xxx'}), 200);
+      });
+      final service = SubscriptionService(client: client);
+      await service.createSubscription('plan_1');
+    });
+
+
 
     test('throws on non-200', () async {
       final client = MockClient((_) async => http.Response('', 400));
@@ -277,43 +307,4 @@ void main() {
     });
   });
 
-  // ─── modifySchedule ────────────────────────────────────────
-  group('modifySchedule', () {
-    test('returns success on 200', () async {
-      final schedule = {'monday': 'Morning', 'wednesday': 'Evening'};
-      final client = MockClient((request) async {
-        expect(request.method, 'PUT');
-        expect(request.url.toString(), '$baseUrl/api/subscriptions/sub_1/modify');
-        final body = json.decode(request.body!) as Map<String, dynamic>;
-        expect(body['schedule'], schedule);
-        return http.Response(
-          json.encode({'message': 'Schedule updated'}),
-          200,
-        );
-      });
-      final service = SubscriptionService(client: client);
-      final result = await service.modifySchedule('sub_1', schedule);
-      expect(result['success'], true);
-      expect(result['message'], 'Schedule updated');
-    });
-
-    test('returns success on 202', () async {
-      final client = MockClient((_) async => http.Response(
-        json.encode({'message': 'Update initiated'}), 202,
-      ));
-      final service = SubscriptionService(client: client);
-      final result = await service.modifySchedule('sub_1', {});
-      expect(result['success'], true);
-    });
-
-    test('throws on non-200/202', () async {
-      final client = MockClient((_) async => http.Response(
-        json.encode({'message': 'Bad request'}), 400,
-      ));
-      final service = SubscriptionService(client: client);
-      expect(() => service.modifySchedule('x', {}), throwsA(predicate(
-        (e) => e.toString().contains('Bad request'),
-      )));
-    });
-  });
 }

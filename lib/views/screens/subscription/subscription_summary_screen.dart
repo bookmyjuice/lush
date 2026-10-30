@@ -4,6 +4,7 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:lush/bloc/SubscriptionBloc/subscription_bloc.dart';
 import 'package:lush/theme/app_colors.dart';
 import 'package:lush/theme/app_radius.dart';
+import 'package:lush/theme/bmj_tokens.dart';
 import 'package:lush/theme/theme_cubit.dart';
 import 'package:lush/views/models/subscription_selection.dart';
 import 'package:lush/widgets/glass_card.dart';
@@ -103,7 +104,7 @@ class _SubscriptionSummaryScreenState extends State<SubscriptionSummaryScreen> {
                     children: [
                       Expanded(
                         child: Text(
-                          '${widget.selection.family.toUpperCase()} • ${widget.selection.size}',
+                          '${widget.selection.family.toUpperCase()} ${widget.selection.size}',
                           style: TextStyle(
                             fontFamily: 'Poppins',
                             fontSize: 18.sp,
@@ -241,7 +242,7 @@ class _SubscriptionSummaryScreenState extends State<SubscriptionSummaryScreen> {
                                 size: 14, color: Colors.grey),
                             SizedBox(width: 6.w),
                             Text(
-                              'Holiday • No Delivery 🌴',
+                              'No delivery',
                               style: TextStyle(
                                 fontFamily: 'Inter',
                                 fontSize: 13.sp,
@@ -300,7 +301,7 @@ class _SubscriptionSummaryScreenState extends State<SubscriptionSummaryScreen> {
                       },
                 style: ElevatedButton.styleFrom(
                   backgroundColor: accentColor,
-                  foregroundColor: Colors.white,
+                  foregroundColor: BMJTokens.inkOnBrand,
                   disabledBackgroundColor:
                       isDark ? Colors.white10 : Colors.black12,
                   elevation: 4,
@@ -315,11 +316,11 @@ class _SubscriptionSummaryScreenState extends State<SubscriptionSummaryScreen> {
                         height: 22.r,
                         child: const CircularProgressIndicator(
                           strokeWidth: 2.5,
-                          color: Colors.white,
+                          color: BMJTokens.inkOnBrand,
                         ),
                       )
                     : Text(
-                        'Start Subscription ✨',
+                        'Start Subscription',
                         style: TextStyle(
                           fontFamily: 'Poppins',
                           fontSize: 16.sp,

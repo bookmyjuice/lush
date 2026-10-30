@@ -49,73 +49,88 @@ class _OrderCatalogScreenState extends State<OrderCatalogScreen> {
       body: Column(
         children: [
           _buildFamilyTabs(),
-          Expanded(child: FutureBuilder<List<DynamicItem>>(
-            future: _itemsFuture,
-            builder: (context, snapshot) {
-              if (snapshot.connectionState == ConnectionState.waiting) {
-                return const Center(child: CircularProgressIndicator());
-              }
-              if (snapshot.hasError || !snapshot.hasData || snapshot.data!.isEmpty) {
-                return Center(
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Icon(Icons.error_outline, size: 48.sp, color: AppColors.error),
-                      SizedBox(height: 16.h),
-                      Text('Failed to load items',
-                          style: TextStyle(color: AppColors.lightTextSecondary, fontSize: 16.sp),),
-                      SizedBox(height: 16.h),
-                      ElevatedButton(
-                        onPressed: _retry,
-                        style: ElevatedButton.styleFrom(backgroundColor: AppColors.primaryOrange),
-                        child: const Text('Retry'),
-                      ),
-                    ],
-                  ),
-                );
-              }
-
-              final items = snapshot.data!
-                  .where((i) => i.itemFamilyId == 'bmj-item-family' || i.itemFamilyId.startsWith('bmj'))
-                  .toList();
-
-              final filtered = _selectedFamily == 'All'
-                  ? items
-                  : items.where((i) {
-                      final family = i.metaData['family'] as String? ?? '';
-                      return family == _selectedFamily;
-                    }).toList();
-
-              if (filtered.isEmpty) {
-                return Center(
-                  child: Text('No items found',
-                      style: TextStyle(color: AppColors.lightTextSecondary, fontSize: 16.sp),),
-                );
-              }
-
-              return GridView.builder(
-                padding: EdgeInsets.all(16.r),
-                gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                  crossAxisCount: 2,
-                  crossAxisSpacing: 12,
-                  mainAxisSpacing: 12,
-                  childAspectRatio: 0.72,
-                ),
-                itemCount: filtered.length,
-                itemBuilder: (context, index) {
-                  final item = filtered[index];
-                  return _JuiceItemCard(
-                    item: item,
-                    onTap: () => Navigator.pushNamed(
-                      context,
-                      '/order-item',
-                      arguments: item.itemID,
+          Expanded(
+            child: FutureBuilder<List<DynamicItem>>(
+              future: _itemsFuture,
+              builder: (context, snapshot) {
+                if (snapshot.connectionState == ConnectionState.waiting) {
+                  return const Center(child: CircularProgressIndicator());
+                }
+                if (snapshot.hasError ||
+                    !snapshot.hasData ||
+                    snapshot.data!.isEmpty) {
+                  return Center(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(Icons.error_outline,
+                            size: 48.sp, color: AppColors.error),
+                        SizedBox(height: 16.h),
+                        Text(
+                          'Failed to load items',
+                          style: TextStyle(
+                              color: AppColors.lightTextSecondary,
+                              fontSize: 16.sp),
+                        ),
+                        SizedBox(height: 16.h),
+                        ElevatedButton(
+                          onPressed: _retry,
+                          style: ElevatedButton.styleFrom(
+                              backgroundColor: AppColors.primaryOrange),
+                          child: const Text('Retry'),
+                        ),
+                      ],
                     ),
                   );
-                },
-              );
-            },
-          ),),
+                }
+
+                final items = snapshot.data!
+                    .where((i) =>
+                        i.itemFamilyId == 'bmj-item-family' ||
+                        i.itemFamilyId.startsWith('bmj'))
+                    .toList();
+
+                final filtered = _selectedFamily == 'All'
+                    ? items
+                    : items.where((i) {
+                        final family = i.metaData['family'] as String? ?? '';
+                        return family == _selectedFamily;
+                      }).toList();
+
+                if (filtered.isEmpty) {
+                  return Center(
+                    child: Text(
+                      'No items found',
+                      style: TextStyle(
+                          color: AppColors.lightTextSecondary, fontSize: 16.sp),
+                    ),
+                  );
+                }
+
+                return GridView.builder(
+                  padding: EdgeInsets.all(16.r),
+                  gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                    crossAxisCount: 2,
+                    crossAxisSpacing: 12,
+                    mainAxisSpacing: 12,
+                    childAspectRatio: 0.72,
+                  ),
+                  itemCount: filtered.length,
+                  itemBuilder: (context, index) {
+                    final item = filtered[index];
+                    return _JuiceItemCard(
+                      item: item,
+                      onTap: () => Navigator.pushNamed(
+                        context,
+                        '/order-item',
+                        arguments: item.itemID,
+                      ),
+                    );
+                  },
+                );
+              },
+            ),
+          ),
         ],
       ),
     );
@@ -138,7 +153,8 @@ class _OrderCatalogScreenState extends State<OrderCatalogScreen> {
                 selected: selected,
                 selectedColor: AppColors.primaryOrange,
                 labelStyle: TextStyle(
-                  color: selected ? AppColors.white : AppColors.lightTextPrimary,
+                  color:
+                      selected ? AppColors.white : AppColors.lightTextPrimary,
                   fontWeight: selected ? FontWeight.bold : FontWeight.normal,
                 ),
                 onSelected: (_) => setState(() => _selectedFamily = f),
@@ -165,8 +181,12 @@ class _JuiceItemCard extends StatelessWidget {
         .map((p) => (p['price'] as num?)?.toDouble() ?? 0.0)
         .where((p) => p > 0)
         .toList();
-    final lowest = prices.isEmpty ? '--' : '₹${prices.reduce((a, b) => a < b ? a : b).toStringAsFixed(0)}';
-    final highest = prices.isEmpty ? '--' : '₹${prices.reduce((a, b) => a > b ? a : b).toStringAsFixed(0)}';
+    final lowest = prices.isEmpty
+        ? '--'
+        : '₹${prices.reduce((a, b) => a < b ? a : b).toStringAsFixed(0)}';
+    final highest = prices.isEmpty
+        ? '--'
+        : '₹${prices.reduce((a, b) => a > b ? a : b).toStringAsFixed(0)}';
 
     return GestureDetector(
       onTap: onTap,
@@ -183,8 +203,15 @@ class _JuiceItemCard extends StatelessWidget {
             Expanded(
               child: Center(
                 child: Text(
-                  item.displayName.replaceAll('-', ' ').split(' ').map((w) =>
-                      w.isNotEmpty ? '${w[0].toUpperCase()}${w.substring(1)}' : '',).join(' '),
+                  item.displayName
+                      .replaceAll('-', ' ')
+                      .split(' ')
+                      .map(
+                        (w) => w.isNotEmpty
+                            ? '${w[0].toUpperCase()}${w.substring(1)}'
+                            : '',
+                      )
+                      .join(' '),
                   style: TextStyle(
                     fontSize: 16.sp,
                     fontWeight: FontWeight.bold,
@@ -205,7 +232,10 @@ class _JuiceItemCard extends StatelessWidget {
               ),
               child: Text(
                 family.toUpperCase(),
-                style: TextStyle(fontSize: 10.sp, fontWeight: FontWeight.bold, color: familyColor),
+                style: TextStyle(
+                    fontSize: 10.sp,
+                    fontWeight: FontWeight.bold,
+                    color: familyColor),
               ),
             ),
             SizedBox(height: 6.h),
@@ -226,9 +256,11 @@ class _JuiceItemCard extends StatelessWidget {
                 style: ElevatedButton.styleFrom(
                   backgroundColor: AppColors.primaryOrange,
                   padding: EdgeInsets.zero,
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8.r)),
+                  shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(8.r)),
                 ),
-                child: Text('Add', style: TextStyle(fontSize: 14.sp, color: AppColors.white)),
+                child: Text('Add',
+                    style: TextStyle(fontSize: 14.sp, color: AppColors.white)),
               ),
             ),
           ],

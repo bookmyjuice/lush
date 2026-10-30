@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:hexcolor/hexcolor.dart' as hex;
 import 'package:lush/theme/app_text_styles.dart';
+import 'package:lush/theme/bmj_tokens.dart';
 
 class SubscriptionPlanCard extends StatelessWidget {
   final Map<String, dynamic> plan;
@@ -63,7 +64,7 @@ class SubscriptionPlanCard extends StatelessWidget {
                           Text(
                             planName,
                             style: const TextStyle(
-                              color: Colors.white,
+                              color: BMJTokens.inkOnBrand,
                               fontSize: 22,
                               fontWeight: FontWeight.bold,
                               fontFamily: AppTextStyles.fontFamily,
@@ -73,7 +74,7 @@ class SubscriptionPlanCard extends StatelessWidget {
                           Text(
                             planDescription,
                             style: const TextStyle(
-                              color: Colors.white,
+                              color: BMJTokens.inkOnBrand,
                               fontSize: 14,
                               fontFamily: AppTextStyles.fontFamily,
                             ),
@@ -82,7 +83,7 @@ class SubscriptionPlanCard extends StatelessWidget {
                           Text(
                             '\u20B9$planPrice / month',
                             style: const TextStyle(
-                              color: Colors.white,
+                              color: BMJTokens.inkOnBrand,
                               fontSize: 18,
                               fontWeight: FontWeight.bold,
                               fontFamily: AppTextStyles.fontFamily,
@@ -106,13 +107,13 @@ class SubscriptionPlanCard extends StatelessWidget {
                                   child: Row(
                                     children: [
                                       const Icon(Icons.check_circle,
-                                          color: Colors.white, size: 16,),
+                                          color: BMJTokens.inkOnBrand, size: 16,),
                                       const SizedBox(width: 8),
                                       Expanded(
                                         child: Text(
                                           feature,
                                           style: const TextStyle(
-                                            color: Colors.white,
+                                            color: BMJTokens.inkOnBrand,
                                             fontSize: 14,
                                             fontFamily: AppTextStyles.fontFamily,
                                           ),
@@ -133,7 +134,7 @@ class SubscriptionPlanCard extends StatelessWidget {
                         child: ElevatedButton(
                           onPressed: () => _navigateToPlans(context),
                           style: ElevatedButton.styleFrom(
-                            backgroundColor: Colors.white,
+                            backgroundColor: BMJTokens.inkOnBrand,
                             foregroundColor: hex.HexColor(endColor),
                             padding: const EdgeInsets.symmetric(vertical: 12),
                             shape: RoundedRectangleBorder(

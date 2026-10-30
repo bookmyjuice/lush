@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:lush/theme/bmj_tokens.dart';
 
 class SubscriptionCard extends StatelessWidget {
   final String planName;
@@ -25,7 +26,8 @@ class SubscriptionCard extends StatelessWidget {
       margin: EdgeInsets.fromLTRB(16.w, 8.h, 16.w, 8.h),
       child: Card(
         elevation: 8,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20.r)),
+        shape:
+            RoundedRectangleBorder(borderRadius: BorderRadius.circular(20.r)),
         child: Container(
           decoration: BoxDecoration(
             gradient: const LinearGradient(
@@ -55,13 +57,13 @@ class SubscriptionCard extends StatelessWidget {
                 fontFamily: 'Poppins',
                 fontSize: 17.sp,
                 fontWeight: FontWeight.bold,
-                color: Colors.white,
+                color: BMJTokens.inkOnBrand,
               ),
             ),
             Container(
               padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 4.h),
               decoration: BoxDecoration(
-                color: Colors.white,
+                color: BMJTokens.inkOnBrand,
                 borderRadius: BorderRadius.circular(12.r),
               ),
               child: Text(
@@ -115,7 +117,7 @@ class SubscriptionCard extends StatelessWidget {
           style: TextStyle(
             fontFamily: 'Poppins',
             fontSize: 15.sp,
-            color: Colors.white,
+            color: BMJTokens.inkOnBrand,
           ),
         ),
       ],
@@ -128,10 +130,11 @@ class SubscriptionCard extends StatelessWidget {
       icon: Icon(icon, size: 16),
       label: Text(label, style: const TextStyle(fontSize: 12)),
       style: OutlinedButton.styleFrom(
-        foregroundColor: Colors.white,
-        side: const BorderSide(color: Colors.white),
+        foregroundColor: BMJTokens.inkOnBrand,
+        side: const BorderSide(color: BMJTokens.inkOnBrand),
         padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 6.h),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16.r)),
+        shape:
+            RoundedRectangleBorder(borderRadius: BorderRadius.circular(16.r)),
       ),
     );
   }

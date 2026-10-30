@@ -3,7 +3,7 @@
 /// Covers: LoadSubscriptionCatalog, CreateSubscriptionFromSelection,
 /// LoadActiveSubscriptions, LoadSubscriptionPlans, LoadSubscriptionHistory,
 /// CreateSubscription, CancelSubscription, PauseSubscription, ResumeSubscription,
-/// ModifySubscriptionSchedule, SubscriptionSelection model, SubscriptionPlanCatalog model.
+/// SubscriptionSelection model, SubscriptionPlanCatalog model.
 library;
 
 import 'package:bloc_test/bloc_test.dart';
@@ -297,6 +297,39 @@ void main() {
         expect(state.message, isNotEmpty);
       },
     );
+    blocTest<SubscriptionBloc, SubscriptionState>(
+      'forwards the day-wise schedule to the service',
+      build: () {
+        when(() => mockService.createSubscription(
+              any<String>(),
+              daySchedule: any(named: 'daySchedule'),
+            )).thenAnswer((_) async => {'success': true});
+        return SubscriptionBloc(subscriptionService: mockService);
+      },
+      act: (bloc) => bloc.add(
+        CreateSubscriptionFromSelection(
+          selection: createTestSelection(daySchedule: {
+            'monday': 'mix-punch',
+            'wednesday': 'carrot-juice',
+          }),
+        ),
+      ),
+      expect: () => [
+        isA<SubscriptionLoading>(),
+        isA<SubscriptionCreatedSuccess>(),
+      ],
+      verify: (_) {
+        verify(() => mockService.createSubscription(
+              'bmj-delight-200ml-weekly',
+              daySchedule: {
+                'monday': 'mix-punch',
+                'wednesday': 'carrot-juice',
+              },
+            )).called(1);
+      },
+    );
+
+
   });
 
   // ─── LoadActiveSubscriptions ─────────────────────────────────
@@ -652,53 +685,6 @@ void main() {
         isA<SubscriptionLoading>(),
         isA<SubscriptionError>().having(
           (s) => s.message, 'error message', contains('Cannot resume'),
-        ),
-      ],
-    );
-  });
-
-  // ─── ModifySubscriptionSchedule ──────────────────────────────
-  group('ModifySubscriptionSchedule', () {
-    blocTest<SubscriptionBloc, SubscriptionState>(
-      'emits [Loading, SubscriptionModified] on success',
-      build: () {
-        when(() => mockService.modifySchedule(any<String>(), any<Map<String, dynamic>>()))
-            .thenAnswer((_) async => {'success': true, 'message': 'Updated'});
-        return SubscriptionBloc(subscriptionService: mockService);
-      },
-      act: (bloc) => bloc.add(const ModifySubscriptionSchedule(
-        subscriptionId: 'sub_001',
-        newSchedule: {'monday': 'juice_001'},
-      )),
-      expect: () => [
-        isA<SubscriptionLoading>(),
-        isA<SubscriptionModified>().having(
-          (s) => s.message, 'success message', contains('Schedule updated'),
-        ),
-      ],
-      verify: (bloc) {
-        verify(() => mockService.modifySchedule(
-          'sub_001',
-          {'monday': 'juice_001'},
-        )).called(1);
-      },
-    );
-
-    blocTest<SubscriptionBloc, SubscriptionState>(
-      'emits [Loading, Error] on modify failure',
-      build: () {
-        when(() => mockService.modifySchedule(any<String>(), any<Map<String, dynamic>>()))
-            .thenThrow(Exception('Cannot modify'));
-        return SubscriptionBloc(subscriptionService: mockService);
-      },
-      act: (bloc) => bloc.add(const ModifySubscriptionSchedule(
-        subscriptionId: 'sub_001',
-        newSchedule: {},
-      )),
-      expect: () => [
-        isA<SubscriptionLoading>(),
-        isA<SubscriptionError>().having(
-          (s) => s.message, 'error message', contains('Cannot modify'),
         ),
       ],
     );

@@ -1,10 +1,36 @@
+/// Subscription family picker — first step of the subscription flow.
+///
+/// Stitch `vibrant_zest` styling: glass header, glass family cards and brand
+/// gradient icon tiles. The BLoC contract is unchanged (`LoadSubscriptionCatalog`
+/// on mount, `SubscriptionCatalogLoaded` renders the cards) and the price is the
+/// real cheapest price from Chargebee — never a fabricated `₹0`.
+library;
+
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:lush/bloc/SubscriptionBloc/subscription_bloc.dart';
-import 'package:lush/theme/app_colors.dart';
+import 'package:lush/theme/app_radius.dart';
 import 'package:lush/theme/app_text_styles.dart';
+import 'package:lush/theme/bmj_tokens.dart';
+import 'package:lush/utils/price_utils.dart';
 import 'package:lush/views/models/subscription_plan_catalog.dart';
+import 'package:lush/widgets/bmj_empty_state.dart';
+import 'package:lush/widgets/bmj_glass_button.dart';
+import 'package:lush/widgets/bmj_glass_card.dart';
+import 'package:lush/widgets/bmj_glass_header.dart';
+
+/// Copy + icon for each Chargebee item family.
+class _FamilyMeta {
+  final IconData icon;
+  final String tagline;
+  final String description;
+
+  const _FamilyMeta({
+    required this.icon,
+    required this.tagline,
+    required this.description,
+  });
+}
 
 class SubscriptionFamilyScreen extends StatefulWidget {
   const SubscriptionFamilyScreen({super.key});
@@ -15,23 +41,31 @@ class SubscriptionFamilyScreen extends StatefulWidget {
 }
 
 class _SubscriptionFamilyScreenState extends State<SubscriptionFamilyScreen> {
-  static const _familyMeta = {
-    'delight': {
-      'emoji': '🍊',
-      'tagline': 'Fresh & Affordable',
-      'description': 'Entry-level juices perfect for daily refreshment.',
-    },
-    'signature': {
-      'emoji': '🥤',
-      'tagline': 'Balanced & Popular',
-      'description': 'Our signature blends with the perfect balance of taste and nutrition.',
-    },
-    'premium': {
-      'emoji': '👑',
-      'tagline': 'Premium & Exclusive',
-      'description': 'The finest selection of cold-pressed juices for discerning taste.',
-    },
+  static const Map<String, _FamilyMeta> _familyMeta = <String, _FamilyMeta>{
+    'delight': _FamilyMeta(
+      icon: Icons.wb_sunny_outlined,
+      tagline: 'Fresh & Affordable',
+      description: 'Entry-level juices perfect for daily refreshment.',
+    ),
+    'signature': _FamilyMeta(
+      icon: Icons.bolt_outlined,
+      tagline: 'Balanced & Popular',
+      description:
+          'Our signature blends with the perfect balance of taste and nutrition.',
+    ),
+    'premium': _FamilyMeta(
+      icon: Icons.workspace_premium_outlined,
+      tagline: 'Premium & Exclusive',
+      description:
+          'The finest selection of cold-pressed juices for discerning taste.',
+    ),
   };
+
+  static const _FamilyMeta _fallbackMeta = _FamilyMeta(
+    icon: Icons.local_drink_outlined,
+    tagline: 'Cold-pressed',
+    description: 'Fresh juice delivered on your schedule.',
+  );
 
   @override
   void initState() {
@@ -41,208 +75,231 @@ class _SubscriptionFamilyScreenState extends State<SubscriptionFamilyScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final BMJPalette palette = BMJPalette.of(context);
+
     return Scaffold(
-      backgroundColor: AppColors.lightBackground,
-      appBar: AppBar(
-        backgroundColor: AppColors.white,
-        elevation: 0,
-        title: Text(
-          'Choose Your Plan',
-          style: AppTextStyles.textTheme.titleLarge?.copyWith(
-            color: AppColors.lightTextPrimary,
-          ),
-        ),
-      ),
-      body: BlocBuilder<SubscriptionBloc, SubscriptionState>(
-        builder: (context, state) {
-          if (state is SubscriptionLoading) {
-            return const Center(child: CircularProgressIndicator());
-          }
-
-          if (state is SubscriptionCatalogError) {
-            return Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Icon(Icons.error_outline, size: 48.sp, color: AppColors.error),
-                  SizedBox(height: 16.h),
-                  Text(
-                    'Failed to load plans',
-                    style: AppTextStyles.textTheme.titleMedium?.copyWith(
-                      color: AppColors.lightTextPrimary,
-                    ),
-                  ),
-                  SizedBox(height: 8.h),
-                  ElevatedButton(
-                    onPressed: () {
-                      context
-                          .read<SubscriptionBloc>()
-                          .add(const LoadSubscriptionCatalog());
-                    },
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: AppColors.primaryOrange,
-                    ),
-                    child: const Text('Retry'),
-                  ),
-                ],
+      backgroundColor: palette.surface,
+      body: Column(
+        children: <Widget>[
+          BMJGlassHeader(
+            title: 'Choose a Plan',
+            // The sub-flow has no cart action of its own and the header must
+            // not require a CartBloc in scope.
+            showCart: false,
+            leading: Semantics(
+              button: true,
+              label: 'Back',
+              child: IconButton(
+                onPressed: () => Navigator.of(context).maybePop(),
+                icon: const Icon(Icons.arrow_back_rounded),
+                color: palette.onSurface,
+                tooltip: 'Back',
               ),
-            );
-          }
-
-          if (state is SubscriptionCatalogLoaded) {
-            final families = _extractFamilies(state.plans);
-            return ListView.builder(
-              padding: EdgeInsets.all(16.r),
-              itemCount: families.length,
-              itemBuilder: (context, index) {
-                final family = families[index];
-                final lowestPrice = _getLowestPrice(state.plans, family);
-                return _FamilyCard(
-                  family: family,
-                  emoji: _familyMeta[family]?['emoji'] ?? '🧃',
-                  tagline: _familyMeta[family]?['tagline'] ?? '',
-                  description: _familyMeta[family]?['description'] ?? '',
-                  lowestPrice: lowestPrice,
-                  onTap: () {
-                    Navigator.pushNamed(
-                      context,
-                      '/subscription/plan',
-                      arguments: family,
-                    );
-                  },
-                );
+            ),
+          ),
+          Expanded(
+            child: BlocBuilder<SubscriptionBloc, SubscriptionState>(
+              builder: (context, state) {
+                if (state is SubscriptionCatalogLoaded) {
+                  return _buildFamilies(context, state.plans);
+                }
+                if (state is SubscriptionCatalogError) {
+                  return Center(
+                    child: Padding(
+                      padding: const EdgeInsets.all(BMJTokens.pageMargin),
+                      child: BMJEmptyState(
+                        icon: Icons.cloud_off_rounded,
+                        title: 'Failed to load plans',
+                        message: state.message,
+                        action: BMJGlassButton(
+                          label: 'Retry',
+                          icon: Icons.refresh_rounded,
+                          onPressed: () => context
+                              .read<SubscriptionBloc>()
+                              .add(const LoadSubscriptionCatalog()),
+                        ),
+                      ),
+                    ),
+                  );
+                }
+                return const Center(child: CircularProgressIndicator());
               },
-            );
-          }
-
-          return const Center(child: CircularProgressIndicator());
-        },
+            ),
+          ),
+        ],
       ),
     );
   }
 
-  List<String> _extractFamilies(List<SubscriptionPlanCatalog> plans) {
-    return plans.map((p) => p.family).toSet().toList()
-      ..sort();
+  Widget _buildFamilies(
+    BuildContext context,
+    List<SubscriptionPlanCatalog> plans,
+  ) {
+    final List<String> families = _extractFamilies(plans);
+
+    if (families.isEmpty) {
+      return const Center(
+        child: Padding(
+          padding: EdgeInsets.all(BMJTokens.pageMargin),
+          child: BMJEmptyState(
+            icon: Icons.inventory_2_outlined,
+            title: 'No plans available',
+            message: 'New plans are on the way. Please check back soon.',
+          ),
+        ),
+      );
+    }
+
+    return ListView.builder(
+      padding: const EdgeInsets.fromLTRB(
+        BMJTokens.pageMargin,
+        BMJTokens.spaceMd,
+        BMJTokens.pageMargin,
+        BMJTokens.spaceXl,
+      ),
+      itemCount: families.length,
+      itemBuilder: (context, index) {
+        final String family = families[index];
+        final _FamilyMeta meta = _familyMeta[family] ?? _fallbackMeta;
+
+        return _FamilyCard(
+          family: family,
+          meta: meta,
+          priceLabel: _lowestPriceLabel(plans, family),
+          onTap: () {
+            Navigator.pushNamed(
+              context,
+              '/subscription/plan',
+              arguments: family,
+            );
+          },
+        );
+      },
+    );
   }
 
-  double _getLowestPrice(List<SubscriptionPlanCatalog> plans, String family) {
-    final familyPlans = plans.where((p) => p.family == family);
-    double lowest = double.infinity;
-    for (final plan in familyPlans) {
-      for (final price in plan.prices) {
-        if (price.priceInRupees < lowest) {
-          lowest = price.priceInRupees;
+  List<String> _extractFamilies(List<SubscriptionPlanCatalog> plans) {
+    return plans.map((p) => p.family).toSet().toList()..sort();
+  }
+
+  /// "From ₹699/week" using the cheapest *priced* option of the family.
+  ///
+  /// Weekly wins over monthly (it is the price customers compare); options
+  /// without a price are ignored so the label never shows a fabricated `₹0`.
+  String _lowestPriceLabel(
+    List<SubscriptionPlanCatalog> plans,
+    String family,
+  ) {
+    final Iterable<SubscriptionPlanCatalog> familyPlans =
+        plans.where((p) => p.family == family);
+
+    double? cheapestAmount;
+    bool cheapestIsWeekly = false;
+
+    for (final SubscriptionPlanCatalog plan in familyPlans) {
+      for (final SubscriptionPriceOption option in plan.prices) {
+        if (option.priceInPaise <= 0) continue; // no price known
+        final bool weekly = option.period == 'weekly';
+        if (cheapestAmount == null ||
+            (weekly && !cheapestIsWeekly) ||
+            (weekly == cheapestIsWeekly &&
+                option.priceInRupees < cheapestAmount)) {
+          cheapestAmount = option.priceInRupees;
+          cheapestIsWeekly = weekly;
         }
       }
     }
-    return lowest == double.infinity ? 0 : lowest;
+
+    if (cheapestAmount == null) return 'From $kPriceFallback';
+    final String period = cheapestIsWeekly ? 'week' : 'month';
+    return 'From ${formatRupees(cheapestAmount)}/$period';
   }
 }
 
 class _FamilyCard extends StatelessWidget {
   final String family;
-  final String emoji;
-  final String tagline;
-  final String description;
-  final double lowestPrice;
+  final _FamilyMeta meta;
+  final String priceLabel;
   final VoidCallback onTap;
 
   const _FamilyCard({
     required this.family,
-    required this.emoji,
-    required this.tagline,
-    required this.description,
-    required this.lowestPrice,
+    required this.meta,
+    required this.priceLabel,
     required this.onTap,
   });
 
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
+    final BMJPalette palette = BMJPalette.of(context);
+    final String title = family.toUpperCase();
+
+    return BMJGlassCard(
       onTap: onTap,
-      child: Container(
-        margin: EdgeInsets.only(bottom: 16.h),
-        padding: EdgeInsets.all(20.r),
-        decoration: BoxDecoration(
-          gradient: LinearGradient(
-            colors: [
-              AppColors.primaryOrange.withValues(alpha: 0.9),
-              AppColors.gradientEnd.withValues(alpha: 0.9),
-            ],
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
+      semanticLabel: '$title plans, $priceLabel',
+      margin: const EdgeInsets.only(bottom: BMJTokens.gutter),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: <Widget>[
+          Container(
+            width: BMJTokens.minTouchTarget,
+            height: BMJTokens.minTouchTarget,
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                colors: <Color>[palette.primary, palette.primaryEmphasis],
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+              ),
+              borderRadius: BorderRadius.circular(AppRadius.md),
+            ),
+            child: Icon(meta.icon, color: BMJTokens.inkOnBrand, size: 24),
           ),
-          borderRadius: BorderRadius.circular(16.r),
-          boxShadow: [
-            BoxShadow(
-              color: AppColors.primaryOrange.withValues(alpha: 0.3),
-              blurRadius: 10,
-              offset: const Offset(0, 4),
-            ),
-          ],
-        ),
-        child: Row(
-          children: [
-            Container(
-              width: 64.r,
-              height: 64.r,
-              decoration: BoxDecoration(
-                color: Colors.white.withValues(alpha: 0.2),
-                borderRadius: BorderRadius.circular(12.r),
-              ),
-              child: Center(
-                child: Text(emoji, style: TextStyle(fontSize: 32.sp)),
-              ),
-            ),
-            SizedBox(width: 16.w),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    family.toUpperCase(),
-                    style: TextStyle(
-                      fontSize: 20.sp,
-                      fontWeight: FontWeight.bold,
-                      color: AppColors.white,
-                    ),
+          const SizedBox(width: BMJTokens.spaceMd),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: <Widget>[
+                Text(
+                  title,
+                  style: AppTextStyles.textTheme.titleMedium?.copyWith(
+                    color: palette.onSurface,
+                    fontWeight: FontWeight.w700,
+                    letterSpacing: 0.6,
                   ),
-                  SizedBox(height: 4.h),
-                  Text(
-                    tagline,
-                    style: TextStyle(
-                      fontSize: 14.sp,
-                      color: Colors.white.withValues(alpha: 0.9),
-                    ),
+                ),
+                const SizedBox(height: BMJTokens.spaceXs),
+                Text(
+                  meta.tagline,
+                  style: AppTextStyles.textTheme.bodyMedium?.copyWith(
+                    color: palette.primaryEmphasis,
+                    fontWeight: FontWeight.w600,
                   ),
-                  SizedBox(height: 6.h),
-                  Text(
-                    description,
-                    style: TextStyle(
-                      fontSize: 12.sp,
-                      color: Colors.white.withValues(alpha: 0.8),
-                    ),
+                ),
+                const SizedBox(height: BMJTokens.spaceXs),
+                Text(
+                  meta.description,
+                  style: AppTextStyles.textTheme.bodySmall?.copyWith(
+                    color: palette.onSurfaceVariant,
                   ),
-                  SizedBox(height: 8.h),
-                  Text(
-                    'From ₹${lowestPrice.toStringAsFixed(0)} / week',
-                    style: TextStyle(
-                      fontSize: 14.sp,
-                      fontWeight: FontWeight.bold,
-                      color: AppColors.white,
-                    ),
+                ),
+                const SizedBox(height: BMJTokens.spaceSm),
+                Text(
+                  priceLabel,
+                  style: AppTextStyles.textTheme.titleSmall?.copyWith(
+                    color: palette.onSurface,
+                    fontWeight: FontWeight.w700,
                   ),
-                ],
-              ),
+                ),
+              ],
             ),
-            Icon(
-              Icons.arrow_forward_ios,
-              color: Colors.white.withValues(alpha: 0.7),
-              size: 18.sp,
-            ),
-          ],
-        ),
+          ),
+          const SizedBox(width: BMJTokens.spaceSm),
+          Icon(
+            Icons.chevron_right_rounded,
+            color: palette.onSurfaceVariant,
+            size: 22,
+          ),
+        ],
       ),
     );
   }

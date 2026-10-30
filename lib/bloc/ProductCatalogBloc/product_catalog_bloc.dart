@@ -195,7 +195,7 @@ class ProductCatalogBloc extends Bloc<ProductCatalogEvent, ProductCatalogState> 
     emit(const ProductCatalogLoading());
 
     try {
-      // Fetch from backend: GET /api/test/charge-items
+      // Fetch from backend: GET /api/v1/catalog/charge-items (production)
       final List<Map<String, dynamic>> apiResponse =
           await _userRepository.getChargeItems();
 

@@ -98,9 +98,13 @@ class _PlanSelectionScreenState extends State<PlanSelectionScreen> {
   /// Get plans matching selected category + size
   List<Map<String, dynamic>> get _filteredPlans {
     if (_selectedCategory == null || _selectedSize == null) return [];
-    return _allPlans.where((p) =>
-        _getCategory(p) == _selectedCategory &&
-        _getSize(p) == _selectedSize,).toList();
+    return _allPlans
+        .where(
+          (p) =>
+              _getCategory(p) == _selectedCategory &&
+              _getSize(p) == _selectedSize,
+        )
+        .toList();
   }
 
   /// Get the display name for a category
@@ -145,26 +149,35 @@ class _PlanSelectionScreenState extends State<PlanSelectionScreen> {
     }
   }
 
+  /// Resolves the plan for the current (category, size, period) triple.
+  ///
+  /// Deliberately strict: the previous "fallback to filtered.first" silently
+  /// subscribed the customer to a different size/period than the one selected
+  /// on screen. Callers must invoke this inside their own `setState` — the
+  /// method no longer calls `setState` itself (that produced nested
+  /// `setState` calls).
   void _updateSelectedItemPrice() {
-    final filtered = _filteredPlans;
-    if (filtered.isEmpty) {
-      setState(() => _selectedItemPrice = null);
-      return;
-    }
+    _selectedItemPrice = _matchSelectedPlan();
+  }
 
-    // Find the plan with matching period
-    Map<String, dynamic>? match;
-    for (final plan in filtered) {
-      if (_getPeriod(plan) == _selectedPeriod) {
-        match = plan;
-        break;
+  Map<String, dynamic>? _matchSelectedPlan() {
+    final List<Map<String, dynamic>> filtered = _filteredPlans;
+    if (filtered.isEmpty) return null;
+
+    if (_selectedPeriod != null) {
+      for (final Map<String, dynamic> plan in filtered) {
+        if (_getPeriod(plan) == _selectedPeriod) return plan;
       }
     }
 
-    // Fallback to first plan
-    setState(() {
-      _selectedItemPrice = match ?? filtered.first;
-    });
+    // No plan sells the selected period for this size. If exactly one period is
+    // available, switch to it and reflect that in the UI; otherwise leave the
+    // selection empty so the CTA stays disabled instead of guessing.
+    if (filtered.length == 1) {
+      _selectedPeriod = _getPeriod(filtered.first);
+      return filtered.first;
+    }
+    return null;
   }
 
   String _formatPrice(dynamic price) {
@@ -180,8 +193,15 @@ class _PlanSelectionScreenState extends State<PlanSelectionScreen> {
   }
 
   Future<void> _subscribeToPlan() async {
-    if (_selectedItemPrice == null) return;
-    final planId = _selectedItemPrice!['id'] as String?;
+    final Map<String, dynamic>? selected = _selectedItemPrice;
+    if (selected == null) return;
+
+    // Prefer the Chargebee item-price id; `id` is kept as a fallback for older
+    // payloads. Sending the item id here created a subscription for the wrong
+    // price (or failed billing entirely).
+    final String? planId = (selected['itemPriceId'] ??
+        selected['item_price_id'] ??
+        selected['id']) as String?;
     if (planId == null || planId.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Invalid plan selected')),
@@ -206,7 +226,9 @@ class _PlanSelectionScreenState extends State<PlanSelectionScreen> {
       } else {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('Failed to get checkout URL: ${result['message'] ?? 'Unknown error'}')),
+            SnackBar(
+                content: Text(
+                    'Failed to get checkout URL: ${result['message'] ?? 'Unknown error'}')),
           );
         }
       }
@@ -237,7 +259,8 @@ class _PlanSelectionScreenState extends State<PlanSelectionScreen> {
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      Icon(Icons.error_outline, size: 64, color: AppColors.error),
+                      Icon(Icons.error_outline,
+                          size: 64, color: AppColors.error),
                       const SizedBox(height: 16),
                       Text('Error: $_error'),
                       const SizedBox(height: 16),
@@ -253,16 +276,19 @@ class _PlanSelectionScreenState extends State<PlanSelectionScreen> {
                       child: Column(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          Icon(Icons.subscriptions_outlined, size: 64, color: AppColors.grey),
+                          Icon(Icons.subscriptions_outlined,
+                              size: 64, color: AppColors.grey),
                           const SizedBox(height: 16),
                           Text(
                             'No subscription plans available',
-                            style: TextStyle(fontSize: 18, color: AppColors.grey),
+                            style:
+                                TextStyle(fontSize: 18, color: AppColors.grey),
                           ),
                           const SizedBox(height: 8),
                           Text(
                             'Plans will appear once configured in Chargebee.',
-                            style: TextStyle(fontSize: 14, color: AppColors.darkGrey),
+                            style: TextStyle(
+                                fontSize: 14, color: AppColors.darkGrey),
                           ),
                         ],
                       ),
@@ -296,8 +322,7 @@ class _PlanSelectionScreenState extends State<PlanSelectionScreen> {
                             ],
 
                             // Plan Summary & Subscribe Button
-                            if (_selectedItemPrice != null)
-                              _buildPlanSummary(),
+                            if (_selectedItemPrice != null) _buildPlanSummary(),
                           ],
                         ),
                       ),
@@ -336,9 +361,12 @@ class _PlanSelectionScreenState extends State<PlanSelectionScreen> {
               },
               child: AnimatedContainer(
                 duration: const Duration(milliseconds: 200),
-                padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 12),
+                padding:
+                    const EdgeInsets.symmetric(vertical: 16, horizontal: 12),
                 decoration: BoxDecoration(
-                  color: isSelected ? color.withValues(alpha: 0.1) : AppColors.lightGrey,
+                  color: isSelected
+                      ? color.withValues(alpha: 0.1)
+                      : AppColors.lightGrey,
                   borderRadius: BorderRadius.circular(16),
                   border: Border.all(
                     color: isSelected ? color : AppColors.lightDivider,
@@ -366,7 +394,8 @@ class _PlanSelectionScreenState extends State<PlanSelectionScreen> {
                       _categoryDisplay(cat),
                       style: TextStyle(
                         fontSize: 14,
-                        fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
+                        fontWeight:
+                            isSelected ? FontWeight.bold : FontWeight.w500,
                         color: isSelected ? color : AppColors.grey,
                       ),
                     ),
@@ -401,7 +430,9 @@ class _PlanSelectionScreenState extends State<PlanSelectionScreen> {
                 duration: const Duration(milliseconds: 200),
                 padding: const EdgeInsets.symmetric(vertical: 16),
                 decoration: BoxDecoration(
-                  color: isSelected ? AppColors.info.withValues(alpha: 0.1) : AppColors.lightGrey,
+                  color: isSelected
+                      ? AppColors.info.withValues(alpha: 0.1)
+                      : AppColors.lightGrey,
                   borderRadius: BorderRadius.circular(16),
                   border: Border.all(
                     color: isSelected ? AppColors.info : AppColors.lightDivider,
@@ -444,16 +475,16 @@ class _PlanSelectionScreenState extends State<PlanSelectionScreen> {
       children: periods.map((period) {
         final isSelected = _selectedPeriod == period;
         final isWeekly = period == 'Weekly';
-        final periodColor = isWeekly ? AppColors.secondaryTeal : AppColors.primaryOrangeDark;
+        final periodColor =
+            isWeekly ? AppColors.secondaryTeal : AppColors.primaryOrangeDark;
 
         // Find the matching plan for this period to show its specific price
         final matchingPlan = _filteredPlans.firstWhere(
           (p) => _getPeriod(p) == period,
           orElse: () => <String, dynamic>{},
         );
-        final periodPrice = matchingPlan.isNotEmpty
-            ? _formatPrice(matchingPlan['price'])
-            : '';
+        final periodPrice =
+            matchingPlan.isNotEmpty ? _formatPrice(matchingPlan['price']) : '';
 
         return Expanded(
           child: Padding(
@@ -476,19 +507,17 @@ class _PlanSelectionScreenState extends State<PlanSelectionScreen> {
                       : AppColors.lightGrey,
                   borderRadius: BorderRadius.circular(16),
                   border: Border.all(
-                    color: isSelected
-                        ? periodColor
-                        : AppColors.lightDivider,
+                    color: isSelected ? periodColor : AppColors.lightDivider,
                     width: isSelected ? 2 : 1,
                   ),
                 ),
                 child: Column(
                   children: [
                     Icon(
-                      isWeekly ? Icons.calendar_view_week : Icons.calendar_month,
-                      color: isSelected
-                          ? periodColor
-                          : AppColors.grey,
+                      isWeekly
+                          ? Icons.calendar_view_week
+                          : Icons.calendar_month,
+                      color: isSelected ? periodColor : AppColors.grey,
                       size: 24,
                     ),
                     const SizedBox(height: 8),
@@ -496,10 +525,9 @@ class _PlanSelectionScreenState extends State<PlanSelectionScreen> {
                       period,
                       style: TextStyle(
                         fontSize: 15,
-                        fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
-                        color: isSelected
-                            ? periodColor
-                            : AppColors.grey,
+                        fontWeight:
+                            isSelected ? FontWeight.bold : FontWeight.w500,
+                        color: isSelected ? periodColor : AppColors.grey,
                       ),
                     ),
                     if (periodPrice.isNotEmpty) ...[
@@ -509,7 +537,8 @@ class _PlanSelectionScreenState extends State<PlanSelectionScreen> {
                         style: TextStyle(
                           fontSize: 13,
                           fontWeight: FontWeight.w600,
-                          color: isSelected ? AppColors.success : AppColors.grey,
+                          color:
+                              isSelected ? AppColors.success : AppColors.grey,
                         ),
                       ),
                     ],
@@ -541,9 +570,11 @@ class _PlanSelectionScreenState extends State<PlanSelectionScreen> {
             Row(
               children: [
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                   decoration: BoxDecoration(
-                    color: _categoryColor(_selectedCategory ?? '').withValues(alpha: 0.1),
+                    color: _categoryColor(_selectedCategory ?? '')
+                        .withValues(alpha: 0.1),
                     borderRadius: BorderRadius.circular(20),
                   ),
                   child: Row(
@@ -568,7 +599,8 @@ class _PlanSelectionScreenState extends State<PlanSelectionScreen> {
                 ),
                 const SizedBox(width: 8),
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                   decoration: BoxDecoration(
                     color: AppColors.info.withValues(alpha: 0.1),
                     borderRadius: BorderRadius.circular(20),
@@ -606,11 +638,13 @@ class _PlanSelectionScreenState extends State<PlanSelectionScreen> {
             Row(
               children: [
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                   decoration: BoxDecoration(
                     color: AppColors.success.withValues(alpha: 0.1),
                     borderRadius: BorderRadius.circular(12),
-                    border: Border.all(color: AppColors.success.withValues(alpha: 0.3)),
+                    border: Border.all(
+                        color: AppColors.success.withValues(alpha: 0.3)),
                   ),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -645,7 +679,8 @@ class _PlanSelectionScreenState extends State<PlanSelectionScreen> {
                     ? const SizedBox(
                         width: 20,
                         height: 20,
-                        child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
+                        child: CircularProgressIndicator(
+                            strokeWidth: 2, color: Colors.white),
                       )
                     : const Icon(Icons.lock),
                 label: Text(
@@ -684,7 +719,8 @@ class _ChargebeeCheckoutWebView extends StatefulWidget {
   const _ChargebeeCheckoutWebView({required this.url});
 
   @override
-  State<_ChargebeeCheckoutWebView> createState() => _ChargebeeCheckoutWebViewState();
+  State<_ChargebeeCheckoutWebView> createState() =>
+      _ChargebeeCheckoutWebViewState();
 }
 
 class _ChargebeeCheckoutWebViewState extends State<_ChargebeeCheckoutWebView> {

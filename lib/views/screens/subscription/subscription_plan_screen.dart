@@ -4,6 +4,7 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:lush/bloc/SubscriptionBloc/subscription_bloc.dart';
 import 'package:lush/theme/app_colors.dart';
 import 'package:lush/theme/app_radius.dart';
+import 'package:lush/theme/bmj_tokens.dart';
 import 'package:lush/theme/theme_cubit.dart';
 import 'package:lush/views/models/subscription_plan_catalog.dart';
 import 'package:lush/views/models/subscription_selection.dart';
@@ -63,14 +64,14 @@ class _SubscriptionPlanScreenState extends State<SubscriptionPlanScreen> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   if (generic.isNotEmpty) ...[
-                    _STitle('Choose a Plan 🌟', isDark: isDark),
+                    _STitle('Choose a Plan', isDark: isDark),
                     SizedBox(height: 12.h),
                     ...generic.map((p) =>
                         _SizeCard(plan: p, onSelect: _navigateToSchedule)),
                   ],
                   if (juices.isNotEmpty) ...[
                     SizedBox(height: 24.h),
-                    _STitle('Start with a Favourite 🍹', isDark: isDark),
+                    _STitle('Start with a Favourite', isDark: isDark),
                     SizedBox(height: 12.h),
                     _JGrid(juices: juices, onSelect: _navigateToSchedule),
                   ],
@@ -124,6 +125,15 @@ class _SizeCard extends StatefulWidget {
 
 class _SizeCardState extends State<_SizeCard> {
   bool _w = true;
+
+  @override
+  void initState() {
+    super.initState();
+    // A monthly-only plan used to vanish (the card returned `SizedBox.shrink`
+    // because `_w` started on weekly). Start on a period the catalog priced.
+    _w = widget.plan.weeklyPrice != null;
+  }
+
   @override
   Widget build(BuildContext context) {
     final isDark =
@@ -170,9 +180,15 @@ class _SizeCardState extends State<_SizeCard> {
                 const Spacer(),
                 ToggleButtons(
                   isSelected: [_w, !_w],
-                  onPressed: (i) => setState(() => _w = i == 0),
+                  onPressed: (i) {
+                    // Never switch to a period this plan has no price for —
+                    // that was the force-unwrap crash path.
+                    if (i == 0 && widget.plan.weeklyPrice == null) return;
+                    if (i == 1 && widget.plan.monthlyPrice == null) return;
+                    setState(() => _w = i == 0);
+                  },
                   borderRadius: BorderRadius.circular(8.r),
-                  selectedColor: Colors.white,
+                  selectedColor: BMJTokens.inkOnBrand,
                   fillColor: accentColor,
                   color: isDark ? AppColors.glassTextDim : AppColors.grey,
                   constraints: BoxConstraints(minHeight: 32.h),
@@ -199,7 +215,7 @@ class _SizeCardState extends State<_SizeCard> {
             ),
             SizedBox(height: 8.h),
             Text(
-              '₹${p.priceInRupees.toStringAsFixed(0)} / ${_w ? 'week' : 'month'}',
+              '₹${p.priceInRupees.toStringAsFixed(0)}/${_w ? 'week' : 'month'}',
               style: TextStyle(
                 fontFamily: 'Poppins',
                 fontSize: 22.sp,
@@ -240,8 +256,13 @@ class _JGrid extends StatelessWidget {
       crossAxisSpacing: 10.w,
       mainAxisSpacing: 10.h,
       childAspectRatio: 0.85,
-      children:
-          u.values.map((j) => _JCard(plan: j, onSelect: onSelect)).toList(),
+      children: u.values
+          .map((j) => _JCard(
+                plan: j,
+                onSelect: onSelect,
+                familyPlans: juices.where((p) => p.family == j.family).toList(),
+              ))
+          .toList(),
     );
   }
 }
@@ -249,7 +270,19 @@ class _JGrid extends StatelessWidget {
 class _JCard extends StatelessWidget {
   final SubscriptionPlanCatalog plan;
   final void Function(SubscriptionSelection) onSelect;
-  const _JCard({required this.plan, required this.onSelect});
+
+  /// Every catalog entry in the same family — one entry per size.
+  ///
+  /// The picker resolves a chosen size through this list so `itemPriceId`
+  /// always belongs to the size the customer picked (previously the size chips
+  /// were decorative and the 200 ml price id was sent for a 500 ml choice).
+  final List<SubscriptionPlanCatalog> familyPlans;
+
+  const _JCard({
+    required this.plan,
+    required this.onSelect,
+    this.familyPlans = const <SubscriptionPlanCatalog>[],
+  });
   @override
   Widget build(BuildContext context) {
     final wp = plan.weeklyPrice;
@@ -276,7 +309,11 @@ class _JCard extends StatelessWidget {
         showModalBottomSheet<void>(
           context: context,
           backgroundColor: Colors.transparent,
-          builder: (_) => _Picker(plan: plan, onSelect: onSelect),
+          builder: (_) => _Picker(
+            plan: plan,
+            onSelect: onSelect,
+            familyPlans: familyPlans,
+          ),
         );
       },
       child: Column(
@@ -294,7 +331,7 @@ class _JCard extends StatelessWidget {
               fontFamily: 'Poppins',
               fontSize: 14,
               fontWeight: FontWeight.bold,
-              color: Colors.white,
+              color: BMJTokens.inkOnBrand,
             ),
             textAlign: TextAlign.center,
             maxLines: 2,
@@ -319,14 +356,73 @@ class _JCard extends StatelessWidget {
 class _Picker extends StatefulWidget {
   final SubscriptionPlanCatalog plan;
   final void Function(SubscriptionSelection) onSelect;
-  const _Picker({required this.plan, required this.onSelect});
+
+  /// Every size of this family, so a chosen size resolves to its own price id.
+  final List<SubscriptionPlanCatalog> familyPlans;
+
+  const _Picker({
+    required this.plan,
+    required this.onSelect,
+    this.familyPlans = const <SubscriptionPlanCatalog>[],
+  });
+
   @override
   State<_Picker> createState() => _PickerState();
 }
 
 class _PickerState extends State<_Picker> {
-  String _s = '200ml';
-  bool _w = true;
+  late String _s;
+  late bool _w;
+
+  @override
+  void initState() {
+    super.initState();
+    final List<String> sizes = _sizes;
+    final String planSize = widget.plan.size.trim();
+    if (planSize.isNotEmpty && sizes.contains(planSize)) {
+      _s = planSize;
+    } else {
+      _s = sizes.isEmpty ? planSize : sizes.first;
+    }
+    // Start on a period this size actually sells.
+    _w = _planForSize(_s)?.weeklyPrice != null;
+  }
+
+  List<SubscriptionPlanCatalog> get _plans => widget.familyPlans.isEmpty
+      ? <SubscriptionPlanCatalog>[widget.plan]
+      : widget.familyPlans;
+
+  /// Distinct sizes sold in this family ("200ml", "300ml", …).
+  List<String> get _sizes {
+    final Set<String> seen = <String>{};
+    for (final SubscriptionPlanCatalog plan in _plans) {
+      final String size = plan.size.trim();
+      if (size.isNotEmpty) seen.add(size);
+    }
+    return seen.toList();
+  }
+
+  /// Catalog entry for [size] — never borrows another size's price id.
+  SubscriptionPlanCatalog? _planForSize(String size) {
+    for (final SubscriptionPlanCatalog plan in _plans) {
+      if (plan.size.trim() == size) return plan;
+    }
+    // Single-entry families have nothing to resolve; a multi-entry family must
+    // resolve exactly, otherwise the chosen size cannot be honoured.
+    return _plans.length == 1 ? _plans.first : null;
+  }
+
+  bool _sellsPeriod(SubscriptionPlanCatalog? plan, bool weekly) {
+    if (plan == null) return false;
+    return weekly ? plan.weeklyPrice != null : plan.monthlyPrice != null;
+  }
+
+  SubscriptionPriceOption? get _option {
+    final SubscriptionPlanCatalog? plan = _planForSize(_s);
+    if (plan == null) return null;
+    return _w ? plan.weeklyPrice : plan.monthlyPrice;
+  }
+
   @override
   Widget build(BuildContext context) {
     final isDark =
@@ -336,7 +432,8 @@ class _PickerState extends State<_Picker> {
     final accentColor =
         isDark ? AppColors.glassAccent : AppColors.primaryOrange;
 
-    final selected = _w ? widget.plan.weeklyPrice! : widget.plan.monthlyPrice!;
+    final SubscriptionPriceOption? option = _option;
+
     return GlassCard(
       padding: EdgeInsets.all(20.r),
       borderRadius: AppRadius.xl,
@@ -356,7 +453,7 @@ class _PickerState extends State<_Picker> {
           ),
           SizedBox(height: 16.h),
           Text(
-            'Select Size & Duration ⚡',
+            'Select Duration',
             style: TextStyle(
               fontFamily: 'Poppins',
               fontSize: 18.sp,
@@ -364,26 +461,29 @@ class _PickerState extends State<_Picker> {
               color: textPrimaryColor,
             ),
           ),
-          SizedBox(height: 16.h),
-          ToggleButtons(
-            isSelected:
-                List.generate(3, (i) => ['200ml', '300ml', '500ml'][i] == _s),
-            onPressed: (i) {
-              setState(() {
-                _s = ['200ml', '300ml', '500ml'][i];
-              });
-            },
-            borderRadius: BorderRadius.circular(8.r),
-            selectedColor: Colors.white,
-            fillColor: accentColor,
-            color: isDark ? AppColors.glassTextDim : AppColors.grey,
-            children: const [Text('200ml'), Text('300ml'), Text('500ml')]
-                .map((t) => Padding(
-                      padding: EdgeInsets.symmetric(horizontal: 16.w),
-                      child: t,
-                    ))
-                .toList(),
-          ),
+          if (_sizes.length > 1) ...[
+            SizedBox(height: 16.h),
+            Wrap(
+              spacing: 8.w,
+              runSpacing: 8.h,
+              alignment: WrapAlignment.center,
+              children: _sizes.map((size) {
+                final bool isSelected = size == _s;
+                final bool enabled = _sellsPeriod(_planForSize(size), _w);
+                return ChoiceChip(
+                  label: Text(size),
+                  selected: isSelected,
+                  selectedColor: accentColor,
+                  labelStyle: TextStyle(
+                    fontFamily: 'Inter',
+                    fontWeight: FontWeight.bold,
+                    color: isSelected ? BMJTokens.inkOnBrand : textPrimaryColor,
+                  ),
+                  onSelected: enabled ? (_) => setState(() => _s = size) : null,
+                );
+              }).toList(),
+            ),
+          ],
           SizedBox(height: 16.h),
           Row(
             mainAxisAlignment: MainAxisAlignment.center,
@@ -395,9 +495,11 @@ class _PickerState extends State<_Picker> {
                 labelStyle: TextStyle(
                   fontFamily: 'Inter',
                   fontWeight: FontWeight.bold,
-                  color: _w ? Colors.white : textPrimaryColor,
+                  color: _w ? BMJTokens.inkOnBrand : textPrimaryColor,
                 ),
-                onSelected: (_) => setState(() => _w = true),
+                onSelected: _sellsPeriod(_planForSize(_s), true)
+                    ? (_) => setState(() => _w = true)
+                    : null,
               ),
               SizedBox(width: 8.w),
               ChoiceChip(
@@ -407,15 +509,19 @@ class _PickerState extends State<_Picker> {
                 labelStyle: TextStyle(
                   fontFamily: 'Inter',
                   fontWeight: FontWeight.bold,
-                  color: !_w ? Colors.white : textPrimaryColor,
+                  color: !_w ? BMJTokens.inkOnBrand : textPrimaryColor,
                 ),
-                onSelected: (_) => setState(() => _w = false),
+                onSelected: _sellsPeriod(_planForSize(_s), false)
+                    ? (_) => setState(() => _w = false)
+                    : null,
               ),
             ],
           ),
           SizedBox(height: 16.h),
           Text(
-            '₹${selected.priceInRupees.toStringAsFixed(0)} / ${_w ? 'week' : 'month'}',
+            option == null
+                ? '—'
+                : '₹${option.priceInRupees.toStringAsFixed(0)} / ${_w ? 'week' : 'month'}',
             style: TextStyle(
               fontFamily: 'Poppins',
               fontSize: 24.sp,
@@ -423,43 +529,32 @@ class _PickerState extends State<_Picker> {
               color: accentColor,
             ),
           ),
+          if (option != null) ...[
+            SizedBox(height: 4.h),
+            Text(
+              '${option.bottleCount} bottles',
+              style: TextStyle(
+                fontFamily: 'Inter',
+                fontSize: 12.sp,
+                color: isDark ? AppColors.glassTextDim : AppColors.grey,
+              ),
+            ),
+          ],
           SizedBox(height: 16.h),
           SizedBox(
             width: double.infinity,
             child: ElevatedButton(
-              onPressed: () {
-                Navigator.pop(context);
-                final ds = <String, String>{
-                  'monday': widget.plan.defaultJuice!,
-                  'tuesday': widget.plan.defaultJuice!,
-                  'wednesday': widget.plan.defaultJuice!,
-                  'thursday': widget.plan.defaultJuice!,
-                  'friday': widget.plan.defaultJuice!,
-                  'saturday': widget.plan.defaultJuice!
-                };
-                widget.onSelect(
-                  SubscriptionSelection(
-                    itemId: widget.plan.itemId,
-                    itemPriceId: selected.itemPriceId,
-                    family: widget.plan.family,
-                    size: _s,
-                    period: _w ? 'weekly' : 'monthly',
-                    priceInPaise: selected.priceInPaise,
-                    defaultJuice: widget.plan.defaultJuice,
-                    daySchedule: ds,
-                  ),
-                );
-              },
+              onPressed: option == null ? null : () => _confirm(option),
               style: ElevatedButton.styleFrom(
                 backgroundColor: accentColor,
-                foregroundColor: Colors.white,
+                foregroundColor: BMJTokens.inkOnBrand,
                 padding: EdgeInsets.symmetric(vertical: 14.h),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(12.r),
                 ),
               ),
               child: Text(
-                'Select ✨',
+                option == null ? 'Unavailable' : 'Select',
                 style: TextStyle(
                   fontFamily: 'Poppins',
                   fontSize: 16.sp,
@@ -469,6 +564,39 @@ class _PickerState extends State<_Picker> {
             ),
           ),
         ],
+      ),
+    );
+  }
+
+  void _confirm(SubscriptionPriceOption option) {
+    final SubscriptionPlanCatalog plan = _planForSize(_s) ?? widget.plan;
+    final String? juice = plan.defaultJuice;
+
+    final Map<String, String> schedule = <String, String>{};
+    if (juice != null) {
+      for (final String day in const <String>[
+        'monday',
+        'tuesday',
+        'wednesday',
+        'thursday',
+        'friday',
+        'saturday',
+      ]) {
+        schedule[day] = juice;
+      }
+    }
+
+    Navigator.pop(context);
+    widget.onSelect(
+      SubscriptionSelection(
+        itemId: plan.itemId,
+        itemPriceId: option.itemPriceId,
+        family: plan.family,
+        size: plan.size.trim().isEmpty ? _s : plan.size,
+        period: _w ? 'weekly' : 'monthly',
+        priceInPaise: option.priceInPaise,
+        defaultJuice: plan.defaultJuice,
+        daySchedule: schedule,
       ),
     );
   }

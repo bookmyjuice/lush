@@ -206,7 +206,7 @@ void main() {
     );
 
     blocTest<ProductCatalogBloc, ProductCatalogState>(
-      'emits [Empty] when filter matches no items',
+      'emits [Filtered] with no items but keeps the selected filter',
       build: () {
         when(() => mockUserRepo.getChargeItems()).thenAnswer(
           (_) async => [
@@ -223,7 +223,12 @@ void main() {
       expect: () => [
         isA<ProductCatalogLoading>(),
         isA<ProductCatalogLoaded>(),
-        isA<ProductCatalogEmpty>(),
+        // A filter with no matches must keep the category selected (so the
+        // filter chips stay on screen) instead of clearing to Empty.
+        isA<ProductCatalogFiltered>()
+            .having((s) => s.items, 'items', isEmpty)
+            .having((s) => s.selectedCategory, 'selectedCategory', 'Premium')
+            .having((s) => s.categories, 'categories', ['Delight']),
       ],
     );
   });

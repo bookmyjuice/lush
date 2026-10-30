@@ -71,8 +71,11 @@ class _ActiveSubscriptionScreenState extends State<ActiveSubscriptionScreen> {
           ),
         ),
         leading: IconButton(
-          icon: Icon(Icons.arrow_back_ios,
-              color: AppColors.lightTextPrimary, size: 20.sp,),
+          icon: Icon(
+            Icons.arrow_back_ios,
+            color: AppColors.lightTextPrimary,
+            size: 20.sp,
+          ),
           onPressed: () => Navigator.pop(context),
         ),
       ),
@@ -100,12 +103,15 @@ class _ActiveSubscriptionScreenState extends State<ActiveSubscriptionScreen> {
           children: [
             Icon(Icons.error_outline, size: 64.sp, color: AppColors.error),
             SizedBox(height: 16.h),
-            Text(message,
-                style: TextStyle(fontSize: 16.sp, color: AppColors.error),),
+            Text(
+              message,
+              style: TextStyle(fontSize: 16.sp, color: AppColors.error),
+            ),
             SizedBox(height: 24.h),
             ElevatedButton(
-              onPressed: () =>
-                  context.read<SubscriptionBloc>().add(const LoadActiveSubscriptions()),
+              onPressed: () => context
+                  .read<SubscriptionBloc>()
+                  .add(const LoadActiveSubscriptions()),
               child: const Text('Retry'),
             ),
           ],
@@ -174,11 +180,17 @@ class _ActiveSubscriptionScreenState extends State<ActiveSubscriptionScreen> {
                 SizedBox(height: 16.h),
                 _infoRow('Started', dateFmt.format(sub.startDate)),
                 SizedBox(height: 8.h),
-                _infoRow('Next Renewal',
-                    sub.nextDeliveryDate != null ? dateFmt.format(sub.nextDeliveryDate!) : 'N/A',),
+                _infoRow(
+                  'Next Renewal',
+                  sub.nextDeliveryDate != null
+                      ? dateFmt.format(sub.nextDeliveryDate!)
+                      : 'N/A',
+                ),
                 SizedBox(height: 8.h),
                 _infoRow(
-                    'Amount', '₹${(sub.plan.planID * 499).toString()} / month',),
+                  'Amount',
+                  '₹${(sub.plan.planID * 499).toString()} / month',
+                ),
               ],
             ),
           ),
@@ -259,13 +271,18 @@ class _ActiveSubscriptionScreenState extends State<ActiveSubscriptionScreen> {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
-        Text(label,
-            style: TextStyle(fontSize: 14.sp, color: AppColors.grey),),
-        Text(value,
-            style: TextStyle(
-                fontSize: 14.sp,
-                fontWeight: FontWeight.w600,
-                color: AppColors.lightTextPrimary,),),
+        Text(
+          label,
+          style: TextStyle(fontSize: 14.sp, color: AppColors.grey),
+        ),
+        Text(
+          value,
+          style: TextStyle(
+            fontSize: 14.sp,
+            fontWeight: FontWeight.w600,
+            color: AppColors.lightTextPrimary,
+          ),
+        ),
       ],
     );
   }
@@ -278,7 +295,8 @@ class _ActiveSubscriptionScreenState extends State<ActiveSubscriptionScreen> {
             SizedBox(
               width: double.infinity,
               child: ElevatedButton.icon(
-                onPressed: () => Navigator.pushNamed(context, '/subscription/modify'),
+                onPressed: () =>
+                    Navigator.pushNamed(context, '/subscription/modify'),
                 icon: const Icon(Icons.edit_calendar),
                 label: const Text('Modify Schedule'),
                 style: ElevatedButton.styleFrom(
@@ -286,7 +304,8 @@ class _ActiveSubscriptionScreenState extends State<ActiveSubscriptionScreen> {
                   foregroundColor: AppColors.white,
                   padding: EdgeInsets.symmetric(vertical: 14.h),
                   shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12.r),),
+                    borderRadius: BorderRadius.circular(12.r),
+                  ),
                 ),
               ),
             ),
@@ -294,7 +313,8 @@ class _ActiveSubscriptionScreenState extends State<ActiveSubscriptionScreen> {
             SizedBox(
               width: double.infinity,
               child: OutlinedButton.icon(
-                onPressed: () => Navigator.pushNamed(context, '/subscription/pause'),
+                onPressed: () =>
+                    Navigator.pushNamed(context, '/subscription/pause'),
                 icon: const Icon(Icons.pause_circle_outline),
                 label: const Text('Pause'),
                 style: OutlinedButton.styleFrom(
@@ -302,7 +322,8 @@ class _ActiveSubscriptionScreenState extends State<ActiveSubscriptionScreen> {
                   side: const BorderSide(color: AppColors.warning),
                   padding: EdgeInsets.symmetric(vertical: 14.h),
                   shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12.r),),
+                    borderRadius: BorderRadius.circular(12.r),
+                  ),
                 ),
               ),
             ),
@@ -310,7 +331,8 @@ class _ActiveSubscriptionScreenState extends State<ActiveSubscriptionScreen> {
             SizedBox(
               width: double.infinity,
               child: TextButton(
-                onPressed: () => Navigator.pushNamed(context, '/subscription/cancel'),
+                onPressed: () =>
+                    Navigator.pushNamed(context, '/subscription/cancel'),
                 child: Text(
                   'Cancel Subscription',
                   style: TextStyle(color: AppColors.error, fontSize: 14.sp),
@@ -325,7 +347,8 @@ class _ActiveSubscriptionScreenState extends State<ActiveSubscriptionScreen> {
             SizedBox(
               width: double.infinity,
               child: ElevatedButton.icon(
-                onPressed: () => Navigator.pushNamed(context, '/subscription/resume'),
+                onPressed: () =>
+                    Navigator.pushNamed(context, '/subscription/resume'),
                 icon: const Icon(Icons.play_circle_outline),
                 label: const Text('Resume'),
                 style: ElevatedButton.styleFrom(
@@ -333,7 +356,8 @@ class _ActiveSubscriptionScreenState extends State<ActiveSubscriptionScreen> {
                   foregroundColor: AppColors.white,
                   padding: EdgeInsets.symmetric(vertical: 14.h),
                   shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12.r),),
+                    borderRadius: BorderRadius.circular(12.r),
+                  ),
                 ),
               ),
             ),
@@ -341,7 +365,8 @@ class _ActiveSubscriptionScreenState extends State<ActiveSubscriptionScreen> {
             SizedBox(
               width: double.infinity,
               child: TextButton(
-                onPressed: () => Navigator.pushNamed(context, '/subscription/cancel'),
+                onPressed: () =>
+                    Navigator.pushNamed(context, '/subscription/cancel'),
                 child: Text(
                   'Cancel Subscription',
                   style: TextStyle(color: AppColors.error, fontSize: 14.sp),
@@ -354,7 +379,8 @@ class _ActiveSubscriptionScreenState extends State<ActiveSubscriptionScreen> {
         return SizedBox(
           width: double.infinity,
           child: ElevatedButton.icon(
-            onPressed: () => Navigator.pushNamed(context, '/subscription-family'),
+            onPressed: () =>
+                Navigator.pushNamed(context, '/subscription-family'),
             icon: const Icon(Icons.refresh),
             label: const Text('Resubscribe'),
             style: ElevatedButton.styleFrom(
@@ -362,7 +388,8 @@ class _ActiveSubscriptionScreenState extends State<ActiveSubscriptionScreen> {
               foregroundColor: AppColors.white,
               padding: EdgeInsets.symmetric(vertical: 14.h),
               shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12.r),),
+                borderRadius: BorderRadius.circular(12.r),
+              ),
             ),
           ),
         );

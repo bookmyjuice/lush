@@ -91,15 +91,27 @@ class SubscriptionService {
     }
   }
 
-  /// Create a subscription - returns Chargebee hosted page URL
-  Future<Map<String, dynamic>> createSubscription(String planId) async {
+  /// Create a subscription - returns Chargebee hosted page URL.
+  ///
+  /// [daySchedule] is the day-wise delivery schedule the customer picked
+  /// (`{'monday': 'mix-punch', ...}`). Sending it lets the backend persist the
+  /// schedule before checkout and publish a real `nextDeliveryAt`; without it
+  /// the API publishes nothing and the UI shows an em dash.
+  Future<Map<String, dynamic>> createSubscription(
+    String planId, {
+    Map<String, String>? daySchedule,
+  }) async {
     try {
       final headers = await _getHeaders();
       final client = _client ?? http.Client();
+      final Map<String, dynamic> body = <String, dynamic>{'planId': planId};
+      if (daySchedule != null && daySchedule.isNotEmpty) {
+        body['schedule'] = daySchedule;
+      }
       final response = await client.post(
         Uri.parse('$baseUrl/api/subscriptions/create'),
         headers: headers,
-        body: json.encode({'planId': planId}),
+        body: json.encode(body),
       );
       if (response.statusCode == 200) {
         final data = json.decode(response.body);
@@ -180,30 +192,6 @@ class SubscriptionService {
       }
     } catch (e) {
       print('Error canceling subscription: $e');
-      rethrow;
-    }
-  }
-
-  /// Modify subscription schedule. Returns {success, message}.
-  Future<Map<String, dynamic>> modifySchedule(
-      String subscriptionId,
-      Map<String, dynamic> schedule,) async {
-    try {
-      final headers = await _getHeaders();
-      final client = _client ?? http.Client();
-      final response = await client.put(
-        Uri.parse('$baseUrl/api/subscriptions/$subscriptionId/modify'),
-        headers: headers,
-        body: json.encode({'schedule': schedule}),
-      );
-      final body = json.decode(response.body);
-      if (response.statusCode == 200 || response.statusCode == 202) {
-        return {'success': true, 'message': body['message'] ?? 'Schedule updated'};
-      } else {
-        throw Exception(body['message'] ?? 'Failed to modify schedule: ${response.statusCode}');
-      }
-    } catch (e) {
-      appLogger.e('Error modifying schedule', error: e);
       rethrow;
     }
   }
