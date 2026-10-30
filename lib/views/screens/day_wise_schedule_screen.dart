@@ -20,7 +20,14 @@ class DayWiseScheduleScreen extends StatefulWidget {
 }
 
 class _DayWiseScheduleScreenState extends State<DayWiseScheduleScreen> {
-  final List<String> _days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+  final List<String> _days = [
+    'Monday',
+    'Tuesday',
+    'Wednesday',
+    'Thursday',
+    'Friday',
+    'Saturday'
+  ];
   final Map<String, Map<String, dynamic>?> _schedule = {
     'Monday': null,
     'Tuesday': null,
@@ -84,154 +91,170 @@ class _DayWiseScheduleScreenState extends State<DayWiseScheduleScreen> {
         final shouldPop = await BackButtonHandler.handleBackPress(
           context: context,
           hasUnsavedChanges: hasSchedule,
-          message: 'Schedule selection in progress. Are you sure you want to go back?',
+          message:
+              'Schedule selection in progress. Are you sure you want to go back?',
         );
         if (shouldPop && context.mounted) {
           Navigator.of(context).pop();
         }
       },
       child: Scaffold(
-      appBar: AppBar(
-        title: const Text('Select Delivery Days'),
-        backgroundColor: AppColors.primaryOrange,
-        centerTitle: true,
-      ),
-      body: SafeArea(
-        child: Column(
-          children: [
-            // Global selection checkbox
-            Container(
-              width: double.infinity,
-              padding: const EdgeInsets.all(16),
-              margin: const EdgeInsets.all(12),
-              decoration: BoxDecoration(
-                color: AppColors.white,
-                borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: AppColors.lightDivider),
-                boxShadow: [
-                  BoxShadow(
-                    color: AppColors.nearlyBlack.withValues(alpha: 0.05),
-                    blurRadius: 8,
-                    offset: const Offset(0, 2),
-                  ),
-                ],
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    children: [
-                      Checkbox(
-                        value: _sameJuiceEveryday,
-                        onChanged: (value) {
-                          setState(() {
-                            _sameJuiceEveryday = value ?? false;
-                            if (!_sameJuiceEveryday) {
-                              _globalSelection = null;
-                              for (final day in _days) {
-                                _schedule[day] = null;
-                              }
-                            }
-                          });
-                        },
-                        activeColor: AppColors.primaryOrange,
-                      ),
-                      const Expanded(
-                        child: Text(
-                          'Same juice everyday',
-                          style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600, color: AppColors.lightTextPrimary, fontFamily: 'Roboto'),
-                        ),
-                      ),
-                    ],
-                  ),
-                  if (_sameJuiceEveryday) ...[
-                    const SizedBox(height: 12),
-                    const Text(
-                      'Select one juice for all delivery days',
-                      style: TextStyle(fontSize: 12, color: AppColors.lightTextSecondary, fontFamily: 'Roboto'),
-
-                    ),
-                    const SizedBox(height: 8),
-                    _buildJuiceDropdown(
-                      value: _globalSelection,
-                      onChanged: _onGlobalSelectionChanged,
-                      hint: 'Choose a juice...',
+        appBar: AppBar(
+          title: const Text('Select Delivery Days'),
+          backgroundColor: AppColors.primaryOrange,
+          centerTitle: true,
+        ),
+        body: SafeArea(
+          child: Column(
+            children: [
+              // Global selection checkbox
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.all(16),
+                margin: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: AppColors.white,
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(color: AppColors.lightDivider),
+                  boxShadow: [
+                    BoxShadow(
+                      color: AppColors.nearlyBlack.withValues(alpha: 0.05),
+                      blurRadius: 8,
+                      offset: const Offset(0, 2),
                     ),
                   ],
-                ],
-              ),
-            ),
-
-            if (!_sameJuiceEveryday)
-              Expanded(
-                child: ListView.builder(
-                  padding: const EdgeInsets.symmetric(horizontal: 12),
-                  itemCount: 7, // 6 days + Sunday
-                  itemBuilder: (context, index) {
-                    if (index == 6) {
-                      // Sunday - Holiday
-                      return _buildHolidayCard();
-                    }
-                    final day = _days[index];
-                    return _buildDayCard(day);
-                  },
                 ),
-              )
-            else
-              Expanded(
-                child: Center(
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Icon(Icons.local_drink, size: 64, color: Colors.amber[300]),
-                      const SizedBox(height: 16),
-                      const Text(
-                        'Your selection will apply to all 6 delivery days',
-                        style: TextStyle(fontSize: 14, color: AppColors.lightTextSecondary, fontFamily: 'Roboto'),
-                        textAlign: TextAlign.center,
-                      ),
-                      if (_globalSelection != null) ...[
-                        const SizedBox(height: 12),
-                        const Text(
-                          'Your selection will apply to all 6 delivery days',
-                          style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: AppColors.lightTextPrimary, fontFamily: 'Roboto'),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        Checkbox(
+                          value: _sameJuiceEveryday,
+                          onChanged: (value) {
+                            setState(() {
+                              _sameJuiceEveryday = value ?? false;
+                              if (!_sameJuiceEveryday) {
+                                _globalSelection = null;
+                                for (final day in _days) {
+                                  _schedule[day] = null;
+                                }
+                              }
+                            });
+                          },
+                          activeColor: AppColors.primaryOrange,
+                        ),
+                        const Expanded(
+                          child: Text(
+                            'Same juice everyday',
+                            style: TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.w600,
+                                color: AppColors.lightTextPrimary,
+                                fontFamily: 'Roboto'),
+                          ),
                         ),
                       ],
+                    ),
+                    if (_sameJuiceEveryday) ...[
+                      const SizedBox(height: 12),
+                      const Text(
+                        'Select one juice for all delivery days',
+                        style: TextStyle(
+                            fontSize: 12,
+                            color: AppColors.lightTextSecondary,
+                            fontFamily: 'Roboto'),
+                      ),
+                      const SizedBox(height: 8),
+                      _buildJuiceDropdown(
+                        value: _globalSelection,
+                        onChanged: _onGlobalSelectionChanged,
+                        hint: 'Choose a juice...',
+                      ),
                     ],
-                  ),
+                  ],
                 ),
               ),
 
-            // Bottom button
-            Container(
-              width: double.infinity,
-              padding: const EdgeInsets.all(16),
-              decoration: BoxDecoration(
-                color: AppColors.white,
-                boxShadow: [
-                  BoxShadow(
-                    color: AppColors.nearlyBlack.withValues(alpha: 0.1),
-                    blurRadius: 8,
-                    offset: const Offset(0, -2),
+              if (!_sameJuiceEveryday)
+                Expanded(
+                  child: ListView.builder(
+                    padding: const EdgeInsets.symmetric(horizontal: 12),
+                    itemCount: 7, // 6 days + Sunday
+                    itemBuilder: (context, index) {
+                      if (index == 6) {
+                        // Sunday - Holiday
+                        return _buildHolidayCard();
+                      }
+                      final day = _days[index];
+                      return _buildDayCard(day);
+                    },
                   ),
-                ],
-              ),
-              child: ElevatedButton(
-                onPressed: _isScheduleValid ? _confirmSchedule : null,
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: AppColors.primaryOrange,
-                  padding: const EdgeInsets.symmetric(vertical: 16),
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                )
+              else
+                Expanded(
+                  child: Center(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(Icons.local_drink,
+                            size: 64, color: Colors.amber[300]),
+                        const SizedBox(height: 16),
+                        const Text(
+                          'Your selection will apply to all 6 delivery days',
+                          style: TextStyle(
+                              fontSize: 14,
+                              color: AppColors.lightTextSecondary,
+                              fontFamily: 'Roboto'),
+                          textAlign: TextAlign.center,
+                        ),
+                        if (_globalSelection != null) ...[
+                          const SizedBox(height: 12),
+                          const Text(
+                            'Your selection will apply to all 6 delivery days',
+                            style: TextStyle(
+                                fontSize: 18,
+                                fontWeight: FontWeight.bold,
+                                color: AppColors.lightTextPrimary,
+                                fontFamily: 'Roboto'),
+                          ),
+                        ],
+                      ],
+                    ),
+                  ),
                 ),
-                child: const Text(
-                  'Continue to Checkout',
-                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+
+              // Bottom button
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: AppColors.white,
+                  boxShadow: [
+                    BoxShadow(
+                      color: AppColors.nearlyBlack.withValues(alpha: 0.1),
+                      blurRadius: 8,
+                      offset: const Offset(0, -2),
+                    ),
+                  ],
+                ),
+                child: ElevatedButton(
+                  onPressed: _isScheduleValid ? _confirmSchedule : null,
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: AppColors.primaryOrange,
+                    padding: const EdgeInsets.symmetric(vertical: 16),
+                    shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12)),
+                  ),
+                  child: const Text(
+                    'Continue to Checkout',
+                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                  ),
                 ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
-      ),
       ),
     );
   }
@@ -245,12 +268,17 @@ class _DayWiseScheduleScreenState extends State<DayWiseScheduleScreen> {
         padding: const EdgeInsets.all(16),
         child: Row(
           children: [
-            const Icon(Icons.calendar_today, size: 20, color: AppColors.primaryOrangeDark),
+            const Icon(Icons.calendar_today,
+                size: 20, color: AppColors.primaryOrangeDark),
             const SizedBox(width: 12),
             const Expanded(
               child: Text(
                 'Day',
-                style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600, color: AppColors.lightTextPrimary, fontFamily: 'Roboto'),
+                style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w600,
+                    color: AppColors.lightTextPrimary,
+                    fontFamily: 'Roboto'),
               ),
             ),
             Expanded(
@@ -276,11 +304,16 @@ class _DayWiseScheduleScreenState extends State<DayWiseScheduleScreen> {
         padding: const EdgeInsets.all(16),
         child: Row(
           children: [
-            const Icon(Icons.beach_access, size: 20, color: AppColors.lightTextDisabled),
+            const Icon(Icons.beach_access,
+                size: 20, color: AppColors.lightTextDisabled),
             const SizedBox(width: 12),
             const Text(
               'Sunday',
-              style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600, color: AppColors.grey, fontFamily: 'Roboto'),
+              style: TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w600,
+                  color: AppColors.grey,
+                  fontFamily: 'Roboto'),
             ),
             const SizedBox(width: 12),
             Container(
@@ -291,7 +324,10 @@ class _DayWiseScheduleScreenState extends State<DayWiseScheduleScreen> {
               ),
               child: const Text(
                 'Holiday',
-                style: TextStyle(color: AppColors.darkGrey, fontSize: 12, fontWeight: FontWeight.bold),
+                style: TextStyle(
+                    color: AppColors.darkGrey,
+                    fontSize: 12,
+                    fontWeight: FontWeight.bold),
               ),
             ),
           ],
@@ -321,7 +357,8 @@ class _DayWiseScheduleScreenState extends State<DayWiseScheduleScreen> {
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(8),
-          borderSide: const BorderSide(color: AppColors.primaryOrange, width: 2),
+          borderSide:
+              const BorderSide(color: AppColors.primaryOrange, width: 2),
         ),
       ),
       items: widget.availableJuices.map((juice) {
@@ -336,10 +373,11 @@ class _DayWiseScheduleScreenState extends State<DayWiseScheduleScreen> {
                   imageUrl,
                   width: 24,
                   height: 24,
-                  errorBuilder: (_, __, ___) => const Icon(Icons.local_drink, size: 20),
+                  errorBuilder: (_, __, ___) =>
+                      const Icon(Icons.local_drink, size: 20),
                 )
               else
-              const Icon(Icons.local_drink, size: 20),
+                const Icon(Icons.local_drink, size: 20),
               const SizedBox(width: 8),
               const Expanded(
                 child: Text(
@@ -360,5 +398,3 @@ class _DayWiseScheduleScreenState extends State<DayWiseScheduleScreen> {
     Navigator.of(context).pop(payload);
   }
 }
-
-

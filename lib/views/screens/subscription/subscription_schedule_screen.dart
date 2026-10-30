@@ -3,6 +3,7 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:lush/theme/app_colors.dart';
 import 'package:lush/theme/app_radius.dart';
+import 'package:lush/theme/bmj_tokens.dart';
 import 'package:lush/theme/theme_cubit.dart';
 import 'package:lush/views/models/subscription_selection.dart';
 import 'package:lush/widgets/glass_card.dart';
@@ -154,7 +155,7 @@ class _SubscriptionScheduleScreenState
                       borderRadius: BorderRadius.circular(12.r),
                     ),
                     child: const Icon(Icons.local_drink_rounded,
-                        color: Colors.white, size: 28),
+                        color: BMJTokens.inkOnBrand, size: 28),
                   ),
                   SizedBox(width: 14.w),
                   Expanded(
@@ -224,7 +225,7 @@ class _SubscriptionScheduleScreenState
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            'Same juice everyday 🍊',
+                            'Same Everyday',
                             style: TextStyle(
                               fontFamily: 'Poppins',
                               fontWeight: FontWeight.w600,
@@ -299,7 +300,7 @@ class _SubscriptionScheduleScreenState
                                   ),
                                 ),
                                 Text(
-                                  'Holiday • No Delivery 🌴',
+                                  'No delivery',
                                   style: TextStyle(
                                     fontFamily: 'Inter',
                                     fontSize: 12.sp,
@@ -362,7 +363,8 @@ class _SubscriptionScheduleScreenState
                               padding: EdgeInsets.symmetric(horizontal: 12.w),
                               decoration: BoxDecoration(
                                 color: isDark
-                                    ? Colors.white.withValues(alpha: 0.05)
+                                    ? BMJTokens.inkOnBrand
+                                        .withValues(alpha: 0.05)
                                     : Colors.black.withValues(alpha: 0.03),
                                 borderRadius: BorderRadius.circular(10.r),
                                 border: Border.all(
@@ -383,7 +385,7 @@ class _SubscriptionScheduleScreenState
                                         : null,
                                     dropdownColor: isDark
                                         ? AppColors.glassElevated
-                                        : Colors.white,
+                                        : BMJTokens.inkOnBrand,
                                     hint: Text(
                                       'Select juice 🥤',
                                       style: TextStyle(
@@ -454,7 +456,7 @@ class _SubscriptionScheduleScreenState
                       : null,
                   style: ElevatedButton.styleFrom(
                     backgroundColor: accentColor,
-                    foregroundColor: Colors.white,
+                    foregroundColor: BMJTokens.inkOnBrand,
                     disabledBackgroundColor:
                         isDark ? Colors.white10 : Colors.black12,
                     elevation: 4,
@@ -467,13 +469,13 @@ class _SubscriptionScheduleScreenState
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                       Text(
-                        'Review Order ✨',
+                        'Review Order',
                         style: TextStyle(
                           fontFamily: 'Poppins',
                           fontSize: 16.sp,
                           fontWeight: FontWeight.bold,
                           color: _allFilled
-                              ? Colors.white
+                              ? BMJTokens.inkOnBrand
                               : AppColors.glassTextDim,
                         ),
                       ),
