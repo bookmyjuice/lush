@@ -95,9 +95,16 @@ class LoginPageState extends State<LoginPage>
         listener: (context, state) async {
           if (state is AuthenticationSuccess) {
             _dialogShown = true;
-            WidgetsBinding.instance.addPostFrameCallback((_) {
-              Navigator.of(context).pop();
-            });
+            // Only dismiss this screen when it is the route on top. In the
+            // phone-OTP flow the verification screen has already replaced the
+            // whole stack with /dashboard, so popping here removed the
+            // dashboard itself and left an empty navigator — the black screen.
+            final ModalRoute<dynamic>? route = ModalRoute.of(context);
+            if (route?.isCurrent ?? false) {
+              WidgetsBinding.instance.addPostFrameCallback((_) {
+                Navigator.of(context).pop();
+              });
+            }
             return;
           }
           if ((state is LogInFailed) && !_dialogShown) {
@@ -203,6 +210,23 @@ class LoginPageState extends State<LoginPage>
                     ],
                   ),
                 ),
+
+                // Guest entry: the dashboard is browsable without an account,
+                // so signing in is a choice rather than a gate.
+                TextButton(
+                  key: const Key('login_continue_as_guest'),
+                  onPressed: () =>
+                      Navigator.of(context).pushReplacementNamed('/dashboard'),
+                  child: Text(
+                    'Continue without signing in',
+                    style: AppTextStyles.textTheme.labelLarge?.copyWith(
+                      color: AppColors.white,
+                      decoration: TextDecoration.underline,
+                      decorationColor: AppColors.white,
+                    ),
+                  ),
+                ),
+                const SizedBox(height: AppSpacing.md),
               ],
             ),
           ),
